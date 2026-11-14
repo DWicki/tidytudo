@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Schedule
@@ -30,7 +31,7 @@ import io.github.dwicki.tidytudo.ui.robotViewModel
 import io.github.dwicki.tidytudo.ui.components.NavigationRow
 
 /** Destinations reachable from the robot tab. */
-enum class RobotDestination { CONSUMABLES, EVENTS, SCHEDULES, SETTINGS, INFO, ROBOTS, APP_SETTINGS }
+enum class RobotDestination { HISTORY, CONSUMABLES, EVENTS, SCHEDULES, SETTINGS, INFO, ROBOTS, APP_SETTINGS }
 
 /** Entry list for maintenance, schedules, settings and info; rows appear only if the robot supports them. */
 @Composable
@@ -50,6 +51,9 @@ fun RobotHubScreen(robot: Robot, contentPadding: PaddingValues, onOpen: (RobotDe
     ) {
         item {
             Group(stringResource(R.string.hub_care)) {
+                NavigationRow(Icons.Outlined.History, stringResource(R.string.history_title), stringResource(R.string.hub_history_text)) {
+                    onOpen(RobotDestination.HISTORY)
+                }
                 if (Capabilities.CONSUMABLES in capabilities) {
                     NavigationRow(Icons.Outlined.Build, stringResource(R.string.consumables_title), stringResource(R.string.hub_consumables_text)) {
                         onOpen(RobotDestination.CONSUMABLES)

@@ -22,5 +22,6 @@ class RobotsViewModel(private val container: AppContainer) : ViewModel() {
         container.vault.delete(robot.id)
         container.sessions.invalidate(robot.id)
         container.robotStore.remove(robot.id)
+        container.history.deleteRobot(robot.id)
     }
 }

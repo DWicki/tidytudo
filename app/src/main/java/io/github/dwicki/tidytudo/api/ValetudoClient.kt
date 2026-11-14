@@ -64,6 +64,12 @@ class ValetudoClient(baseUrl: String, httpClient: OkHttpClient) {
     suspend fun state(): ApiResult<RobotState> = transport.get("robot/state/attributes").map(StateParser::parse)
     suspend fun map(): ApiResult<RobotMap> = transport.get("robot/state/map").parse(MapParser::parse)
 
+    /** The map as sent by the robot, for storing it with a cleaning session. */
+    suspend fun mapJson(): ApiResult<JsonElement> = transport.get("robot/state/map")
+
+    suspend fun obstacleImage(obstacleId: String): ApiResult<ByteArray> =
+        transport.getBytes("${capabilityPath(Capabilities.OBSTACLE_IMAGES)}/img/$obstacleId")
+
     // Basic control
 
     suspend fun basicControl(action: String) = putAction(Capabilities.BASIC_CONTROL, action)

@@ -104,7 +104,7 @@ object MapParser {
         val noMopAreas = mutableListOf<List<CmPoint>>()
         val activeZones = mutableListOf<List<CmPoint>>()
         val carpets = mutableListOf<List<CmPoint>>()
-        val obstacles = mutableListOf<CmPoint>()
+        val obstacles = mutableListOf<Obstacle>()
 
         fun add(entity: JsonObject) {
             val points = (entity["points"] as? JsonArray)?.toFloatArray()?.toPoints() ?: return
@@ -113,7 +113,7 @@ object MapParser {
                 "robot_position" -> robot = Pose(points.first(), angleOf(entity))
                 "charger_location" -> charger = Pose(points.first(), angleOf(entity))
                 "go_to_target" -> goToTarget = points.first()
-                "obstacle" -> obstacles += points.first()
+                "obstacle" -> obstacles += obstacleOf(entity, points.first())
                 "path" -> paths += points
                 "predicted_path" -> predictedPath = points
                 "virtual_wall" -> if (points.size >= 2) virtualWalls += CmLine(points[0], points[1])
@@ -122,6 +122,11 @@ object MapParser {
                 "active_zone" -> activeZones += points
                 "carpet" -> carpets += points
             }
+        }
+
+        private fun obstacleOf(entity: JsonObject, position: CmPoint): Obstacle {
+            val meta = entity["metaData"] as? JsonObject
+            return Obstacle(position, meta?.text("id"), meta?.text("label"))
         }
 
         private fun angleOf(entity: JsonObject): Float =

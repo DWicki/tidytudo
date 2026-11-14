@@ -7,6 +7,8 @@ import io.github.dwicki.tidytudo.data.AppSettings
 import io.github.dwicki.tidytudo.data.CredentialVault
 import io.github.dwicki.tidytudo.data.Robot
 import io.github.dwicki.tidytudo.data.RobotStore
+import io.github.dwicki.tidytudo.data.history.HistoryStore
+import io.github.dwicki.tidytudo.data.history.SessionRecorder
 import io.github.dwicki.tidytudo.discovery.MdnsDiscovery
 import io.github.dwicki.tidytudo.discovery.SubnetScanner
 import io.github.dwicki.tidytudo.service.MonitorService
@@ -27,6 +29,8 @@ class AppContainer(context: Context) {
     val robotStore = RobotStore(File(context.filesDir, "robots.json"))
     val settings = AppSettings(context)
     val sessions = SessionManager(vault, appScope)
+    val history = HistoryStore(File(context.filesDir, "history"))
+    val recorder = SessionRecorder(robotStore, history, ::session, appScope)
     val mdnsDiscovery = MdnsDiscovery(appContext)
     val subnetScanner = SubnetScanner(appContext)
 

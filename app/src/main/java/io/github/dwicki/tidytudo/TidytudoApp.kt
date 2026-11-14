@@ -12,6 +12,7 @@ class TidytudoApp : Application() {
         super.onCreate()
         container = AppContainer(this)
         Notifications.createChannels(this)
+        container.recorder.start()
     }
 }
 

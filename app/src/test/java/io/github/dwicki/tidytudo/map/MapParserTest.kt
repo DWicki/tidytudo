@@ -46,7 +46,8 @@ class MapParserTest {
                 {"__class":"PolygonMapEntity","type":"no_go_area","points":[0,0,10,0,10,10,0,10]},
                 {"__class":"PolygonMapEntity","type":"no_mop_area","points":[0,0,10,0,10,10,0,10]},
                 {"__class":"PointMapEntity","type":"hologram","points":[1,1]},
-                {"__class":"PointMapEntity","type":"obstacle","points":"broken"}]}""",
+                {"__class":"PointMapEntity","type":"obstacle","points":"broken"},
+                {"__class":"PointMapEntity","type":"obstacle","points":[50,60],"metaData":{"id":"o-1","label":"Fabric (70%)"}}]}""",
         )
         assertEquals(Pose(CmPoint(100f, 200f), 90f), map.robot)
         assertEquals(0f, map.charger!!.angle)
@@ -54,7 +55,7 @@ class MapParserTest {
         assertEquals(CmLine(CmPoint(0f, 0f), CmPoint(100f, 0f)), map.virtualWalls.single())
         assertEquals(1, map.noGoAreas.size)
         assertEquals(1, map.noMopAreas.size)
-        assertTrue(map.obstacles.isEmpty())
+        assertEquals(Obstacle(CmPoint(50f, 60f), "o-1", "Fabric (70%)"), map.obstacles.single())
     }
 
     @Test

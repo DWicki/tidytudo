@@ -67,6 +67,8 @@ fun MapCanvas(
     onTap: (point: CmPoint, segmentId: String?) -> Unit,
     onShapeChange: (EditableShape) -> Unit,
     modifier: Modifier = Modifier,
+    markers: List<CmPoint> = emptyList(),
+    showRoomLabels: Boolean = true,
 ) {
     val palette = rememberMapPalette()
     val overlay = rememberOverlayStyle()
@@ -114,8 +116,9 @@ fun MapCanvas(
             }
             drawEntities(map, projection, overlay, viewport.scale)
         }
-        drawRoomLabels(map, projection, viewport, textMeasurer, overlay)
+        if (showRoomLabels) drawRoomLabels(map, projection, viewport, textMeasurer, overlay)
         drawRobotMarker(map, projection, viewport, overlay)
+        drawMarkers(markers, projection, viewport, overlay)
         drawShapes(shapes, projection, viewport, overlay)
     }
 }

@@ -88,7 +88,7 @@ fun DrawScope.drawEntities(map: RobotMap, projection: MapProjection, style: Over
     map.virtualWalls.forEach { wall ->
         drawLine(style.wall, projection.toLocal(wall.start), projection.toLocal(wall.end), 4f * px, StrokeCap.Round)
     }
-    map.obstacles.forEach { drawCircle(style.obstacle, 3f * px, projection.toLocal(it)) }
+    map.obstacles.forEach { drawCircle(style.obstacle, 3f * px, projection.toLocal(it.position)) }
     map.charger?.let { drawCharger(projection.toLocal(it.position), style, px) }
     map.goToTarget?.let { drawTarget(projection.toLocal(it), style.zone, px) }
 }
@@ -121,6 +121,16 @@ fun DrawScope.drawRoomLabels(
             cornerRadius = CornerRadius(LABEL_PADDING * 2),
         )
         drawText(layout, topLeft = topLeft)
+    }
+}
+
+/** Highlighted points, e.g. obstacles of a past run, as pins in screen space so they stay tappable. */
+fun DrawScope.drawMarkers(markers: List<CmPoint>, projection: MapProjection, viewport: MapViewport, style: OverlayStyle) {
+    markers.forEach { point ->
+        val center = viewport.toScreen(projection.toLocal(point))
+        drawCircle(style.robot, MARKER_RADIUS + SHAPE_STROKE, center)
+        drawCircle(NO_GO_RED, MARKER_RADIUS, center)
+        drawCircle(Color.White, MARKER_RADIUS * 0.35f, center)
     }
 }
 
@@ -220,6 +230,7 @@ private const val ROBOT_RADIUS_DP = 9f
 private const val CHARGER_RADIUS_DP = 8f
 private const val TARGET_RADIUS_DP = 7f
 private const val HANDLE_RADIUS = 22f
+private const val MARKER_RADIUS = 16f
 private const val SHAPE_STROKE = 5f
 private const val LABEL_PADDING = 8f
 private const val MIN_LABEL_SCALE = 0.8f

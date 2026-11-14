@@ -17,6 +17,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okhttp3.ResponseBody
 import java.io.IOException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -36,8 +37,11 @@ class HttpTransport(baseUrl: String, val client: OkHttpClient) {
     val apiRoot: HttpUrl = baseUrl.trimEnd('/').plus("/api/v2/").toHttpUrl()
 
     suspend fun get(path: String): ApiResult<JsonElement> = execute(request(path).get().build()) { body ->
-        JsonCodec.json.parseToJsonElement(body)
+        JsonCodec.json.parseToJsonElement(body.string())
     }
+
+    /** Binary download, e.g. an obstacle photo. */
+    suspend fun getBytes(path: String): ApiResult<ByteArray> = execute(request(path).get().build()) { body -> body.bytes() }
 
     suspend fun put(path: String, body: JsonObject): ApiResult<Unit> =
         execute(request(path).put(body.toRequestBody()).build()) { }
@@ -49,7 +53,7 @@ class HttpTransport(baseUrl: String, val client: OkHttpClient) {
 
     fun request(path: String): Request.Builder = Request.Builder().url(apiRoot.resolve(path)!!)
 
-    private suspend fun <T> execute(request: Request, readBody: (String) -> T): ApiResult<T> =
+    private suspend fun <T> execute(request: Request, readBody: (ResponseBody) -> T): ApiResult<T> =
         withContext(Dispatchers.IO) {
             try {
                 client.newCall(request).await().use { response -> handle(response, readBody) }
@@ -59,8 +63,8 @@ class HttpTransport(baseUrl: String, val client: OkHttpClient) {
             }
         }
 
-    private fun <T> handle(response: Response, readBody: (String) -> T): ApiResult<T> {
-        val body = response.body?.string().orEmpty()
+    private fun <T> handle(response: Response, readBody: (ResponseBody) -> T): ApiResult<T> {
+        val body = response.body ?: return ApiResult.Failure(ApiError.UnexpectedResponse(IOException("Empty response")))
         return when {
             response.isSuccessful -> runCatching { readBody(body) }.fold(
                 onSuccess = { ApiResult.Success(it) },
@@ -68,7 +72,7 @@ class HttpTransport(baseUrl: String, val client: OkHttpClient) {
             )
             response.code == 401 -> ApiResult.Failure(ApiError.AuthRequired)
             response.code == 404 -> ApiResult.Failure(ApiError.NotSupported)
-            else -> ApiResult.Failure(ApiError.Http(response.code, body.take(MAX_ERROR_BODY)))
+            else -> ApiResult.Failure(ApiError.Http(response.code, body.string().take(MAX_ERROR_BODY)))
         }
     }
 

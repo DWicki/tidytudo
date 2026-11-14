@@ -18,12 +18,15 @@ and the address `127.0.0.1:8080` in the app.
 import argparse
 import base64
 import json
+import struct
+import zlib
 import threading
 import time
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 PIXEL_SIZE = 5  # cm per map pixel, as on most real robots
+PNG_SIGNATURE = bytes([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
 
 # Fictional flat in map pixels: (name, x0, y0, x1, y1), inclusive.
 ROOMS = [
@@ -50,8 +53,37 @@ FULL_CAPABILITIES = BASIC_CAPABILITIES + [
     "KeyLockCapability", "CarpetModeControlCapability", "ObstacleAvoidanceControlCapability",
     "CarpetSensorModeControlCapability", "AutoEmptyDockManualTriggerCapability",
     "MopDockCleanManualTriggerCapability", "MopDockDryManualTriggerCapability",
+    "ObstacleImagesCapability",
     "MopDockMopWashTemperatureControlCapability",  # deliberately unknown to the app
 ]
+
+# Fictional detections in cm, with the colour of their generated "photo".
+OBSTACLES = [
+    ("a1f0c2de-0001", "Cable (82%)", (3300, 3150), (70, 70, 80)),
+    ("a1f0c2de-0002", "Sock (77%)", (2700, 3150), (200, 120, 140)),
+    ("a1f0c2de-0003", "Shoe (91%)", (3420, 2620), (150, 100, 60)),
+]
+
+
+def obstacle_png(color, width=320, height=240):
+    """A small PNG standing in for a camera photo: a soft floor gradient with a coloured blob."""
+    rows = []
+    for y in range(height):
+        row = bytearray([0])
+        for x in range(width):
+            in_blob = (x - width / 2) ** 2 / 70 ** 2 + (y - height / 2) ** 2 / 45 ** 2 < 1
+            if in_blob:
+                row += bytes(color)
+            else:
+                shade = 150 + (y * 60 // height)
+                row += bytes((shade, shade - 10, shade - 25))
+        rows.append(bytes(row))
+
+    def chunk(kind, data):
+        return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
+
+    header = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    return PNG_SIGNATURE + chunk(b"IHDR", header) + chunk(b"IDAT", zlib.compress(b"".join(rows))) + chunk(b"IEND", b"")
 
 
 # ---------------------------------------------------------------------------------------------
@@ -193,7 +225,7 @@ class Robot:
         self.dnd = {"enabled": True, "start": {"hour": 21, "minute": 0}, "end": {"hour": 6, "minute": 0}}
         self.volume = 60
         self.switches = {"KeyLockCapability": False, "CarpetModeControlCapability": True,
-                         "ObstacleAvoidanceControlCapability": True}
+                         "ObstacleAvoidanceControlCapability": True, "ObstacleImagesCapability": True}
         self.carpet_sensor = "avoid"
         self.version = 1  # bumped on every change, wakes SSE writers
 
@@ -229,7 +261,11 @@ class Robot:
             {"__class": "PointMapEntity", "metaData": {"angle": self.angle}, "type": "robot_position", "points": cm(self.position)},
             {"__class": "PolygonMapEntity", "metaData": {}, "type": "carpet",
              "points": [2550, 2650, 2900, 2650, 2900, 2850, 2550, 2850]},
-            {"__class": "PointMapEntity", "metaData": {"label": "Cable"}, "type": "obstacle", "points": [3300, 3150]},
+        ]
+        entities += [
+            {"__class": "PointMapEntity", "metaData": {"id": oid, "label": label, "image": f"/data/{oid}.jpg"},
+             "type": "obstacle", "points": list(point)}
+            for oid, label, point, _ in OBSTACLES
         ]
         if self.path:
             entities.append({"__class": "PathMapEntity", "metaData": {}, "type": "path",
@@ -329,6 +365,17 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def send_image(self, obstacle_id):
+        color = next((c for oid, _, _, c in OBSTACLES if oid == obstacle_id), None)
+        if color is None:
+            return self.send_status(404)
+        body = obstacle_png(color)
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
     def send_ok(self):
         body = b"OK"
         self.send_response(200)
@@ -420,6 +467,8 @@ class Handler(BaseHTTPRequestHandler):
             ("CarpetSensorModeControlCapability", ""): lambda: {"mode": robot.carpet_sensor},
             ("CarpetSensorModeControlCapability", "properties"): lambda: {"supportedModes": ["off", "avoid", "lift"]},
         }
+        if name == "ObstacleImagesCapability" and rest.startswith("img/"):
+            return self.send_image(rest.removeprefix("img/"))
         if rest == "presets" and name in presets:
             return self.send_json(presets[name])
         if name in robot.switches and rest == "":

@@ -27,6 +27,7 @@ object Capabilities {
     const val AUTO_EMPTY_TRIGGER = "AutoEmptyDockManualTriggerCapability"
     const val MOP_CLEAN_TRIGGER = "MopDockCleanManualTriggerCapability"
     const val MOP_DRY_TRIGGER = "MopDockDryManualTriggerCapability"
+    const val OBSTACLE_IMAGES = "ObstacleImagesCapability"
 
     /** Dock actions that all take `{"action":"trigger"}`. */
     val dockTriggers = listOf(AUTO_EMPTY_TRIGGER, MOP_CLEAN_TRIGGER, MOP_DRY_TRIGGER)
@@ -42,7 +43,7 @@ object Capabilities {
         "ObstacleAvoidanceControlCapability",
         "PetObstacleAvoidanceControlCapability",
         "CollisionAvoidantNavigationControlCapability",
-        "ObstacleImagesCapability",
+        OBSTACLE_IMAGES,
         "CameraLightControlCapability",
         "MopExtensionControlCapability",
         "MopTwistControlCapability",

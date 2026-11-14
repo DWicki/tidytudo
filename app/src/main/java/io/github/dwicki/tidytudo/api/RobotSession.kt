@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -50,6 +51,13 @@ class RobotSession(val client: ValetudoClient, scope: CoroutineScope) {
         launch { liveState.collect { send(it) } }
         runLiveLoop()
     }.stateIn(scope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), LiveState())
+
+    /**
+     * The latest known state without keeping a connection open: collecting it does not start the
+     * SSE stream. Used by observers such as the history recorder, which should record only what
+     * other parts of the app are watching anyway.
+     */
+    val observedState: StateFlow<LiveState> = liveState.asStateFlow()
 
     val map: StateFlow<RobotMap?> = flow { runMapLoop() }
         .flowOn(Dispatchers.Default)

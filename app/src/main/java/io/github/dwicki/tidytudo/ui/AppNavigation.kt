@@ -19,6 +19,8 @@ import io.github.dwicki.tidytudo.data.Robot
 import io.github.dwicki.tidytudo.ui.appsettings.AppSettingsScreen
 import io.github.dwicki.tidytudo.ui.care.ConsumablesScreen
 import io.github.dwicki.tidytudo.ui.care.EventsScreen
+import io.github.dwicki.tidytudo.ui.history.HistoryScreen
+import io.github.dwicki.tidytudo.ui.history.SessionDetailScreen
 import io.github.dwicki.tidytudo.ui.info.RobotInfoScreen
 import io.github.dwicki.tidytudo.ui.onboarding.AddRobotScreen
 import io.github.dwicki.tidytudo.ui.robot.RobotDestination
@@ -30,6 +32,8 @@ private object Routes {
     const val ONBOARDING = "onboarding"
     const val MAIN = "main"
     const val ADD_ROBOT = "add_robot"
+    const val HISTORY = "history"
+    const val SESSION = "history/{id}"
     const val CONSUMABLES = "consumables"
     const val EVENTS = "events"
     const val SCHEDULES = "schedules"
@@ -78,6 +82,18 @@ fun AppNavigation() {
                 )
             }
         }
+        robotScreen(Routes.HISTORY, robot, navController) {
+            HistoryScreen(
+                robot = it,
+                onBack = navController::popBackStack,
+                onOpen = { id -> navController.navigate("history/$id") },
+                onOpenAppSettings = { navController.navigate(Routes.APP_SETTINGS) },
+            )
+        }
+        composable(Routes.SESSION) { entry ->
+            val id = entry.arguments?.getString("id")
+            if (robot != null && id != null) SessionDetailScreen(robot, id, navController::popBackStack)
+        }
         robotScreen(Routes.CONSUMABLES, robot, navController) { ConsumablesScreen(it, navController::popBackStack) }
         robotScreen(Routes.EVENTS, robot, navController) { EventsScreen(it, navController::popBackStack) }
         robotScreen(Routes.SCHEDULES, robot, navController) { SchedulesScreen(it, navController::popBackStack) }
@@ -105,6 +121,7 @@ private fun NavGraphBuilder.robotScreen(
 
 private val RobotDestination.route: String
     get() = when (this) {
+        RobotDestination.HISTORY -> Routes.HISTORY
         RobotDestination.CONSUMABLES -> Routes.CONSUMABLES
         RobotDestination.EVENTS -> Routes.EVENTS
         RobotDestination.SCHEDULES -> Routes.SCHEDULES

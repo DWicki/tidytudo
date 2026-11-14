@@ -360,4 +360,23 @@
     <string name="shortcut_clean_label">%1$s reinigen</string>
     <string name="shortcut_starting">%1$s startet …</string>
     <string name="shortcut_unavailable">Diese Verknüpfung ist nicht mehr verfügbar.</string>
+    <string name="history_title">Verlauf</string>
+    <string name="hub_history_text">Frühere Reinigungen mit Karte und Fotos</string>
+    <string name="history_empty">Noch keine Reinigungen aufgezeichnet</string>
+    <string name="history_empty_text">Jede Reinigung, die die App mitbekommt, wird hier gespeichert, mit Karte und Fotos von Hindernissen. Alles bleibt auf diesem Telefon.</string>
+    <string name="history_empty_text_monitoring_off">Valetudo führt keinen Verlauf, deshalb zeichnet Tidytudo Reinigungen selbst auf. Im Moment klappt das nur, solange die App offen ist; schalte Meldungen im Hintergrund ein, um jede Reinigung aufzuzeichnen.</string>
+    <string name="history_monitoring_hint">Es werden nur Reinigungen aufgezeichnet, während die App offen war.</string>
+    <string name="history_enable_monitoring">Einschalten</string>
+    <string name="history_result_finished">Fertig</string>
+    <string name="history_result_stopped">Gestoppt</string>
+    <string name="history_result_error">Problem</string>
+    <string name="history_summary">Zusammenfassung</string>
+    <string name="history_errors">Probleme während der Reinigung</string>
+    <string name="history_no_photo">Für dieses Hindernis gibt es kein Foto.</string>
+    <string name="history_map_description">Karte dieser Reinigung mit gefahrenem Weg und Hindernissen</string>
+    <string name="history_delete_title">Diese Reinigung aus dem Verlauf löschen?</string>
+    <plurals name="history_obstacles">
+        <item quantity="one">%1$d Hindernis</item>
+        <item quantity="other">%1$d Hindernisse</item>
+    </plurals>
 </resources>

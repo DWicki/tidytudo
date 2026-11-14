@@ -19,7 +19,7 @@ data class RobotMap(
     val noMopAreas: List<List<CmPoint>>,
     val activeZones: List<List<CmPoint>>,
     val carpets: List<List<CmPoint>>,
-    val obstacles: List<CmPoint>,
+    val obstacles: List<Obstacle>,
 ) {
     /** Bounding box of all pixel layers, in pixels; null for an empty map (e.g. before the first mapping run). */
     val bounds: PixelBounds? by lazy {
@@ -36,7 +36,13 @@ data class CmPoint(val x: Float, val y: Float)
 
 data class CmLine(val start: CmPoint, val end: CmPoint)
 
-/** Position in cm plus heading in degrees (0 = towards +x, clockwise as in Valetudo's web UI). */
+/**
+ * Something the robot's camera recognised. [id] fetches the photo via `ObstacleImagesCapability`;
+ * [label] is the robot's text, e.g. "Fabric (70%)". Both are absent on robots without a camera.
+ */
+data class Obstacle(val position: CmPoint, val id: String?, val label: String?)
+
+/** Position in cm plus heading in degrees (0 = up on the map, clockwise, as in Valetudo's web UI). */
 data class Pose(val position: CmPoint, val angle: Float)
 
 data class SegmentLayer(
