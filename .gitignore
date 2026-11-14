@@ -1,0 +1,20 @@
+# Gradle / Android Studio
+.gradle/
+build/
+/local.properties
+/.idea/
+*.iml
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Never commit signing material or binaries
+*.jks
+*.keystore
+*.apk
+*.aab
+keystore.properties
+
+# Unredacted screenshot originals stay outside the repo
+/screenshots-raw/
