@@ -386,10 +386,11 @@
     <string name="history_title">History</string>
     <string name="hub_history_text">Past cleanings with map and photos</string>
     <string name="history_empty">No cleanings recorded yet</string>
-    <string name="history_empty_text">Every cleaning the app sees is saved here, with its map and photos of obstacles. Everything stays on this phone.</string>
-    <string name="history_empty_text_monitoring_off">Valetudo keeps no history, so Tidytudo records cleanings itself. Right now that only works while the app is open; turn on background alerts to record every cleaning.</string>
-    <string name="history_monitoring_hint">Only cleanings seen while the app was open are recorded.</string>
+    <string name="history_empty_text">Whenever Tidytudo connects, it saves the robot\'s latest cleaning with its map and obstacle photos. Everything stays on this phone.</string>
+    <string name="history_empty_text_monitoring_off">Valetudo keeps only the latest cleaning, so Tidytudo saves it whenever it connects to the robot. Open the app after cleanings, or turn on background alerts so no cleaning is missed.</string>
+    <string name="history_monitoring_hint">If the robot cleans twice before the app connects, the earlier cleaning is missed.</string>
     <string name="history_enable_monitoring">Turn on</string>
+    <string name="history_found_on">Found on %1$s</string>
     <string name="history_result_finished">Finished</string>
     <string name="history_result_stopped">Stopped</string>
     <string name="history_result_error">Problem</string>

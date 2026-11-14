@@ -149,11 +149,15 @@ fun sessionSummary(session: CleaningSession): String {
     return listOfNotNull(duration, area, rooms).joinToString(" · ")
 }
 
-fun sessionTitle(context: Context, session: CleaningSession): String = DateUtils.formatDateTime(
-    context,
-    session.startedAt,
-    DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_SHOW_WEEKDAY or DateUtils.FORMAT_ABBREV_ALL,
-)
+/** Start time for runs seen live; for runs found afterwards only when they were found is known. */
+fun sessionTitle(context: Context, session: CleaningSession): String {
+    val flags = DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_SHOW_WEEKDAY or DateUtils.FORMAT_ABBREV_ALL
+    return if (session.timeExact) {
+        DateUtils.formatDateTime(context, session.startedAt, flags)
+    } else {
+        context.getString(R.string.history_found_on, DateUtils.formatDateTime(context, session.endedAt, flags))
+    }
+}
 
 private const val THUMBNAILS = 3
 private const val THUMBNAIL_PIXELS = 160

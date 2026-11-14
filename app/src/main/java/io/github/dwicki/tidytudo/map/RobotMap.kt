@@ -29,7 +29,40 @@ data class RobotMap(
 
     val isEmpty: Boolean get() = bounds == null
 
-    fun segmentAt(pixelX: Int, pixelY: Int): SegmentLayer? = segments.firstOrNull { it.pixels.contains(pixelX, pixelY) }
+    /** Segment index per pixel of [bounds], built once; makes lookups O(1) instead of scanning every run. */
+    private val segmentGrid: IntArray? by lazy {
+        val box = bounds ?: return@lazy null
+        IntArray(box.width * box.height) { NO_SEGMENT }.also { grid ->
+            segments.forEachIndexed { index, segment ->
+                segment.pixels.forEachRun { x, y, length ->
+                    for (pixelX in x until x + length) grid[(y - box.minY) * box.width + (pixelX - box.minX)] = index
+                }
+            }
+        }
+    }
+
+    fun segmentAt(pixelX: Int, pixelY: Int): SegmentLayer? = segmentIndexAt(pixelX, pixelY)?.let(segments::get)
+
+    /** Rooms the driven path passed through, ignoring rooms only grazed by a few points (doorways). */
+    fun visitedSegments(minPoints: Int = MIN_POINTS_PER_ROOM): List<SegmentLayer> {
+        val counts = IntArray(segments.size)
+        paths.flatten().forEach { point ->
+            segmentIndexAt((point.x / pixelSize).toInt(), (point.y / pixelSize).toInt())?.let { counts[it]++ }
+        }
+        return segments.filterIndexed { index, _ -> counts[index] >= minPoints }
+    }
+
+    private fun segmentIndexAt(pixelX: Int, pixelY: Int): Int? {
+        val box = bounds ?: return null
+        val grid = segmentGrid ?: return null
+        if (pixelX !in box.minX..box.maxX || pixelY !in box.minY..box.maxY) return null
+        return grid[(pixelY - box.minY) * box.width + (pixelX - box.minX)].takeIf { it != NO_SEGMENT }
+    }
+
+    private companion object {
+        const val NO_SEGMENT = -1
+        const val MIN_POINTS_PER_ROOM = 20
+    }
 }
 
 data class CmPoint(val x: Float, val y: Float)

@@ -41,6 +41,23 @@ class HistoryStore(private val root: File) {
         }
     }
 
+    /** Adds a photo to a stored session; photos arrive one by one because the robot rate-limits them. */
+    suspend fun attachImage(sessionId: String, obstacleId: String, bytes: ByteArray) = lock.withLock {
+        withContext(Dispatchers.IO) {
+            if (sessionsState.value.none { it.id == sessionId }) return@withContext
+            imageFile(sessionId, obstacleId).writeBytes(bytes)
+            val updated = sessionsState.value.map { session ->
+                if (session.id != sessionId) {
+                    session
+                } else {
+                    session.copy(obstacles = session.obstacles.map { if (it.id == obstacleId) it.copy(hasImage = true) else it })
+                }
+            }
+            writeIndex(updated)
+            sessionsState.value = updated
+        }
+    }
+
     suspend fun delete(sessionId: String) = lock.withLock {
         withContext(Dispatchers.IO) {
             folder(sessionId).deleteRecursively()

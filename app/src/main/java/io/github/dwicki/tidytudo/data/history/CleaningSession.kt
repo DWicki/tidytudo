@@ -3,16 +3,20 @@ package io.github.dwicki.tidytudo.data.history
 import kotlinx.serialization.Serializable
 
 /**
- * One cleaning run as observed by the app (F-8). Valetudo keeps no history, so everything here
- * was recorded on the phone while the run happened.
+ * One cleaning run (F-8). Valetudo keeps no history, only the data of its latest run, so the
+ * app stores each run it sees: live while it happens, or afterwards from what the robot still holds.
  */
 @Serializable
 data class CleaningSession(
     val id: String,
     val robotId: String,
-    /** Wall-clock millis. */
+    /** Wall-clock millis. For runs found afterwards ([timeExact] false), [endedAt] is when the app found it. */
     val startedAt: Long,
     val endedAt: Long,
+    /** False for runs found afterwards: the robot does not store when a run happened. */
+    val timeExact: Boolean = true,
+    /** Identifies the robot's run (driven path and obstacles), so the same run is never stored twice. */
+    val fingerprint: String = "",
     /** From `CurrentStatisticsCapability` at the end of the run; null if the robot does not report it. */
     val durationSeconds: Long? = null,
     val areaCm2: Long? = null,

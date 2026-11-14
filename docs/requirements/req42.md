@@ -140,10 +140,10 @@ Valetudo keeps no history of cleaning runs, so the app records them itself.
 
 | ID | Requirement | Status |
 |----|-------------|--------|
-| F-8.1 | Record each cleaning run the app observes: start, duration, area, rooms or zone, result (finished, stopped, error) and errors during the run | 🔬 (works on the phone against the mock server; not yet on the real robot) |
-| F-8.2 | Store the map at the end of the run, with the driven path | 🔬 (works on the phone against the mock server; not yet on the real robot) |
-| F-8.3 | Store the obstacles of the run with label and photo (`ObstacleImagesCapability`) | 🔬 (works on the phone against the mock server; not yet on the real robot) |
-| F-8.4 | History list and detail view: map with tappable obstacle pins, summary, errors, photo gallery; delete a run | 🔬 (works on the phone against the mock server; not yet on the real robot) |
+| F-8.1 | Record each cleaning run: afterwards from what the robot still holds whenever the app connects, and live (with exact times and errors) when the app sees it happen; never store a run twice | 🟡 (afterwards: verified on the real robot; the robot discards path and obstacles a few hours after a run, so runs can be missed without background monitoring. Live: works against the mock) |
+| F-8.2 | Store the map at the end of the run, with the driven path, and derive the rooms from the path | ✅ (Fairphone 6, Valetudo 2026.08.0) |
+| F-8.3 | Store the obstacles of the run with label and photo, paced to Valetudo's rate limit and completed on later connections | 🔬 (labels verified on the real robot; only 9 of 45 photos were fetched before pacing was added, pacing tested with the mock) |
+| F-8.4 | History list and detail view: map with tappable obstacle pins, summary, errors, photo gallery; delete a run | ✅ (Fairphone 6, Valetudo 2026.08.0) |
 | F-8.5 | Keep history on the phone only, excluded from backups; keep the newest 50 runs per robot | ✅ (unit-tested; backup exclusion in `data_extraction_rules.xml`) |
 | F-8.6 | Tell the user that only observed runs are recorded and offer background monitoring to record all | 🔬 |
 

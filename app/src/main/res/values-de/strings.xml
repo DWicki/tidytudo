@@ -363,10 +363,11 @@
     <string name="history_title">Verlauf</string>
     <string name="hub_history_text">Frühere Reinigungen mit Karte und Fotos</string>
     <string name="history_empty">Noch keine Reinigungen aufgezeichnet</string>
-    <string name="history_empty_text">Jede Reinigung, die die App mitbekommt, wird hier gespeichert, mit Karte und Fotos von Hindernissen. Alles bleibt auf diesem Telefon.</string>
-    <string name="history_empty_text_monitoring_off">Valetudo führt keinen Verlauf, deshalb zeichnet Tidytudo Reinigungen selbst auf. Im Moment klappt das nur, solange die App offen ist; schalte Meldungen im Hintergrund ein, um jede Reinigung aufzuzeichnen.</string>
-    <string name="history_monitoring_hint">Es werden nur Reinigungen aufgezeichnet, während die App offen war.</string>
+    <string name="history_empty_text">Tidytudo speichert bei jeder Verbindung die letzte Reinigung des Roboters mit Karte und Fotos der Hindernisse. Alles bleibt auf diesem Telefon.</string>
+    <string name="history_empty_text_monitoring_off">Valetudo behält nur die letzte Reinigung, deshalb speichert Tidytudo sie bei jeder Verbindung zum Roboter. Öffne die App nach Reinigungen oder schalte Meldungen im Hintergrund ein, damit keine Reinigung fehlt.</string>
+    <string name="history_monitoring_hint">Reinigt der Roboter zweimal, bevor die App verbunden ist, fehlt die frühere Reinigung.</string>
     <string name="history_enable_monitoring">Einschalten</string>
+    <string name="history_found_on">Gefunden am %1$s</string>
     <string name="history_result_finished">Fertig</string>
     <string name="history_result_stopped">Gestoppt</string>
     <string name="history_result_error">Problem</string>

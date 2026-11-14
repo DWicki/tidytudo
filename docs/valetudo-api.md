@@ -221,12 +221,22 @@ handles this differently" instead of a generic failure.
 
 ## History
 
-Valetudo has no endpoint for past cleaning runs. Statistics (`CurrentStatisticsCapability`)
-describe only the last run, and the map holds only the current state. Tidytudo therefore records
-runs itself (see arc42 §6.4): status changes from the attribute stream mark start and end, and at
-the end it saves the statistics, the map JSON and the obstacle photos from
-`ObstacleImagesCapability/img/<id>`. On the tested robot the map listed 45 obstacles, each with an
-id, a label with confidence and a photo of 672 × 504 pixels.
+Valetudo has no endpoint for past cleaning runs. What the robot still holds after a run:
+
+| Data | Source | How long it stays (observed on the tested robot) |
+|---|---|---|
+| Duration and area | `CurrentStatisticsCapability` | Until the next run starts |
+| Driven path, obstacles with id and label | `GET /robot/state/map` (`path` and `obstacle` entities) | A few hours: about 3.5 h after the run they were still there, 15 min later the robot had replaced the map (new `metaData.nonce`) without path and obstacles, with no command sent |
+| Obstacle photos (JPEG, 672 × 504, ~65 kB) | `GET ObstacleImagesCapability/img/<obstacle id>` | Like the obstacles; afterwards `404` |
+| When the run happened | — | Not stored anywhere; `timestamp` in the statistics is the request time |
+
+Photos are **rate-limited per client** (`ObstacleImagesCapabilityRouter`): at most 3 per second,
+10 per 5 s and 30 per 20 s; beyond that the robot answers `429` with `X-RateLimit-*` headers.
+
+Tidytudo therefore records runs itself (arc42 §6.4): live when it sees a run start and end, and
+otherwise afterwards whenever it connects to a robot that is not cleaning. Photos are fetched one
+every 700 ms after the run has been stored, and missing ones are retried on the next connection
+while the robot still has them.
 
 ## Not used
 
