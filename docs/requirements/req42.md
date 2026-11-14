@@ -57,98 +57,98 @@ flowchart LR
 
 | ID | Requirement | Status |
 |----|-------------|--------|
-| F-1.1 | Discover robots on the LAN via mDNS (`_valetudo._tcp`) and show model and name from TXT records | ⏳ |
-| F-1.2 | Add a robot manually by host name, IP address or URL (with optional port) | ⏳ |
-| F-1.3 | Check the address before saving: reachable, is Valetudo, version shown | ⏳ |
-| F-1.4 | HTTP basic auth: ask on `401`, store credentials encrypted (see Q-3) | ⏳ |
-| F-1.5 | HTTPS with self-signed certificates: show SHA-256 fingerprint, pin it after user confirmation, refuse on change | ⏳ |
-| F-1.6 | Several robots: list, switch, rename (local nickname), remove | ⏳ |
-| F-1.7 | Recognise a robot by its Valetudo system id when its address changes | ⏳ |
-| F-1.8 | Clear message when a robot runs a Valetudo version that is too old (no `/api/v2`) | ⏳ |
-| F-1.9 | Fallback discovery when mDNS finds nothing: scan the phone's own Wi-Fi subnet (max. /24, private addresses only) for `GET /api/v2/valetudo/version` | ⏳ |
+| F-1.1 | Discover robots on the LAN via mDNS (`_valetudo._tcp`) and show model and name from TXT records | 🔬 |
+| F-1.2 | Add a robot manually by host name, IP address or URL (with optional port) | 🔬 |
+| F-1.3 | Check the address before saving: reachable, is Valetudo, version shown | 🔬 |
+| F-1.4 | HTTP basic auth: ask on `401`, store credentials encrypted (see Q-3) | 🔬 |
+| F-1.5 | HTTPS with self-signed certificates: show SHA-256 fingerprint, pin it after user confirmation, refuse on change | 🔬 |
+| F-1.6 | Several robots: list, switch, rename (local nickname), remove | 🔬 |
+| F-1.7 | Recognise a robot by its Valetudo system id when its address changes | 🔬 |
+| F-1.8 | Clear message when a robot runs a Valetudo version that is too old (no `/api/v2`) | 🟡 (generic "not supported" message; no explicit version check yet) |
+| F-1.9 | Fallback discovery when mDNS finds nothing: scan the phone's own Wi-Fi subnet (max. /24, private addresses only) for `GET /api/v2/valetudo/version` | 🔬 |
 
 ### F-2 Live state and basic control
 
 | ID | Requirement | Status |
 |----|-------------|--------|
-| F-2.1 | Show status (docked, cleaning, …) with flag (zone, segment, …), battery level and charging state | ⏳ |
-| F-2.2 | Live updates via SSE; reconnect automatically; show "offline" after the connection is lost | ⏳ |
-| F-2.3 | Start, stop, pause, return to dock (`BasicControlCapability`) with only the actions that make sense for the current status | ⏳ |
-| F-2.4 | Locate the robot (`LocateCapability`) | ⏳ |
-| F-2.5 | Fan speed, water usage and operation mode presets, showing only presets the robot reports | ⏳ |
-| F-2.6 | Show attachments and dock components (mop attached, water tanks, dust bag) and dock status | ⏳ |
-| F-2.7 | Show robot errors in plain language (message, subsystem, severity) | ⏳ |
-| F-2.8 | Dock actions: empty dust bin, clean mop, dry mop (manual trigger capabilities) | ⏳ |
+| F-2.1 | Show status (docked, cleaning, …) with flag (zone, segment, …), battery level and charging state | 🔬 |
+| F-2.2 | Live updates via SSE; reconnect automatically; show "offline" after the connection is lost | 🔬 |
+| F-2.3 | Start, stop, pause, return to dock (`BasicControlCapability`) with only the actions that make sense for the current status | 🔬 |
+| F-2.4 | Locate the robot (`LocateCapability`) | 🔬 |
+| F-2.5 | Fan speed, water usage and operation mode presets, showing only presets the robot reports | 🔬 |
+| F-2.6 | Show attachments and dock components (mop attached, water tanks, dust bag) and dock status | 🔬 |
+| F-2.7 | Show robot errors in plain language (message, subsystem, severity) | 🔬 |
+| F-2.8 | Dock actions: empty dust bin, clean mop, dry mop (manual trigger capabilities) | 🔬 |
 
 ### F-3 Map
 
 | ID | Requirement | Status |
 |----|-------------|--------|
-| F-3.1 | Parse the Valetudo map (layers with compressed or plain pixels, entities) in a separate, unit-tested parser | ⏳ |
-| F-3.2 | Render floor, walls, rooms (distinct colours), path, robot with heading, charger, no-go / no-mop areas, virtual walls, obstacles | ⏳ |
-| F-3.3 | Pan and pinch-zoom; double-tap to reset | ⏳ |
-| F-3.4 | Live map updates via SSE while the map is visible | ⏳ |
-| F-3.5 | Room labels drawn on the map | ⏳ |
+| F-3.1 | Parse the Valetudo map (layers with compressed or plain pixels, entities) in a separate, unit-tested parser | 🔬 |
+| F-3.2 | Render floor, walls, rooms (distinct colours), path, robot with heading, charger, no-go / no-mop areas, virtual walls, obstacles | 🔬 |
+| F-3.3 | Pan and pinch-zoom; double-tap to reset | 🔬 |
+| F-3.4 | Live map updates via SSE while the map is visible | 🔬 |
+| F-3.5 | Room labels drawn on the map | 🔬 |
 
 ### F-4 Cleaning modes
 
 | ID | Requirement | Status |
 |----|-------------|--------|
-| F-4.1 | Room cleaning: tap rooms on the map or pick from a list, choose iterations and order (if supported) | ⏳ |
-| F-4.2 | Zone cleaning: draw up to the reported number of rectangles, resize/move, iterations | ⏳ |
-| F-4.3 | Go to location: tap a point on the map | ⏳ |
-| F-4.4 | Edit no-go areas, no-mop areas and virtual walls and save them | ⏳ |
-| F-4.5 | Rename rooms (`MapSegmentRenameCapability`) | ⏳ |
-| F-4.6 | Presets: save a set of rooms + fan/water/mode as a named preset and start it in one tap | ⏳ |
+| F-4.1 | Room cleaning: tap rooms on the map or pick from a list, choose iterations and order (if supported) | 🔬 |
+| F-4.2 | Zone cleaning: draw up to the reported number of rectangles, resize/move, iterations | 🔬 |
+| F-4.3 | Go to location: tap a point on the map | 🔬 |
+| F-4.4 | Edit no-go areas, no-mop areas and virtual walls and save them | 🔬 |
+| F-4.5 | Rename rooms (`MapSegmentRenameCapability`) | 🟡 (API call implemented, no UI yet) |
+| F-4.6 | Presets: save a set of rooms + fan/water/mode as a named preset and start it in one tap | 🔬 |
 
 ### F-5 Maintenance and information
 
 | ID | Requirement | Status |
 |----|-------------|--------|
-| F-5.1 | Consumables with remaining time/percentage and reset (with confirmation) | ⏳ |
-| F-5.2 | Events list (errors, depleted consumables, dust bin full, pending map change) in plain language, with dismiss / reset / accept actions | ⏳ |
-| F-5.3 | Robot info: manufacturer, model, firmware, Valetudo version, host info, capability list incl. unknown ones | ⏳ |
-| F-5.4 | Statistics: current and total time, area, count | ⏳ |
-| F-5.5 | Accept or reject a pending map change | ⏳ |
+| F-5.1 | Consumables with remaining time/percentage and reset (with confirmation) | 🔬 |
+| F-5.2 | Events list (errors, depleted consumables, dust bin full, pending map change) in plain language, with dismiss / reset / accept actions | 🔬 |
+| F-5.3 | Robot info: manufacturer, model, firmware, Valetudo version, host info, capability list incl. unknown ones | 🔬 |
+| F-5.4 | Statistics: current and total time, area, count | 🔬 |
+| F-5.5 | Accept or reject a pending map change | 🔬 |
 
 ### F-6 Schedules and settings
 
 | ID | Requirement | Status |
 |----|-------------|--------|
-| F-6.1 | List, create, edit, enable/disable, delete and run timers; convert UTC to local time | ⏳ |
-| F-6.2 | Timer actions: full cleanup and room cleanup with pre-actions (fan, water, mode) where supported | ⏳ |
-| F-6.3 | Do-not-disturb window | ⏳ |
-| F-6.4 | Speaker volume with test sound | ⏳ |
-| F-6.5 | Voice pack: show current language and operation status | 🟡 (download needs a voice pack URL; out of scope for 1.0) |
-| F-6.6 | Generic switches for all `…ControlCapability` toggles the robot reports (carpet mode, key lock, obstacle avoidance, …) with translated names; unknown switches show their class name | ⏳ |
-| F-6.7 | Carpet sensor mode and other enum-style settings where the API is known | ⏳ |
+| F-6.1 | List, create, edit, enable/disable, delete and run timers; convert UTC to local time | 🔬 |
+| F-6.2 | Timer actions: full cleanup and room cleanup with pre-actions (fan, water, mode) where supported | 🔬 |
+| F-6.3 | Do-not-disturb window | 🔬 |
+| F-6.4 | Speaker volume with test sound | 🔬 |
+| F-6.5 | Voice pack: show current language and operation status | 🟡 (shows language and status; download needs a voice pack URL, out of scope for 1.0) |
+| F-6.6 | Generic switches for all `…ControlCapability` toggles the robot reports (carpet mode, key lock, obstacle avoidance, …) with translated names; unknown switches show their class name | 🔬 |
+| F-6.7 | Carpet sensor mode and other enum-style settings where the API is known | 🔬 |
 
 ### F-7 Android integration
 
 | ID | Requirement | Status |
 |----|-------------|--------|
-| F-7.1 | Home-screen widget: status, battery, start/pause and dock buttons for a chosen robot | ⏳ |
-| F-7.2 | Quick-settings tile: shows status, tap toggles start/pause; long-press opens the app | ⏳ |
-| F-7.3 | Ongoing notification while cleaning with progress information and pause/dock actions | ⏳ |
-| F-7.4 | Local notification on error, stuck robot or depleted consumable (only while monitoring runs; no push service) | ⏳ |
-| F-7.5 | Launcher shortcuts for rooms and presets | ⏳ |
-| F-7.6 | Per-app language (English, German) via Android 13+ system settings and in-app setting | ⏳ |
+| F-7.1 | Home-screen widget: status, battery, start/pause and dock buttons for a chosen robot | 🔬 |
+| F-7.2 | Quick-settings tile: shows status, tap toggles start/pause; long-press opens the app | 🔬 |
+| F-7.3 | Ongoing notification while cleaning with progress information and pause/dock actions | 🔬 |
+| F-7.4 | Local notification on error, stuck robot or depleted consumable (only while monitoring runs; no push service) | 🔬 |
+| F-7.5 | Launcher shortcuts for rooms and presets | 🔬 |
+| F-7.6 | Per-app language (English, German) via Android 13+ system settings and in-app setting | 🔬 |
 
 ## 5. Quality requirements
 
 | ID | Quality | Acceptance criterion | Status |
 |----|---------|----------------------|--------|
-| Q-1 | Responsiveness | Cold start to live state in ≤ 2 s on a mid-range phone on the same Wi-Fi; command feedback ≤ 300 ms (optimistic UI) | ⏳ |
-| Q-2 | Map performance | A 100 kB map with 11 rooms renders at ≥ 50 fps during pan/zoom on a mid-range phone | ⏳ |
-| Q-3 | Credential security | Basic-auth passwords are encrypted with an Android Keystore AES-GCM key, excluded from backups and never appear in logs (unit test on the log redactor) | ⏳ |
-| Q-4 | Transport security | Cleartext only to private/link-local addresses and `.local` names; HTTPS to self-signed hosts only with a pinned fingerprint | ⏳ |
-| Q-5 | Privacy | Network traffic only to user-added robot hosts; no analytics, no crash reporter, no update check (dependency review + `INTERNET` is the only network use) | ⏳ |
-| Q-6 | Robustness | Losing Wi-Fi, a robot reboot or an unknown capability never crashes the app; recovery without restart within 10 s after the robot is back | ⏳ |
-| Q-7 | Compatibility | Unknown `__class` values, unknown capabilities and unknown enum values are shown or ignored, not fatal (parser tests) | ⏳ |
-| Q-8 | Robot friendliness | At most one attribute SSE stream per robot; map SSE only while visible; no polling faster than every 30 s | ⏳ |
-| Q-9 | Maintainability | Unit tests for API client, parsers and URL/credential handling; all pass before every commit | ⏳ |
-| Q-10 | Accessibility | All controls have content descriptions; touch targets ≥ 48 dp; works with 200 % font size | ⏳ |
-| Q-11 | Reproducibility | Release build has no VCS info, no dependency blob, pinned dependency versions | ⏳ |
+| Q-1 | Responsiveness | Cold start to live state in ≤ 2 s on a mid-range phone on the same Wi-Fi; command feedback ≤ 300 ms (optimistic UI) | 🔬 |
+| Q-2 | Map performance | A 100 kB map with 11 rooms renders at ≥ 50 fps during pan/zoom on a mid-range phone | 🔬 |
+| Q-3 | Credential security | Basic-auth passwords are encrypted with an Android Keystore AES-GCM key, excluded from backups and never appear in logs (unit test on the log redactor) | 🔬 |
+| Q-4 | Transport security | Cleartext only to private/link-local addresses and `.local` names; HTTPS to self-signed hosts only with a pinned fingerprint | 🔬 |
+| Q-5 | Privacy | Network traffic only to user-added robot hosts; no analytics, no crash reporter, no update check (dependency review + `INTERNET` is the only network use) | 🔬 |
+| Q-6 | Robustness | Losing Wi-Fi, a robot reboot or an unknown capability never crashes the app; recovery without restart within 10 s after the robot is back | 🔬 |
+| Q-7 | Compatibility | Unknown `__class` values, unknown capabilities and unknown enum values are shown or ignored, not fatal (parser tests) | ✅ (parser tests with unknown classes/values) |
+| Q-8 | Robot friendliness | At most one attribute SSE stream per robot; map SSE only while visible; no polling faster than every 30 s | 🔬 |
+| Q-9 | Maintainability | Unit tests for API client, parsers and URL/credential handling; all pass before every commit | ✅ (34 unit tests, run before every commit) |
+| Q-10 | Accessibility | All controls have content descriptions; touch targets ≥ 48 dp; works with 200 % font size | 🔬 |
+| Q-11 | Reproducibility | Release build has no VCS info, no dependency blob, pinned dependency versions | 🔬 |
 
 ## 6. Constraints
 
