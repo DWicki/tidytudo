@@ -61,9 +61,10 @@ fun rememberOverlayStyle(): OverlayStyle {
             robot = colors.surface,
             robotOutline = colors.primary,
             charger = colors.tertiary,
-            noGo = colors.error,
-            noMop = Color(0xFF3F7DD6),
-            wall = colors.error,
+            // Fixed colours, as on other Valetudo clients: restrictions must read as "forbidden" in every theme.
+            noGo = NO_GO_RED,
+            noMop = NO_MOP_BLUE,
+            wall = NO_GO_RED,
             zone = colors.primary,
             obstacle = colors.onSurfaceVariant,
             carpet = colors.onSurface.copy(alpha = 0.12f),
@@ -90,7 +91,12 @@ fun DrawScope.drawEntities(map: RobotMap, projection: MapProjection, style: Over
     map.obstacles.forEach { drawCircle(style.obstacle, 3f * px, projection.toLocal(it)) }
     map.charger?.let { drawCharger(projection.toLocal(it.position), style, px) }
     map.goToTarget?.let { drawTarget(projection.toLocal(it), style.zone, px) }
-    map.robot?.let { drawRobot(projection.toLocal(it.position), it.angle, style, px) }
+}
+
+/** The robot goes last, in screen space, so room labels never hide it. */
+fun DrawScope.drawRobotMarker(map: RobotMap, projection: MapProjection, viewport: MapViewport, style: OverlayStyle) {
+    val robot = map.robot ?: return
+    drawRobot(viewport.toScreen(projection.toLocal(robot.position)), robot.angle, style, px = 1f)
 }
 
 /** Room names, drawn in screen space so text stays readable at every zoom level (F-3.5). */
@@ -204,10 +210,12 @@ private fun DrawScope.drawPolygon(points: List<CmPoint>, projection: MapProjecti
         if (index == 0) path.moveTo(local.x, local.y) else path.lineTo(local.x, local.y)
     }
     path.close()
-    if (fill) drawPath(path, color.copy(alpha = color.alpha * 0.25f))
+    if (fill) drawPath(path, color.copy(alpha = color.alpha * 0.3f))
     if (strokeWidth > 0f) drawPath(path, color, style = Stroke(strokeWidth))
 }
 
+private val NO_GO_RED = Color(0xFFE5484D)
+private val NO_MOP_BLUE = Color(0xFF3E8BFF)
 private const val ROBOT_RADIUS_DP = 9f
 private const val CHARGER_RADIUS_DP = 8f
 private const val TARGET_RADIUS_DP = 7f

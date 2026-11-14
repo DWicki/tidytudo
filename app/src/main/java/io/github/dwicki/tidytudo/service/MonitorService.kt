@@ -20,7 +20,9 @@ import io.github.dwicki.tidytudo.widget.RobotWidgetProvider
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -37,7 +39,9 @@ class MonitorService : LifecycleService() {
 
     private val notifications by lazy { getSystemService(NotificationManager::class.java) }
     private val watchers = mutableMapOf<String, Job>()
-    private val activeRobots = mutableSetOf<String>()
+    /** Robots followed because a job was started from the app; empty when only monitoring. */
+    private val activeRobots = MutableStateFlow<Set<String>>(emptySet())
+    private var observing = false
     private val notifiedEvents = mutableSetOf<String>()
 
     override fun onCreate() {
@@ -47,22 +51,25 @@ class MonitorService : LifecycleService() {
             Notifications.monitoring(this, 1),
             ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
         )
-        observeRobots()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        intent?.getStringExtra(EXTRA_ROBOT_ID)?.let { activeRobots += it }
+        intent?.getStringExtra(EXTRA_ROBOT_ID)?.let { id -> activeRobots.update { it + id } }
+        // Observe only after the first command is applied; observing in onCreate saw no robots and stopped at once.
+        if (!observing) {
+            observing = true
+            observeRobots()
+        }
         return START_STICKY
     }
 
     private fun observeRobots() {
         val container = appContainer
         lifecycleScope.launch {
-            combine(container.robotStore.robots, container.settings.backgroundMonitoring) { robots, monitorAll ->
-                robots to monitorAll
-            }.collectLatest { (robots, monitorAll) ->
-                val watched = if (monitorAll) robots else robots.filter { it.id in activeRobots }
+            combine(container.robotStore.robots, container.settings.backgroundMonitoring, activeRobots) { robots, monitorAll, active ->
+                if (monitorAll) robots else robots.filter { it.id in active }
+            }.collectLatest { watched ->
                 updateWatchers(watched)
                 notifications.notify(Notifications.MONITOR_NOTIFICATION_ID, Notifications.monitoring(this@MonitorService, watched.size))
                 if (watched.isEmpty()) stopSelf()
@@ -89,7 +96,7 @@ class MonitorService : LifecycleService() {
             if (previous != null && previous != state.status.value) RobotWidgetProvider.refresh(this)
             // A job started from the app may still read "docked" for a moment, so wait until it was seen running.
             if (QuickActions.isCleaning(state)) sawCleaning = true
-            if (sawCleaning && !QuickActions.isCleaning(state) && robot.id in activeRobots) finishJob(robot)
+            if (sawCleaning && !QuickActions.isCleaning(state)) activeRobots.update { it - robot.id }
             previous = state.status.value
         }
     }
@@ -121,14 +128,6 @@ class MonitorService : LifecycleService() {
                 notifications.notify(Notifications.alertId(robot, event.id), Notifications.alert(this, robot, title, text))
             }
             delay(EVENT_POLL_INTERVAL_MS)
-        }
-    }
-
-    private fun finishJob(robot: Robot) {
-        activeRobots -= robot.id
-        if (!appContainer.settings.backgroundMonitoring.value) {
-            watchers.remove(robot.id)?.cancel()
-            if (watchers.isEmpty()) stopSelf()
         }
     }
 

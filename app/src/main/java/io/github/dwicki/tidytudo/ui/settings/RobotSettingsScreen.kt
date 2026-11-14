@@ -1,6 +1,5 @@
 package io.github.dwicki.tidytudo.ui.settings
 
-import android.text.format.DateFormat
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,8 +10,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.VolumeUp
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,8 +20,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -47,6 +42,7 @@ import io.github.dwicki.tidytudo.ui.components.DetailScaffold
 import io.github.dwicki.tidytudo.ui.components.ErrorBox
 import io.github.dwicki.tidytudo.ui.components.LoadingBox
 import io.github.dwicki.tidytudo.ui.components.SectionCard
+import io.github.dwicki.tidytudo.ui.components.TimePickerDialog
 import io.github.dwicki.tidytudo.ui.components.clickableRow
 import io.github.dwicki.tidytudo.ui.robotViewModel
 import io.github.dwicki.tidytudo.util.TimeFormat
@@ -106,18 +102,6 @@ private fun DoNotDisturbCard(dnd: DoNotDisturb, onChange: (DoNotDisturb) -> Unit
             onDismiss = { editing = null },
         )
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun TimePickerDialog(initial: LocalTime, onConfirm: (LocalTime) -> Unit, onDismiss: () -> Unit) {
-    val state = rememberTimePickerState(initial.hour, initial.minute, DateFormat.is24HourFormat(LocalContext.current))
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        text = { TimePicker(state) },
-        confirmButton = { TextButton(onClick = { onConfirm(LocalTime.of(state.hour, state.minute)) }) { Text(stringResource(R.string.action_ok)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
 }
 
 @Composable

@@ -29,12 +29,15 @@ class MapViewState {
     /** Height in pixels of controls drawn over the top of the map; fitting keeps the map below them. */
     var topInset: Float = 0f
 
+    /** Height in pixels of the panel over the bottom of the map, if one is shown. */
+    var bottomInset: Float = 0f
+
     var canvasSize: Size by mutableStateOf(Size.Zero)
         internal set
 
     fun fit(map: RobotMap) {
         val bounds = map.bounds ?: return
-        if (canvasSize.minDimension > 0f) viewport = MapViewport.fit(bounds, canvasSize, topInset)
+        if (canvasSize.minDimension > 0f) viewport = MapViewport.fit(bounds, canvasSize, topInset, bottomInset)
     }
 
     /** The point in the middle of the screen, in centimetres; new shapes are placed there. */
@@ -112,6 +115,7 @@ fun MapCanvas(
             drawEntities(map, projection, overlay, viewport.scale)
         }
         drawRoomLabels(map, projection, viewport, textMeasurer, overlay)
+        drawRobotMarker(map, projection, viewport, overlay)
         drawShapes(shapes, projection, viewport, overlay)
     }
 }

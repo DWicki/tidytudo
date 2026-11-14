@@ -12,14 +12,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimeInput
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,10 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import android.text.format.DateFormat
 import io.github.dwicki.tidytudo.R
 import io.github.dwicki.tidytudo.api.model.ValetudoTimer
 import io.github.dwicki.tidytudo.ui.Labels
+import io.github.dwicki.tidytudo.ui.components.TimePickerDialog
 import io.github.dwicki.tidytudo.util.LocalSchedule
 import io.github.dwicki.tidytudo.util.TimeFormat
 import java.time.DayOfWeek
@@ -41,13 +38,14 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 /** Editor for one timer, in local time; converted to UTC only when saving. */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TimerEditorDialog(initial: ValetudoTimer, data: SchedulesData, onSave: (ValetudoTimer) -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val isNew = initial.id.isEmpty()
     val local = if (isNew) LocalSchedule(DayOfWeek.entries.toSet(), LocalTime.of(DEFAULT_HOUR, 0)) else TimeFormat.toLocal(initial.dow, initial.hour, initial.minute)
-    val time = rememberTimePickerState(local.time.hour, local.time.minute, DateFormat.is24HourFormat(context))
+    var time by remember { mutableStateOf(local.time) }
+    var pickingTime by remember { mutableStateOf(false) }
     var days by remember { mutableStateOf(local.days) }
     var label by remember { mutableStateOf(initial.label.orEmpty()) }
     var rooms by remember { mutableStateOf(initial.action.params.segmentIds.orEmpty()) }
@@ -59,7 +57,10 @@ fun TimerEditorDialog(initial: ValetudoTimer, data: SchedulesData, onSave: (Vale
         title = { Text(stringResource(if (isNew) R.string.schedules_new else R.string.schedules_edit)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                TimeInput(state = time)
+                // A tappable time instead of TimeInput: TimeInput focuses itself and the keyboard hides the dialog.
+                TextButton(onClick = { pickingTime = true }) {
+                    Text(TimeFormat.time(context, time), style = MaterialTheme.typography.displayMedium)
+                }
                 DayPicker(days) { days = it }
                 Spacer(Modifier.height(12.dp))
                 if (canChooseRooms) {
@@ -94,7 +95,7 @@ fun TimerEditorDialog(initial: ValetudoTimer, data: SchedulesData, onSave: (Vale
             TextButton(
                 enabled = days.isNotEmpty(),
                 onClick = {
-                    val (utcDays, hour, minute) = TimeFormat.toUtc(LocalSchedule(days, LocalTime.of(time.hour, time.minute)))
+                    val (utcDays, hour, minute) = TimeFormat.toUtc(LocalSchedule(days, time))
                     val action = if (rooms.isEmpty()) {
                         ValetudoTimer.Action(ValetudoTimer.FULL_CLEANUP)
                     } else {
@@ -115,6 +116,9 @@ fun TimerEditorDialog(initial: ValetudoTimer, data: SchedulesData, onSave: (Vale
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
+    if (pickingTime) {
+        TimePickerDialog(initial = time, onConfirm = { time = it; pickingTime = false }, onDismiss = { pickingTime = false })
+    }
 }
 
 @Composable

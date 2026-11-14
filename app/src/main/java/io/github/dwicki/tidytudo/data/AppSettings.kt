@@ -19,7 +19,13 @@ class AppSettings(context: Context) {
         monitoringState.value = enabled
     }
 
+    /** Whether the app already asked for the notification permission when a job was started. */
+    val notificationPromptShown: Boolean get() = prefs.getBoolean(KEY_NOTIFICATION_PROMPT, false)
+
+    fun markNotificationPromptShown() = prefs.edit().putBoolean(KEY_NOTIFICATION_PROMPT, true).apply()
+
     private companion object {
         const val KEY_MONITORING = "background_monitoring"
+        const val KEY_NOTIFICATION_PROMPT = "notification_prompt_shown"
     }
 }

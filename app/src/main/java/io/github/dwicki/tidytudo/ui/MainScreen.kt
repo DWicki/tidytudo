@@ -52,6 +52,7 @@ import io.github.dwicki.tidytudo.ui.home.HomeScreen
 import io.github.dwicki.tidytudo.ui.map.MapScreen
 import io.github.dwicki.tidytudo.ui.robot.RobotDestination
 import io.github.dwicki.tidytudo.ui.robot.RobotHubScreen
+import io.github.dwicki.tidytudo.util.RobotAddress
 import kotlinx.coroutines.launch
 
 private enum class Tab(@StringRes val label: Int, val icon: ImageVector, val selectedIcon: ImageVector) {
@@ -138,7 +139,7 @@ private fun RobotSwitcherSheet(robots: List<Robot>, selected: Robot, onDismiss: 
                         )
                     },
                     headlineContent = { Text(robot.displayName) },
-                    supportingContent = { Text(robot.displayModel) },
+                    supportingContent = { Text(RobotAddress.host(robot.baseUrl)) },
                     colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                 )
             }

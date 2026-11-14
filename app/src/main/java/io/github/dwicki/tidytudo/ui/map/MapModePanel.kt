@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.dwicki.tidytudo.R
 import io.github.dwicki.tidytudo.map.EditableShape
+import io.github.dwicki.tidytudo.ui.components.rememberJobStarter
 import io.github.dwicki.tidytudo.ui.home.IterationPicker
 
 val MapMode.label: Int
@@ -59,14 +60,14 @@ val MapMode.icon: ImageVector
 
 /** Bottom panel whose content follows the map mode; animates between modes. */
 @Composable
-fun ModePanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Unit, actions: MapViewModel) {
+fun ModePanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Unit, actions: MapViewModel, modifier: Modifier = Modifier) {
     if (state.mode == MapMode.VIEW) return
     Surface(
         shape = MaterialTheme.shapes.extraLarge,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         tonalElevation = 3.dp,
         shadowElevation = 6.dp,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
     ) {
         AnimatedContent(targetState = state.mode, label = "mapMode") { mode ->
             Column(Modifier.padding(20.dp)) {
@@ -88,7 +89,8 @@ private fun RoomsPanel(state: MapUiState, actions: MapViewModel) {
     Hint(if (count == 0) stringResource(R.string.map_rooms_hint) else pluralStringResource(R.plurals.map_rooms_selected, count, count))
     if (count > 0) {
         IterationPicker(state.iterations, state.segmentProperties.iterationCount.max, actions::setIterations)
-        PrimaryAction(pluralStringResource(R.plurals.home_clean_rooms, count, count), !state.sending, actions::cleanSelectedRooms)
+        val startJob = rememberJobStarter()
+        PrimaryAction(pluralStringResource(R.plurals.home_clean_rooms, count, count), !state.sending) { startJob(actions::cleanSelectedRooms) }
     }
 }
 
@@ -104,7 +106,8 @@ private fun ZonesPanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Un
     )
     if (state.zones.isNotEmpty()) {
         IterationPicker(state.iterations, state.zoneProperties.iterationCount.max, actions::setIterations)
-        PrimaryAction(pluralStringResource(R.plurals.map_clean_zones, state.zones.size, state.zones.size), !state.sending, actions::cleanZones)
+        val startJob = rememberJobStarter()
+        PrimaryAction(pluralStringResource(R.plurals.map_clean_zones, state.zones.size, state.zones.size), !state.sending) { startJob(actions::cleanZones) }
     }
 }
 

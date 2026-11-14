@@ -22,9 +22,11 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -39,6 +41,7 @@ import io.github.dwicki.tidytudo.ui.components.ErrorSnackbarEffect
 import io.github.dwicki.tidytudo.ui.components.LoadingBox
 import io.github.dwicki.tidytudo.ui.components.MessageBox
 import io.github.dwicki.tidytudo.ui.robotViewModel
+import kotlinx.coroutines.delay
 
 /** Live map with modes for rooms, zones, go-to and no-go editing; each mode only if supported. */
 @Composable
@@ -77,6 +80,11 @@ private fun MapContent(
         MapMode.RESTRICTIONS -> state.restrictions
         else -> emptyList()
     }
+    // Re-fit when the mode changes, so the map is not hidden behind the panel that just appeared.
+    LaunchedEffect(state.mode) {
+        if (state.mode == MapMode.VIEW) viewState.bottomInset = 0f else delay(PANEL_SETTLE_MS)
+        viewState.fit(map)
+    }
     val displayedMap = state.goToTarget?.takeIf { state.mode == MapMode.GO_TO }?.let { map.copy(goToTarget = it) } ?: map
     Box(
         Modifier
@@ -112,6 +120,7 @@ private fun MapContent(
                 .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
         ) {
             ModePanel(
+                modifier = Modifier.onSizeChanged { viewState.bottomInset = it.height.toFloat() },
                 state = state,
                 onAddShape = { kind -> viewState.visibleCenter(map)?.let { viewModel.addShape(kind, it) } },
                 actions = viewModel,
@@ -142,3 +151,6 @@ private fun ModeSelector(modes: List<MapMode>, selected: MapMode, onSelect: (Map
 }
 
 private val MODE_BAR_HEIGHT = 64.dp
+
+/** Time for the mode panel's size animation, so the measured inset is final before fitting. */
+private const val PANEL_SETTLE_MS = 350L

@@ -2,6 +2,7 @@ package io.github.dwicki.tidytudo.ui.onboarding
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,9 +12,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -43,8 +47,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -56,6 +63,8 @@ import io.github.dwicki.tidytudo.ui.appViewModel
 import io.github.dwicki.tidytudo.ui.components.SectionCard
 import io.github.dwicki.tidytudo.ui.components.clickableRow
 import io.github.dwicki.tidytudo.util.RobotAddress
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /** Onboarding and "add another robot" (F-1.1 – F-1.5, F-1.9). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +92,7 @@ fun AddRobotScreen(onAdded: () -> Unit, onBack: (() -> Unit)?) {
         },
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().imePadding(),
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding(), bottom = 32.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
@@ -221,6 +230,7 @@ private fun FoundRobotRow(robot: DiscoveredRobot, alreadyAdded: Boolean, connect
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ManualEntryCard(
     address: String,
@@ -229,11 +239,18 @@ private fun ManualEntryCard(
     onChange: (String) -> Unit,
     onConnect: () -> Unit,
 ) {
-    SectionCard(title = stringResource(R.string.add_robot_manual_title)) {
+    // Keeps the whole card (field and button) above the keyboard while typing.
+    val bringIntoView = remember { BringIntoViewRequester() }
+    val scope = rememberCoroutineScope()
+    SectionCard(modifier = Modifier.bringIntoViewRequester(bringIntoView), title = stringResource(R.string.add_robot_manual_title)) {
         OutlinedTextField(
             value = address,
             onValueChange = onChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusEvent { focus ->
+                    if (focus.isFocused) scope.launch { delay(KEYBOARD_SETTLE_MS); bringIntoView.bringIntoView() }
+                },
             singleLine = true,
             label = { Text(stringResource(R.string.add_robot_address_label)) },
             placeholder = { Text(stringResource(R.string.add_robot_address_placeholder)) },
@@ -258,3 +275,6 @@ private fun PrivacyNote() {
         modifier = Modifier.padding(horizontal = 8.dp),
     )
 }
+
+/** Waits for the keyboard animation, otherwise the card is scrolled to where the keyboard is about to appear. */
+private const val KEYBOARD_SETTLE_MS = 300L

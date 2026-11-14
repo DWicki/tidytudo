@@ -28,6 +28,7 @@ import io.github.dwicki.tidytudo.api.Connection
 import io.github.dwicki.tidytudo.data.CleaningPreset
 import io.github.dwicki.tidytudo.data.Robot
 import io.github.dwicki.tidytudo.ui.components.ErrorSnackbarEffect
+import io.github.dwicki.tidytudo.ui.components.rememberJobStarter
 import io.github.dwicki.tidytudo.ui.robotViewModel
 
 /** Daily control: status, main actions, rooms, presets, modes, dock (G-1: ≤ 2 taps to clean). */
@@ -42,6 +43,7 @@ fun HomeScreen(robot: Robot, contentPadding: PaddingValues, snackbar: SnackbarHo
     var presetDialog by rememberSaveable { mutableStateOf(false) }
     var presetToDelete by rememberSaveable { mutableStateOf<String?>(null) }
 
+    val startJob = rememberJobStarter()
     ErrorSnackbarEffect(viewModel.errors, snackbar)
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshExtras() }
     LaunchedEffect(live.connection) {
@@ -67,7 +69,7 @@ fun HomeScreen(robot: Robot, contentPadding: PaddingValues, snackbar: SnackbarHo
                 enabled = online,
                 canLocate = Capabilities.LOCATE in capabilities,
                 busyAction = busy,
-                onToggle = viewModel::toggle,
+                onToggle = { startJob(viewModel::toggle) },
                 onStop = viewModel::stop,
                 onDock = viewModel::dock,
                 onLocate = viewModel::locate,
@@ -84,7 +86,7 @@ fun HomeScreen(robot: Robot, contentPadding: PaddingValues, snackbar: SnackbarHo
                 enabled = online,
                 onToggleRoom = viewModel::toggleRoom,
                 onIterations = viewModel::setIterations,
-                onClean = viewModel::cleanSelectedRooms,
+                onClean = { startJob(viewModel::cleanSelectedRooms) },
                 onSavePreset = { presetDialog = true },
                 onOpenMap = onOpenMap,
             )
@@ -94,7 +96,7 @@ fun HomeScreen(robot: Robot, contentPadding: PaddingValues, snackbar: SnackbarHo
                 presets = presets,
                 busyAction = busy,
                 enabled = online,
-                onRun = viewModel::runPreset,
+                onRun = { preset -> startJob { viewModel.runPreset(preset) } },
                 onLongPress = { presetToDelete = it.id },
                 onAdd = { presetDialog = true },
             )
