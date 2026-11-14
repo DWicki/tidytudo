@@ -145,7 +145,7 @@ Valetudo keeps no history of cleaning runs, so the app records them itself.
 | F-8.3 | Store the obstacles of the run with label and photo, paced to Valetudo's rate limit and completed on later connections | 🔬 (labels verified on the real robot; only 9 of 45 photos were fetched before pacing was added, pacing tested with the mock) |
 | F-8.4 | History list and detail view: map with tappable obstacle pins, summary, errors, photo gallery; delete a run | ✅ (Fairphone 6, Valetudo 2026.08.0) |
 | F-8.5 | Keep history on the phone only, excluded from backups; keep the newest 50 runs per robot | ✅ (unit-tested; backup exclusion in `data_extraction_rules.xml`) |
-| F-8.6 | Tell the user that only observed runs are recorded and offer background monitoring to record all | 🔬 |
+| F-8.6 | After the first robot is added, offer background recording once, with its trade-offs (one robot connection, a quiet notification); also switchable in App settings | 🔬 (built and unit-tested code paths; dialog not yet seen on the phone) |
 
 ## 5. Quality requirements
 

@@ -1,12 +1,8 @@
 package io.github.dwicki.tidytudo.ui.appsettings
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -40,15 +36,11 @@ import io.github.dwicki.tidytudo.ui.components.DetailScaffold
 import io.github.dwicki.tidytudo.ui.components.NavigationRow
 import io.github.dwicki.tidytudo.ui.components.SectionCard
 import io.github.dwicki.tidytudo.ui.components.clickableRow
+import io.github.dwicki.tidytudo.ui.components.rememberMonitoringSwitch
 import kotlinx.coroutines.flow.StateFlow
 
-class AppSettingsViewModel(private val container: AppContainer) : ViewModel() {
+class AppSettingsViewModel(container: AppContainer) : ViewModel() {
     val monitoring: StateFlow<Boolean> = container.settings.backgroundMonitoring
-
-    fun setMonitoring(enabled: Boolean) {
-        container.settings.setBackgroundMonitoring(enabled)
-        if (enabled) container.startMonitoring()
-    }
 }
 
 /** App-wide settings: background alerts (F-7.4), language (F-7.6), privacy and about. */
@@ -57,13 +49,7 @@ fun AppSettingsScreen(onBack: () -> Unit) {
     val viewModel = appViewModel { AppSettingsViewModel(it) }
     val monitoring by viewModel.monitoring.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) viewModel.setMonitoring(true)
-    }
-    fun enableMonitoring(enabled: Boolean) {
-        val needsPermission = context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        if (enabled && needsPermission) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else viewModel.setMonitoring(enabled)
-    }
+    val setMonitoring = rememberMonitoringSwitch()
 
     DetailScaffold(title = stringResource(R.string.app_settings_title), onBack = onBack) { padding ->
         LazyColumn(
@@ -74,11 +60,11 @@ fun AppSettingsScreen(onBack: () -> Unit) {
             item {
                 Column(Modifier.clip(MaterialTheme.shapes.large)) {
                     ListItem(
-                        modifier = Modifier.clickableRow { enableMonitoring(!monitoring) },
+                        modifier = Modifier.clickableRow { setMonitoring(!monitoring) },
                         leadingContent = { Icon(Icons.Outlined.NotificationsActive, contentDescription = null) },
                         headlineContent = { Text(stringResource(R.string.app_settings_monitoring)) },
                         supportingContent = { Text(stringResource(R.string.app_settings_monitoring_text)) },
-                        trailingContent = { Switch(checked = monitoring, onCheckedChange = ::enableMonitoring) },
+                        trailingContent = { Switch(checked = monitoring, onCheckedChange = setMonitoring) },
                         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                     )
                     NavigationRow(Icons.Outlined.Language, stringResource(R.string.app_settings_language), stringResource(R.string.app_settings_language_text)) {

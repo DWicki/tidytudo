@@ -24,8 +24,14 @@ class AppSettings(context: Context) {
 
     fun markNotificationPromptShown() = prefs.edit().putBoolean(KEY_NOTIFICATION_PROMPT, true).apply()
 
+    /** Whether the one-time offer of background recording was shown (after the first robot was added). */
+    val monitoringOffered: Boolean get() = prefs.getBoolean(KEY_MONITORING_OFFERED, false)
+
+    fun markMonitoringOffered() = prefs.edit().putBoolean(KEY_MONITORING_OFFERED, true).apply()
+
     private companion object {
         const val KEY_MONITORING = "background_monitoring"
+        const val KEY_MONITORING_OFFERED = "monitoring_offered"
         const val KEY_NOTIFICATION_PROMPT = "notification_prompt_shown"
     }
 }

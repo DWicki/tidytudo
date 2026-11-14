@@ -49,6 +49,7 @@ import io.github.dwicki.tidytudo.appContainer
 import io.github.dwicki.tidytudo.data.Robot
 import io.github.dwicki.tidytudo.ui.components.clickableRow
 import io.github.dwicki.tidytudo.ui.home.HomeScreen
+import io.github.dwicki.tidytudo.ui.home.RecordingOffer
 import io.github.dwicki.tidytudo.ui.map.MapScreen
 import io.github.dwicki.tidytudo.ui.robot.RobotDestination
 import io.github.dwicki.tidytudo.ui.robot.RobotHubScreen
@@ -102,6 +103,8 @@ fun MainScreen(robot: Robot, robots: List<Robot>, onOpen: (RobotDestination) -> 
             }
         }
     }
+
+    RecordingOffer()
 
     if (switcherOpen) {
         RobotSwitcherSheet(

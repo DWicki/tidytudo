@@ -380,4 +380,8 @@
         <item quantity="one">%1$d Hindernis</item>
         <item quantity="other">%1$d Hindernisse</item>
     </plurals>
+    <string name="recording_offer_title">Vollständigen Verlauf führen?</string>
+    <string name="recording_offer_text">Dein Roboter vergisst Weg, Hindernisse und Fotos einer Reinigung nach einigen Stunden. Tidytudo kann im Hintergrund verbunden bleiben, jede Reinigung gleich nach dem Ende speichern und dich über Fehler und Wartung informieren.\n\nDas belegt eine der Verbindungen des Roboters und zeigt eine stille Benachrichtigung. Du kannst es jederzeit in den App-Einstellungen ändern.</string>
+    <string name="recording_offer_yes">Einschalten</string>
+    <string name="recording_offer_no">Jetzt nicht</string>
 </resources>

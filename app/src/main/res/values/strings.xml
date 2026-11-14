@@ -403,4 +403,8 @@
         <item quantity="one">%1$d obstacle</item>
         <item quantity="other">%1$d obstacles</item>
     </plurals>
+    <string name="recording_offer_title">Keep a complete history?</string>
+    <string name="recording_offer_text">Your robot forgets the path, obstacles and photos of a cleaning a few hours later. Tidytudo can stay connected in the background and save every cleaning the moment it ends, and tell you about errors and maintenance.\n\nThis uses one of the robot\'s connections and shows a quiet notification. You can change it any time in App settings.</string>
+    <string name="recording_offer_yes">Turn on</string>
+    <string name="recording_offer_no">Not now</string>
 </resources>
