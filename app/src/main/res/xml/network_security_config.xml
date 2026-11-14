@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Valetudo serves plain HTTP on the LAN by default, so cleartext must be permitted here: this file
+  cannot express "private IP ranges only". The restriction is enforced in code instead, on the
+  resolved socket address (HttpClientFactory.CleartextGuard, ADR-7). User-installed CAs are
+  trusted for people who run a private CA; self-signed certificates are pinned per robot in code.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
