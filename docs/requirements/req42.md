@@ -65,6 +65,7 @@ flowchart LR
 | F-1.6 | Several robots: list, switch, rename (local nickname), remove | ⏳ |
 | F-1.7 | Recognise a robot by its Valetudo system id when its address changes | ⏳ |
 | F-1.8 | Clear message when a robot runs a Valetudo version that is too old (no `/api/v2`) | ⏳ |
+| F-1.9 | Fallback discovery when mDNS finds nothing: scan the phone's own Wi-Fi subnet (max. /24, private addresses only) for `GET /api/v2/valetudo/version` | ⏳ |
 
 ### F-2 Live state and basic control
 
