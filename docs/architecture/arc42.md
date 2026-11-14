@@ -15,10 +15,11 @@ robot's local REST API and server-sent event (SSE) streams. There is no backend 
 
 | Priority | Goal | Scenario |
 |---|---|---|
-| 1 | Privacy and security (Q-3, Q-4, Q-5) | Credentials are unreadable without the device's Keystore; traffic goes only to robots |
-| 2 | Robustness and compatibility (Q-6, Q-7) | Unknown capabilities or a new Valetudo version degrade gracefully |
-| 3 | Responsiveness (Q-1, Q-2) | Live state within 2 s; smooth map |
-| 4 | Maintainability (Q-9) | Parser and client are unit-tested without a robot |
+| 1 | Usability (Q-10, G-1) | Daily tasks in ≤ 2 taps; only actions that make sense now are offered; confirmations before anything irreversible |
+| 2 | Privacy and security (Q-3, Q-4, Q-5) | Credentials are unreadable without the device's Keystore; traffic goes only to robots; history stays on the phone |
+| 3 | Robustness and compatibility (Q-6, Q-7) | Unknown capabilities or a new Valetudo version degrade gracefully |
+| 4 | Responsiveness (Q-1, Q-2) | Live state within 2 s; smooth map |
+| 5 | Maintainability (Q-9) | Parser and client are unit-tested without a robot |
 
 ### 1.2 Stakeholders
 
@@ -104,6 +105,7 @@ flowchart TB
 | `map` | `MapParser` (JSON → `RobotMap`), coordinate transforms, `MapCanvas` composable and drawing |
 | `discovery` | `RobotDiscovery` wrapping `NsdManager` as a `Flow` |
 | `data` | `RobotStore` (robot list as JSON file), `CredentialVault` (Keystore AES-GCM), `AppSettings` |
+| `data.history` | `SessionRecorder` (turns observed status changes into runs), `HistoryStore` (index plus one folder per run with gzipped map and photos) |
 | `ui` | Navigation graph, one view model per screen/feature, theme, reusable components |
 | `service`, `widget`, `tile`, `shortcuts` | Android entry points outside the activity |
 | `util` | `Log` redaction, private address checks, time conversion |
@@ -170,7 +172,30 @@ User taps rooms on the map → view model collects segment ids → `PUT
 MapSegmentationCapability {"action":"start_segment_action", …}` → optimistic "starting" state →
 next SSE update confirms `cleaning` / `segment`.
 
-### 6.4 Background notification
+### 6.4 Recording a cleaning run (F-8)
+
+```mermaid
+sequenceDiagram
+    participant S as RobotSession
+    participant R as SessionRecorder
+    participant V as Robot
+    participant H as HistoryStore
+    S-->>R: observedState: status cleaning
+    R->>V: GET /robot/state/map (active rooms)
+    S-->>R: observedState: error (message kept)
+    S-->>R: observedState: docked / idle
+    R->>V: GET CurrentStatisticsCapability
+    R->>V: GET /robot/state/map (with path, obstacles)
+    loop each obstacle with an id (max 60)
+        R->>V: GET ObstacleImagesCapability/img/{id}
+    end
+    R->>H: add(session, map.json.gz, photos)
+```
+
+The recorder collects `RobotSession.observedState`, which does not start a stream. It therefore
+only sees runs while the UI, the widget/tile or the monitoring service keeps the connection open.
+
+### 6.5 Background notification
 
 The opt-in `MonitorService` (foreground, type `specialUse`) holds one session per robot. On a
 transition into `error`, or a new depleted-consumable event, it posts a notification. While a
@@ -205,7 +230,8 @@ battery, presets, attachments, dock, error) and `RobotMap` (layers, segments, en
 | Cleartext | Manifest network security config allows cleartext (Android cannot express IP ranges). A network interceptor checks the *resolved* socket address and refuses plain HTTP unless it is loopback, link-local, site-local (RFC 1918) or IPv6 ULA (`fc00::/7`). Resolving first stops DNS names that point to public addresses |
 | Self-signed TLS | Per-robot trust manager: system trust first; else the leaf certificate's SHA-256 must equal the pinned value. Unpinned failures surface the fingerprint for user confirmation. With a pin, the hostname check is skipped because the pin binds the exact certificate |
 | Logging | All log output goes through `RedactingLog`, which drops credentials, replaces IPs, host names and URLs with placeholders and never logs map coordinates. Release builds log warnings and errors only |
-| Permissions | `INTERNET`, `ACCESS_NETWORK_STATE`, `CHANGE_WIFI_MULTICAST_STATE` (mDNS), `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_SPECIAL_USE` (monitor). Each is justified in `docs/security.md` |
+| Permissions | `INTERNET`, `ACCESS_NETWORK_STATE` (own subnet for the scan), `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE` + `FOREGROUND_SERVICE_SPECIAL_USE` (monitor). mDNS goes through the platform's `NsdManager`, so no multicast permission is needed. Each permission is justified in `docs/security.md` |
+| History data | Maps and obstacle photos show the inside of the home. They stay in private app storage, are excluded from backup and device transfer, are capped at 50 runs per robot and are deleted with the robot |
 
 ### 8.3 Error handling
 
@@ -244,6 +270,8 @@ grouped by capability.
 | ADR-6 | Opt-in foreground service for notifications | No push service (C-1); Android kills background SSE without a foreground service |
 | ADR-7 | Cleartext check on resolved address | Network security config cannot express IP ranges |
 | ADR-8 | GPL-3.0-or-later | Same as the author's other app; compatible with talking to an Apache-2.0 server (no code taken) |
+| ADR-9 | History is recorded passively from observed state | Valetudo has no history API. Opening a stream just for recording would cost one of the robot's five SSE slots permanently and keep the phone awake; recording what the app follows anyway, plus opt-in monitoring, is the honest trade-off |
+| ADR-10 | Notification permission asked when the first job starts | A prompt at app start has no context and is often denied; at the first start the benefit (progress notification) is obvious |
 
 ## 10. Quality requirements
 

@@ -103,6 +103,7 @@ Capabilities the app uses, with the exact request shapes:
 | `SpeakerTestCapability` | – | `PUT {"action":"play_test_sound"}` |
 | `VoicePackManagementCapability` | `GET` → `{"currentLanguage":"en","operationStatus":{"type":"idle"}}` | `PUT {"action":"download","url":…,"language":…,"hash":…}` |
 | `TotalStatisticsCapability`, `CurrentStatisticsCapability` | `GET` → data points `{"type":"time"\|"area"\|"count","value":…}`; time in seconds, area in cm² | – |
+| `ObstacleImagesCapability` | `GET` → `{"enabled":bool}`; `…/properties` → `{"fileFormat":"jpg","dimensions":{"width":672,"height":504}}`; `GET …/img/<obstacle id>` → the photo (`image/jpeg` or `image/png`) | `PUT {"action":"enable" \| "disable"}` |
 | `PendingMapChangeHandlingCapability` | `GET` → `{"pending":false}` | `PUT {"action":"accept" \| "reject"}` |
 | `KeyLockCapability`, `CarpetModeControlCapability` and every other `…ControlCapability` that is a simple switch | `GET` → `{"enabled":bool}` | `PUT {"action":"enable" \| "disable"}` |
 | `AutoEmptyDockManualTriggerCapability`, `MopDockCleanManualTriggerCapability`, `MopDockDryManualTriggerCapability` | – | `PUT {"action":"trigger"}` |
@@ -173,7 +174,7 @@ because it is large.
 
 | `__class` | `type` values |
 |---|---|
-| `PointMapEntity` | `robot_position`, `charger_location` (with `metaData.angle` in degrees), `go_to_target`, `obstacle` (with `metaData.label`, image id) |
+| `PointMapEntity` | `robot_position`, `charger_location` (with `metaData.angle` in degrees, 0 = up, clockwise), `go_to_target`, `obstacle` (with `metaData.id`, `metaData.label` such as `"Fabric (70%)"` and the robot-internal `metaData.image` path) |
 | `PathMapEntity` | `path`, `predicted_path` |
 | `LineMapEntity` | `virtual_wall`, `threshold`, `curtain` |
 | `PolygonMapEntity` | `active_zone`, `no_go_area`, `no_mop_area`, `carpet`, `ramp` |
@@ -217,6 +218,15 @@ The app requires `/api/v2` (Valetudo 2021 and later). If `GET /api/v2/valetudo/v
 with `404`, the robot is shown as "Valetudo version too old". If a request for a known
 capability returns `400` with a schema error, the app shows "this robot's Valetudo version
 handles this differently" instead of a generic failure.
+
+## History
+
+Valetudo has no endpoint for past cleaning runs. Statistics (`CurrentStatisticsCapability`)
+describe only the last run, and the map holds only the current state. Tidytudo therefore records
+runs itself (see arc42 §6.4): status changes from the attribute stream mark start and end, and at
+the end it saves the statistics, the map JSON and the obstacle photos from
+`ObstacleImagesCapability/img/<id>`. On the tested robot the map listed 45 obstacles, each with an
+id, a label with confidence and a photo of 672 × 504 pixels.
 
 ## Not used
 
