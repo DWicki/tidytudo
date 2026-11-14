@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Tidytudo</string>
+
+    <!-- Common actions -->
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_connect">Connect</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_dock">Dock</string>
+    <string name="action_locate">Locate</string>
+    <string name="action_ok">OK</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_remove">Remove</string>
+    <string name="action_resume">Resume</string>
+    <string name="action_retry">Try again</string>
+    <string name="action_save">Save</string>
+    <string name="action_start">Start</string>
+    <string name="action_stop">Stop</string>
+
+    <!-- Tabs and switcher -->
+    <string name="tab_home">Home</string>
+    <string name="tab_map">Map</string>
+    <string name="tab_robot">Robot</string>
+    <string name="switch_robot">Switch robot</string>
+
+    <!-- Add robot -->
+    <string name="add_robot_title">Find your robot</string>
+    <string name="add_robot_subtitle">Tidytudo talks directly to robots running Valetudo on your home network. No account, no cloud.</string>
+    <string name="add_robot_found_title">On this network</string>
+    <string name="add_robot_searching">Looking for robots…</string>
+    <string name="add_robot_none_found">No robot announced itself.</string>
+    <string name="add_robot_scan_hint">Some routers block announcements. A network scan checks every address in your Wi-Fi for Valetudo.</string>
+    <string name="add_robot_scan_button">Scan network</string>
+    <string name="add_robot_scanning">Checking all addresses in your network…</string>
+    <string name="add_robot_already_added">Already added</string>
+    <string name="add_robot_manual_title">Enter address</string>
+    <string name="add_robot_address_label">Address</string>
+    <string name="add_robot_address_placeholder">192.168.1.20 or robot.local</string>
+    <string name="add_robot_address_invalid">This does not look like an address.</string>
+    <string name="add_robot_privacy">Tidytudo only connects to the robots you add here. Nothing is sent anywhere else.</string>
+    <string name="connect_failed_title">Could not connect</string>
+    <string name="credentials_title">Sign in to the robot</string>
+    <string name="credentials_text">This robot has a password set in Valetudo. It is stored encrypted on this phone only.</string>
+    <string name="credentials_rejected">The robot did not accept these credentials. Please try again.</string>
+    <string name="credentials_username">Username</string>
+    <string name="credentials_password">Password</string>
+    <string name="credentials_show_password">Show password</string>
+    <string name="credentials_hide_password">Hide password</string>
+    <string name="certificate_title">Unknown certificate</string>
+    <string name="certificate_text">%1$s uses a certificate that Android does not know. If this is your robot\'s own certificate, you can trust it.</string>
+    <string name="certificate_fingerprint">SHA-256 fingerprint</string>
+    <string name="certificate_hint">Compare it with the certificate on your robot. Tidytudo will refuse the connection if it ever changes.</string>
+    <string name="certificate_trust">Trust this certificate</string>
+
+    <!-- Status -->
+    <string name="status_error">Needs help</string>
+    <string name="status_docked">Docked</string>
+    <string name="status_idle">Idle</string>
+    <string name="status_returning">Returning to dock</string>
+    <string name="status_cleaning">Cleaning</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_manual_control">Manual control</string>
+    <string name="status_moving">Moving</string>
+    <string name="status_unknown">Unknown</string>
+    <string name="status_offline">Offline</string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_reconnecting">Reconnecting…</string>
+    <string name="flag_zone">Zones</string>
+    <string name="flag_segment">Selected rooms</string>
+    <string name="flag_spot">Spot</string>
+    <string name="flag_target">Going to a point</string>
+    <string name="flag_resumable">Can be resumed</string>
+    <string name="flag_mapping">Mapping</string>
+    <string name="battery_percent">%1$d %%</string>
+    <string name="battery_charging">%1$d %% · charging</string>
+
+    <!-- Error subsystems -->
+    <string name="subsystem_core">System problem</string>
+    <string name="subsystem_power">Power problem</string>
+    <string name="subsystem_sensors">Sensor problem</string>
+    <string name="subsystem_motors">Motor problem</string>
+    <string name="subsystem_navigation">Navigation problem (stuck?)</string>
+    <string name="subsystem_attachments">Attachment problem</string>
+    <string name="subsystem_dock">Dock problem</string>
+    <string name="subsystem_unknown">The robot reports a problem</string>
+
+    <!-- Presets and modes -->
+    <string name="preset_off">Off</string>
+    <string name="preset_min">Minimal</string>
+    <string name="preset_low">Low</string>
+    <string name="preset_medium">Medium</string>
+    <string name="preset_high">High</string>
+    <string name="preset_max">Max</string>
+    <string name="preset_turbo">Turbo</string>
+    <string name="preset_custom">Custom</string>
+    <string name="mode_vacuum">Vacuum</string>
+    <string name="mode_mop">Mop</string>
+    <string name="mode_vacuum_and_mop">Vacuum and mop</string>
+    <string name="mode_vacuum_then_mop">Vacuum, then mop</string>
+
+    <!-- Home -->
+    <string name="home_modes_title">Cleaning mode</string>
+    <string name="home_mode_operation">Mode</string>
+    <string name="home_mode_fan">Suction</string>
+    <string name="home_mode_water">Water</string>
+    <string name="home_rooms_title">Rooms</string>
+    <string name="home_rooms_on_map">On map</string>
+    <string name="room_unnamed">Room %1$s</string>
+    <string name="home_passes">Passes</string>
+    <string name="home_save_preset">Save as preset</string>
+    <string name="home_presets_title">Presets</string>
+    <string name="home_preset_new">New preset</string>
+    <string name="home_preset_new_hint">Pick rooms and modes, then save</string>
+    <string name="home_preset_everything">Everywhere</string>
+    <string name="home_preset_starting">Starting…</string>
+    <string name="home_dock_title">Dock</string>
+    <string name="home_error_title">%1$s</string>
+    <string name="home_error_no_message">Check the robot for details.</string>
+    <plurals name="home_clean_rooms">
+        <item quantity="one">Clean %1$d room</item>
+        <item quantity="other">Clean %1$d rooms</item>
+    </plurals>
+    <plurals name="home_preset_rooms">
+        <item quantity="one">%1$d room</item>
+        <item quantity="other">%1$d rooms</item>
+    </plurals>
+    <string name="preset_dialog_title">Save preset</string>
+    <string name="preset_dialog_text_rooms">Saves the selected rooms, passes and the current cleaning mode.</string>
+    <string name="preset_dialog_text_everything">Saves a full cleanup with the current cleaning mode.</string>
+    <string name="preset_dialog_name">Name</string>
+    <string name="preset_delete_title">Delete \"%1$s\"?</string>
+
+    <!-- Dock -->
+    <string name="dock_clean_water">Clean water</string>
+    <string name="dock_dirty_water">Dirty water</string>
+    <string name="dock_dust_bag">Dust bag</string>
+    <string name="dock_detergent">Detergent</string>
+    <string name="dock_value_ok">OK</string>
+    <string name="dock_value_missing">Missing</string>
+    <string name="dock_value_empty">Empty</string>
+    <string name="dock_value_full">Full</string>
+    <string name="dock_value_unknown">Unknown</string>
+    <string name="dock_status_idle">Ready</string>
+    <string name="dock_status_pause">Paused</string>
+    <string name="dock_status_emptying">Emptying</string>
+    <string name="dock_status_cleaning">Washing</string>
+    <string name="dock_status_drying">Drying</string>
+    <string name="dock_status_error">Problem</string>
+    <string name="dock_action_empty">Empty dust bin</string>
+    <string name="dock_action_clean_mop">Wash mop</string>
+    <string name="dock_action_dry_mop">Dry mop</string>
+    <string name="attachment_dustbin">Dust bin</string>
+    <string name="attachment_watertank">Water tank</string>
+    <string name="attachment_mop">Mop</string>
+
+    <!-- Map -->
+    <string name="map_description">Map of the robot\'s floor plan</string>
+    <string name="map_empty_title">No map yet</string>
+    <string name="map_empty_text">The map appears after the robot\'s first cleaning or mapping run.</string>
+    <string name="map_fit">Fit to screen</string>
+    <string name="map_mode_view">View</string>
+    <string name="map_mode_rooms">Rooms</string>
+    <string name="map_mode_zones">Zones</string>
+    <string name="map_mode_go_to">Go to</string>
+    <string name="map_mode_restrictions">No-go</string>
+    <string name="map_rooms_hint">Tap rooms on the map to select them.</string>
+    <plurals name="map_rooms_selected">
+        <item quantity="one">%1$d room selected</item>
+        <item quantity="other">%1$d rooms selected</item>
+    </plurals>
+    <string name="map_zones_hint">Add up to %1$d zones, then drag them into place. Drag the round handle to resize.</string>
+    <string name="map_add_zone">Add zone</string>
+    <plurals name="map_clean_zones">
+        <item quantity="one">Clean %1$d zone</item>
+        <item quantity="other">Clean %1$d zones</item>
+    </plurals>
+    <string name="map_go_to_hint">Tap the spot where the robot should go.</string>
+    <string name="map_go_to_ready">Tap again to move the target.</string>
+    <string name="map_go_to_action">Go there</string>
+    <string name="map_restrictions_hint">Areas and walls the robot must not cross. Drag to move, use the handles to resize.</string>
+    <string name="map_add_no_go">No-go area</string>
+    <string name="map_add_no_mop">No-mop area</string>
+    <string name="map_add_wall">Virtual wall</string>
+    <string name="map_undo">Remove last</string>
+    <string name="map_save_restrictions">Save restrictions</string>
+
+    <!-- Robot hub -->
+    <string name="hub_care">Care</string>
+    <string name="hub_robot">Robot</string>
+    <string name="hub_app">App</string>
+    <string name="hub_consumables_text">Brushes, filters and sensors</string>
+    <string name="hub_events_text">Messages from the robot</string>
+    <string name="hub_schedules_text">Automatic cleaning times</string>
+    <string name="hub_settings_text">Quiet hours, sound and behaviour</string>
+    <string name="hub_info_text">Model, firmware and statistics</string>
+    <string name="hub_robots_text">Add, rename or remove robots</string>
+    <string name="hub_app_settings_text">Notifications, language and privacy</string>
+
+    <!-- Consumables -->
+    <string name="consumables_title">Consumables</string>
+    <string name="consumables_reset">Reset</string>
+    <string name="consumables_reset_title">Reset %1$s?</string>
+    <string name="consumables_reset_text">Do this after you replaced or cleaned the part. The counter starts again from full.</string>
+    <string name="consumables_percent_left">%1$d %% left</string>
+    <plurals name="consumables_hours_left">
+        <item quantity="one">%1$d hour left</item>
+        <item quantity="other">%1$d hours left</item>
+    </plurals>
+    <plurals name="consumables_minutes_left">
+        <item quantity="one">%1$d minute left</item>
+        <item quantity="other">%1$d minutes left</item>
+    </plurals>
+    <string name="consumable_main_brush">Main brush</string>
+    <string name="consumable_side_brush">Side brush</string>
+    <string name="consumable_brush">Brush</string>
+    <string name="consumable_filter">Filter</string>
+    <string name="consumable_sensor_cleaning">Clean sensors</string>
+    <string name="consumable_wheel_cleaning">Clean wheels</string>
+    <string name="consumable_cleaning">Cleaning</string>
+    <string name="consumable_mop">Mop</string>
+    <string name="consumable_detergent">Detergent</string>
+    <string name="consumable_bin">Dust bin</string>
+    <string name="side_left">left</string>
+    <string name="side_right">right</string>
+
+    <!-- Events -->
+    <string name="events_title">Messages</string>
+    <string name="events_empty">No messages from the robot</string>
+    <string name="event_consumable_depleted">Maintenance due</string>
+    <string name="event_consumable_depleted_text">%1$s needs attention.</string>
+    <string name="event_dust_bin_full">Dust bin full</string>
+    <string name="event_dust_bin_full_text">Empty the dust bin so the robot can keep cleaning well.</string>
+    <string name="event_error">Robot error</string>
+    <string name="event_missing_resource">Something is missing</string>
+    <string name="event_missing_resource_text">The robot misses a part or resource.</string>
+    <string name="event_mop_reminder">Mop attached?</string>
+    <string name="event_mop_reminder_text">Check whether the mop should be attached or removed for this job.</string>
+    <string name="event_pending_map_change">Map change pending</string>
+    <string name="event_pending_map_change_text">The robot found a changed map. Keep the new map or go back to the old one?</string>
+    <string name="event_valetudo_updated">Valetudo updated</string>
+    <string name="event_runtime_error">Valetudo reported an error</string>
+    <string name="event_other">Message</string>
+    <string name="event_action_dismiss">Dismiss</string>
+    <string name="event_action_reset">Reset counter</string>
+    <string name="event_action_accept">Keep new map</string>
+    <string name="event_action_reject">Keep old map</string>
+
+    <!-- Schedules -->
+    <string name="schedules_title">Schedules</string>
+    <string name="schedules_add">New schedule</string>
+    <string name="schedules_new">New schedule</string>
+    <string name="schedules_edit">Edit schedule</string>
+    <string name="schedules_empty">No schedules yet</string>
+    <string name="schedules_empty_text">Let the robot clean automatically, for example every weekday while you are at work.</string>
+    <string name="schedules_every_day">Every day</string>
+    <string name="schedules_run_now">Run now</string>
+    <string name="schedules_rooms_label">Rooms</string>
+    <string name="schedules_rooms_hint">No room selected means the whole home.</string>
+    <string name="schedules_keep_current">As set</string>
+    <string name="schedules_label">Label (optional)</string>
+
+    <!-- Robot settings -->
+    <string name="settings_title">Robot settings</string>
+    <string name="settings_dnd_title">Quiet hours</string>
+    <string name="settings_dnd_text">No voice prompts and no automatic resume during this time.</string>
+    <string name="settings_dnd_from">From %1$s</string>
+    <string name="settings_dnd_until">Until %1$s</string>
+    <string name="settings_sound_title">Sound</string>
+    <string name="settings_volume">Volume %1$d %%</string>
+    <string name="settings_test_sound">Play test sound</string>
+    <string name="settings_voice_pack">Voice: %1$s</string>
+    <string name="settings_carpet_sensor_title">When a carpet is detected</string>
+    <string name="settings_behaviour_title">Behaviour</string>
+    <string name="carpet_sensor_off">Ignore</string>
+    <string name="carpet_sensor_avoid">Avoid</string>
+    <string name="carpet_sensor_lift">Lift mop</string>
+    <string name="carpet_sensor_detach">Detach mop</string>
+    <string name="switch_key_lock">Child lock</string>
+    <string name="switch_key_lock_text">Disables the buttons on the robot.</string>
+    <string name="switch_carpet_mode">Carpet boost</string>
+    <string name="switch_carpet_mode_text">More suction on carpets.</string>
+    <string name="switch_obstacle_avoidance">Obstacle avoidance</string>
+    <string name="switch_pet_obstacle_avoidance">Pet waste avoidance</string>
+    <string name="switch_collision_avoidance">Gentle navigation</string>
+    <string name="switch_collision_avoidance_text">Keeps more distance to furniture and walls.</string>
+    <string name="switch_obstacle_images">Obstacle photos</string>
+    <string name="switch_camera_light">Camera light</string>
+    <string name="switch_mop_extension">Extend mop to edges</string>
+    <string name="switch_mop_twist">Mop twist</string>
+    <string name="switch_mop_twist_text">Swings to reach closer to edges.</string>
+    <string name="switch_furniture_legs">Mop around furniture legs</string>
+    <string name="switch_mop_auto_drying">Dry mop after cleaning</string>
+    <string name="switch_floor_direction">Follow floor direction</string>
+    <string name="switch_floor_direction_text">Cleans along wooden floorboards.</string>
+
+    <!-- Robot info -->
+    <string name="info_title">Robot info</string>
+    <string name="info_device">Device</string>
+    <string name="info_model">Model</string>
+    <string name="info_firmware">Firmware</string>
+    <string name="info_valetudo">Valetudo</string>
+    <string name="info_address">Address</string>
+    <string name="info_uptime">Uptime</string>
+    <string name="info_memory">Free memory</string>
+    <string name="info_memory_value">%1$d of %2$d MiB</string>
+    <string name="info_tls">Certificate</string>
+    <string name="info_tls_pinned">Pinned</string>
+    <string name="info_statistics">Statistics</string>
+    <string name="info_statistics_last">Last cleaning</string>
+    <string name="info_statistics_total">All time</string>
+    <string name="info_stat_time">Time</string>
+    <string name="info_stat_area">Area</string>
+    <string name="info_stat_count">Cleanings</string>
+    <string name="info_area_value">%1$d m²</string>
+    <plurals name="info_capabilities">
+        <item quantity="one">%1$d capability</item>
+        <item quantity="other">%1$d capabilities</item>
+    </plurals>
+    <string name="info_unknown_capabilities">Supported by the robot, not yet by this app: %1$s</string>
+    <string name="duration_hours_minutes">%1$d h %2$d min</string>
+    <plurals name="duration_minutes">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+
+    <!-- Robots -->
+    <string name="robots_title">Robots</string>
+    <string name="robots_add">Add robot</string>
+    <string name="robots_rename">Rename</string>
+    <string name="robots_name">Name in this app</string>
+    <string name="robots_remove_title">Remove %1$s?</string>
+    <string name="robots_remove_text">The robot keeps working. Tidytudo forgets its address and stored password.</string>
+
+    <!-- App settings -->
+    <string name="app_settings_title">App settings</string>
+    <string name="app_settings_monitoring">Alerts in the background</string>
+    <string name="app_settings_monitoring_text">Keeps a connection to your robots to notify you about errors and maintenance. Shows a silent notification while active.</string>
+    <string name="app_settings_language">Language</string>
+    <string name="app_settings_language_text">English or German, independent of the system language</string>
+    <string name="app_settings_privacy">Privacy</string>
+    <string name="app_settings_privacy_text">Tidytudo has no servers, no analytics and no crash reporting. It only talks to the robots you added, on your own network.</string>
+    <string name="app_settings_about">About</string>
+    <string name="app_settings_version">Version %1$s</string>
+    <string name="app_settings_about_text">Free software under the GPL-3.0-or-later. Independent project, not affiliated with Valetudo. Built with AI assistance.</string>
+    <string name="app_settings_source">Source code</string>
+
+    <!-- Errors -->
+    <string name="error_title">Something went wrong</string>
+    <string name="error_auth_required">The robot asks for a username and password.</string>
+    <string name="error_cleartext">Plain HTTP is only allowed for addresses on your own network. Use HTTPS for this address.</string>
+    <string name="error_not_supported">This robot\'s Valetudo version does not offer this. It may be too old.</string>
+    <string name="error_untrusted_certificate">The robot\'s certificate is not trusted or has changed.</string>
+    <string name="error_network">The robot cannot be reached. Is the phone on the same network?</string>
+    <string name="error_unexpected">The robot sent an answer this app does not understand. Its Valetudo version may be too new.</string>
+    <string name="error_version_mismatch">The robot refused the request. This Valetudo version may handle it differently.</string>
+    <string name="error_http">The robot answered with error %1$d.</string>
+    <string name="error_command_failed">The robot did not accept the command.</string>
+
+    <!-- Notifications -->
+    <string name="channel_cleaning">Cleaning progress</string>
+    <string name="channel_alerts">Errors and maintenance</string>
+    <string name="channel_monitor">Background connection</string>
+    <string name="notification_monitoring_title">Watching your robots</string>
+    <plurals name="notification_monitoring_text">
+        <item quantity="one">Connected to %1$d robot on your network</item>
+        <item quantity="other">Connected to %1$d robots on your network</item>
+    </plurals>
+    <string name="notification_error_title">%1$s needs help</string>
+
+    <!-- Widget, tile, shortcuts -->
+    <string name="widget_label">Robot</string>
+    <string name="widget_description">Status, start and dock for your robot</string>
+    <string name="widget_no_robot">No robot added</string>
+    <string name="widget_tap_to_refresh">Loading…</string>
+    <string name="tile_label">Robot</string>
+    <string name="shortcut_clean_label">Clean %1$s</string>
+    <string name="shortcut_starting">Starting %1$s…</string>
+    <string name="shortcut_unavailable">This shortcut is no longer available.</string>
+</resources>
