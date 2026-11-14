@@ -27,6 +27,7 @@
     <string name="add_robot_none_found">Kein Roboter hat sich gemeldet.</string>
     <string name="add_robot_scan_hint">Manche Router blockieren diese Meldungen. Ein Netzwerk-Scan prüft jede Adresse in deinem WLAN auf Valetudo.</string>
     <string name="add_robot_scan_button">Netzwerk scannen</string>
+    <string name="add_robot_scan_more">Roboter fehlt? Netzwerk scannen</string>
     <string name="add_robot_scanning">Alle Adressen im Netzwerk werden geprüft …</string>
     <string name="add_robot_already_added">Bereits hinzugefügt</string>
     <string name="add_robot_manual_title">Adresse eingeben</string>
@@ -240,6 +241,8 @@
     <string name="schedules_empty_text">Lass den Roboter automatisch reinigen, zum Beispiel an jedem Werktag, während du arbeitest.</string>
     <string name="schedules_every_day">Täglich</string>
     <string name="schedules_run_now">Jetzt ausführen</string>
+    <string name="schedules_run_confirm">Diese Reinigung jetzt starten?</string>
+    <string name="schedules_delete_confirm">Diesen Zeitplan löschen?</string>
     <string name="schedules_rooms_label">Räume</string>
     <string name="schedules_rooms_hint">Kein Raum ausgewählt heißt: die ganze Wohnung.</string>
     <string name="schedules_keep_current">Wie eingestellt</string>
@@ -300,6 +303,8 @@
         <item quantity="one">%1$d Fähigkeit</item>
         <item quantity="other">%1$d Fähigkeiten</item>
     </plurals>
+    <string name="info_show">Anzeigen</string>
+    <string name="info_hide">Ausblenden</string>
     <string name="info_unknown_capabilities">Vom Roboter unterstützt, von dieser App noch nicht: %1$s</string>
     <string name="duration_hours_minutes">%1$d h %2$d min</string>
     <plurals name="duration_minutes">

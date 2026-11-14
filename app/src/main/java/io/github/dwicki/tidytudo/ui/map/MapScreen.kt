@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -70,13 +71,18 @@ private fun MapContent(
     contentPadding: PaddingValues,
 ) {
     val viewState = rememberMapViewState()
+    viewState.topInset = with(LocalDensity.current) { MODE_BAR_HEIGHT.toPx() }
     val shapes: List<EditableShape> = when (state.mode) {
         MapMode.ZONES -> state.zones
         MapMode.RESTRICTIONS -> state.restrictions
         else -> emptyList()
     }
     val displayedMap = state.goToTarget?.takeIf { state.mode == MapMode.GO_TO }?.let { map.copy(goToTarget = it) } ?: map
-    Box(Modifier.fillMaxSize().padding(top = contentPadding.calculateTopPadding())) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(top = contentPadding.calculateTopPadding(), bottom = contentPadding.calculateBottomPadding()),
+    ) {
         MapCanvas(
             map = displayedMap,
             selectedSegments = state.selectedSegments.toSet(),
@@ -103,7 +109,7 @@ private fun MapContent(
             Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(start = 12.dp, end = 12.dp, bottom = contentPadding.calculateBottomPadding() + 12.dp),
+                .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
         ) {
             ModePanel(
                 state = state,
@@ -134,3 +140,5 @@ private fun ModeSelector(modes: List<MapMode>, selected: MapMode, onSelect: (Map
         }
     }
 }
+
+private val MODE_BAR_HEIGHT = 64.dp

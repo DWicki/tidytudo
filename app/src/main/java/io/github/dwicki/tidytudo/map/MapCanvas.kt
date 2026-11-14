@@ -25,12 +25,16 @@ import androidx.compose.ui.unit.toSize
 /** Hoisted zoom/pan state, so the screen can offer a "fit to screen" button. */
 class MapViewState {
     var viewport: MapViewport? by mutableStateOf(null)
+
+    /** Height in pixels of controls drawn over the top of the map; fitting keeps the map below them. */
+    var topInset: Float = 0f
+
     var canvasSize: Size by mutableStateOf(Size.Zero)
         internal set
 
     fun fit(map: RobotMap) {
         val bounds = map.bounds ?: return
-        if (canvasSize.minDimension > 0f) viewport = MapViewport.fit(bounds, canvasSize)
+        if (canvasSize.minDimension > 0f) viewport = MapViewport.fit(bounds, canvasSize, topInset)
     }
 
     /** The point in the middle of the screen, in centimetres; new shapes are placed there. */

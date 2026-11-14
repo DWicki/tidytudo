@@ -12,12 +12,14 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.dwicki.tidytudo.R
 import io.github.dwicki.tidytudo.api.model.ValetudoTimer
 import io.github.dwicki.tidytudo.data.Robot
+import io.github.dwicki.tidytudo.ui.Labels
 import io.github.dwicki.tidytudo.ui.LoadState
 import io.github.dwicki.tidytudo.ui.components.DetailScaffold
 import io.github.dwicki.tidytudo.ui.components.ErrorBox
@@ -51,6 +54,7 @@ fun SchedulesScreen(robot: Robot, onBack: () -> Unit) {
     val viewModel = robotViewModel(robot) { container, current -> SchedulesViewModel(container, current) }
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var editing by remember { mutableStateOf<ValetudoTimer?>(null) }
+    var confirming by remember { mutableStateOf<Pair<ValetudoTimer, Boolean>?>(null) }
 
     DetailScaffold(
         title = stringResource(R.string.schedules_title),
@@ -69,8 +73,30 @@ fun SchedulesScreen(robot: Robot, onBack: () -> Unit) {
         when (val current = state) {
             LoadState.Loading -> LoadingBox()
             is LoadState.Failed -> ErrorBox(current.error, viewModel::load)
-            is LoadState.Loaded -> TimerList(current.value, padding, viewModel, onEdit = { editing = it })
+            is LoadState.Loaded -> TimerList(
+                data = current.value,
+                padding = padding,
+                onToggle = viewModel::setEnabled,
+                onEdit = { editing = it },
+                onRun = { confirming = it to true },
+                onDelete = { confirming = it to false },
+            )
         }
+    }
+
+    confirming?.let { (timer, run) ->
+        // Running starts the robot and deleting cannot be undone, so both ask first.
+        AlertDialog(
+            onDismissRequest = { confirming = null },
+            title = { Text(stringResource(if (run) R.string.schedules_run_confirm else R.string.schedules_delete_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (run) viewModel.runNow(timer) else viewModel.delete(timer)
+                    confirming = null
+                }) { Text(stringResource(if (run) R.string.schedules_run_now else R.string.action_delete)) }
+            },
+            dismissButton = { TextButton(onClick = { confirming = null }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
 
     val data = (state as? LoadState.Loaded)?.value
@@ -86,7 +112,14 @@ fun SchedulesScreen(robot: Robot, onBack: () -> Unit) {
 }
 
 @Composable
-private fun TimerList(data: SchedulesData, padding: PaddingValues, viewModel: SchedulesViewModel, onEdit: (ValetudoTimer) -> Unit) {
+private fun TimerList(
+    data: SchedulesData,
+    padding: PaddingValues,
+    onToggle: (ValetudoTimer, Boolean) -> Unit,
+    onEdit: (ValetudoTimer) -> Unit,
+    onRun: (ValetudoTimer) -> Unit,
+    onDelete: (ValetudoTimer) -> Unit,
+) {
     if (data.timers.isEmpty()) {
         MessageBox(icon = Icons.Outlined.Schedule, title = stringResource(R.string.schedules_empty), text = stringResource(R.string.schedules_empty_text))
         return
@@ -101,9 +134,9 @@ private fun TimerList(data: SchedulesData, padding: PaddingValues, viewModel: Sc
                 timer = timer,
                 data = data,
                 onEdit = { onEdit(timer) },
-                onToggle = { viewModel.setEnabled(timer, it) },
-                onRun = { viewModel.runNow(timer) },
-                onDelete = { viewModel.delete(timer) },
+                onToggle = { onToggle(timer, it) },
+                onRun = { onRun(timer) },
+                onDelete = { onDelete(timer) },
             )
         }
     }
@@ -126,7 +159,8 @@ private fun TimerCard(
                 Text(TimeFormat.time(context, local.time), style = MaterialTheme.typography.displaySmall)
                 Text(daysText(local.days), style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    listOfNotNull(timer.label?.takeIf { it.isNotBlank() }, actionText(timer, data)).joinToString(" · "),
+                    listOfNotNull(timer.label?.takeIf { it.isNotBlank() }, actionText(timer, data), preActionText(timer))
+                        .joinToString(" · "),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -149,6 +183,13 @@ private fun actionText(timer: ValetudoTimer, data: SchedulesData): String {
     } else {
         stringResource(R.string.home_preset_everything)
     }
+}
+
+/** "Vacuum, then mop · Max" for the presets a timer applies before it starts. */
+@Composable
+private fun preActionText(timer: ValetudoTimer): String? {
+    val context = LocalContext.current
+    return timer.preActions.joinToString(", ") { Labels.preset(context, it.params.value) }.ifEmpty { null }
 }
 
 @Composable

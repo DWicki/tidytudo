@@ -129,7 +129,7 @@ fun RoomsCard(
         }
         AnimatedVisibility(visible = selection.ids.isNotEmpty()) {
             Column(Modifier.padding(top = 12.dp)) {
-                if (maxIterations > 1) IterationPicker(selection.iterations, maxIterations, onIterations)
+                IterationPicker(selection.iterations, maxIterations, onIterations)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Button(onClick = onClean, enabled = enabled, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Outlined.CleaningServices, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -145,6 +145,7 @@ fun RoomsCard(
 
 @Composable
 fun IterationPicker(iterations: Int, max: Int, onChange: (Int) -> Unit) {
+    if (max < 2) return
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
         Text(stringResource(R.string.home_passes), style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f))
         (1..max).forEach { count ->

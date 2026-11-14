@@ -96,7 +96,7 @@ private fun EventCard(event: RobotEvent, onInteract: (RobotEvent, String) -> Uni
     SectionCard(title = stringResource(Labels.eventTitle(event.kind))) {
         Text(Labels.eventDescription(context, event), style = MaterialTheme.typography.bodyMedium)
         Text(
-            TimeFormat.timestamp(context, event.timestamp),
+            TimeFormat.timestamp(event.timestamp),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

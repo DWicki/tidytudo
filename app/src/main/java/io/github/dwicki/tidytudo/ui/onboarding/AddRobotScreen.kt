@@ -38,6 +38,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -122,7 +123,7 @@ private fun Header() {
 }
 
 @Composable
-private fun DiscoveryCard(state: AddRobotUiState, onConnect: (String) -> Unit, onScan: () -> Unit) {
+private fun DiscoveryCard(state: AddRobotUiState, onConnect: (DiscoveredRobot) -> Unit, onScan: () -> Unit) {
     val searching = state.mdnsSearching || state.subnetScan == ScanState.RUNNING
     SectionCard(
         modifier = Modifier.animateContentSize(),
@@ -137,12 +138,15 @@ private fun DiscoveryCard(state: AddRobotUiState, onConnect: (String) -> Unit, o
                     robot = robot,
                     alreadyAdded = robot.baseUrl in state.knownUrls,
                     connecting = (state.step as? ConnectStep.Connecting)?.baseUrl == robot.baseUrl,
-                    onClick = { onConnect(robot.baseUrl) },
+                    onClick = { onConnect(robot) },
                 )
             }
         }
-        AnimatedVisibility(visible = !state.mdnsSearching && state.subnetScan == ScanState.IDLE) {
-            ScanSuggestion(onScan)
+        val scanAvailable = !state.mdnsSearching && state.subnetScan == ScanState.IDLE
+        AnimatedVisibility(visible = scanAvailable && state.found.isEmpty()) { ScanSuggestion(onScan) }
+        // With robots found, the scan stays available but quiet, for a second robot that does not announce itself.
+        AnimatedVisibility(visible = scanAvailable && state.found.isNotEmpty()) {
+            TextButton(onClick = onScan) { Text(stringResource(R.string.add_robot_scan_more)) }
         }
         AnimatedVisibility(visible = state.subnetScan == ScanState.RUNNING) {
             Column(Modifier.padding(top = 12.dp)) {

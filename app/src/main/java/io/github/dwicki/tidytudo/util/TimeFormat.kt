@@ -53,10 +53,10 @@ object TimeFormat {
         return time.format(DateTimeFormatter.ofPattern(pattern))
     }
 
-    /** "5 minutes ago" style for ISO timestamps from the robot; the raw text if it cannot be parsed. */
-    fun timestamp(context: Context, iso: String): String = runCatching {
+    /** "5 min. ago" style for ISO timestamps from the robot; the raw text if it cannot be parsed. */
+    fun timestamp(iso: String): String = runCatching {
         val millis = Instant.parse(iso).toEpochMilli()
-        DateUtils.getRelativeDateTimeString(context, millis, DateUtils.MINUTE_IN_MILLIS, DateUtils.WEEK_IN_MILLIS, 0).toString()
+        DateUtils.getRelativeTimeSpanString(millis, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE).toString()
     }.getOrDefault(iso)
 
     /** Valetudo's day numbering (Sunday = 0) to a date in the week of [today], at UTC. */

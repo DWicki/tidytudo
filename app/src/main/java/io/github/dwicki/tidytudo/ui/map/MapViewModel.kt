@@ -8,6 +8,7 @@ import io.github.dwicki.tidytudo.api.LiveState
 import io.github.dwicki.tidytudo.api.getOrNull
 import io.github.dwicki.tidytudo.api.model.Point
 import io.github.dwicki.tidytudo.api.model.RestrictedZone
+import io.github.dwicki.tidytudo.api.model.SegmentCleaningProperties
 import io.github.dwicki.tidytudo.api.model.VirtualRestrictions
 import io.github.dwicki.tidytudo.api.model.VirtualWall
 import io.github.dwicki.tidytudo.api.model.ZoneCleaningProperties
@@ -33,6 +34,7 @@ data class MapUiState(
     val goToTarget: CmPoint? = null,
     val iterations: Int = 1,
     val zoneProperties: ZoneCleaningProperties = ZoneCleaningProperties(),
+    val segmentProperties: SegmentCleaningProperties = SegmentCleaningProperties(),
     val supportedRestrictionTypes: List<String> = listOf("regular"),
     val sending: Boolean = false,
 )
@@ -60,6 +62,7 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
     fun setMode(mode: MapMode) {
         state.update { it.copy(mode = mode) }
         when (mode) {
+            MapMode.ROOMS -> loadSegmentProperties()
             MapMode.ZONES -> loadZoneProperties()
             MapMode.RESTRICTIONS -> loadRestrictions()
             else -> Unit
@@ -123,7 +126,7 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
         val current = state.value
         if (current.selectedSegments.isEmpty()) return
         send(clear = { it.copy(selectedSegments = emptyList()) }) {
-            session.client.cleanSegments(current.selectedSegments, current.iterations, customOrder = true)
+            session.client.cleanSegments(current.selectedSegments, current.iterations, current.segmentProperties.customOrderSupport)
         }
     }
 
@@ -166,6 +169,12 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
                 if (startsJob) container.followJob(robot)
             },
         )
+    }
+
+    private fun loadSegmentProperties() {
+        viewModelScope.launch {
+            session.client.segmentProperties().getOrNull()?.let { props -> state.update { it.copy(segmentProperties = props) } }
+        }
     }
 
     private fun loadZoneProperties() {

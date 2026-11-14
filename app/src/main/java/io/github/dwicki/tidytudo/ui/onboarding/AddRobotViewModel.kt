@@ -58,6 +58,9 @@ class AddRobotViewModel(private val container: AppContainer) : ViewModel() {
 
     private var pendingCredentials: Credentials? = null
     private var pendingPin: String? = null
+
+    /** The robot's friendly name from its mDNS announcement, used as the initial name in the app. */
+    private var pendingName: String? = null
     private var scanJob: Job? = null
 
     init {
@@ -100,12 +103,15 @@ class AddRobotViewModel(private val container: AppContainer) : ViewModel() {
             state.update { it.copy(manualAddressInvalid = true) }
             return
         }
-        connect(baseUrl)
+        startConnecting(baseUrl, name = null)
     }
 
-    fun connect(baseUrl: String) {
+    fun connect(robot: DiscoveredRobot) = startConnecting(robot.baseUrl, robot.friendlyName)
+
+    private fun startConnecting(baseUrl: String, name: String?) {
         pendingCredentials = null
         pendingPin = null
+        pendingName = name?.takeIf { it.isNotBlank() }
         attempt(baseUrl)
     }
 
@@ -151,6 +157,7 @@ class AddRobotViewModel(private val container: AppContainer) : ViewModel() {
         val credentials = pendingCredentials
         val robot = (existing ?: Robot(id = UUID.randomUUID().toString(), baseUrl = baseUrl)).copy(
             baseUrl = baseUrl,
+            nickname = existing?.nickname?.ifBlank { null } ?: pendingName.orEmpty(),
             systemId = info?.systemId ?: existing?.systemId.orEmpty(),
             manufacturer = robotInfo?.manufacturer.orEmpty(),
             model = robotInfo?.modelName.orEmpty(),

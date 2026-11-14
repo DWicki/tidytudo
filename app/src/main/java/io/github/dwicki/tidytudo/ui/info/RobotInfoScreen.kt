@@ -1,8 +1,7 @@
 package io.github.dwicki.tidytudo.ui.info
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,10 +9,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
@@ -103,12 +105,23 @@ private fun StatisticRow(point: DataPoint) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+/** Collapsed by default: a robot can report about 50 capabilities, which is reference material, not daily information. */
 @Composable
 private fun CapabilitiesCard(details: RobotDetails) {
-    SectionCard(title = pluralStringResource(R.plurals.info_capabilities, details.capabilities.size, details.capabilities.size)) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            details.capabilities.forEach { SuggestionChip(onClick = {}, label = { Text(Labels.capabilityName(it)) }) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    SectionCard(
+        title = pluralStringResource(R.plurals.info_capabilities, details.capabilities.size, details.capabilities.size),
+        trailing = {
+            TextButton(onClick = { expanded = !expanded }) {
+                Text(stringResource(if (expanded) R.string.info_hide else R.string.info_show))
+            }
+        },
+    ) {
+        AnimatedVisibility(visible = expanded) {
+            Text(
+                details.capabilities.joinToString(separator = "\n") { Labels.capabilityName(it) },
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
         if (details.unknownCapabilities.isNotEmpty()) {
             Text(

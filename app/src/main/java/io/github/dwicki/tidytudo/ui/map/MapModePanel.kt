@@ -87,7 +87,7 @@ private fun RoomsPanel(state: MapUiState, actions: MapViewModel) {
     val count = state.selectedSegments.size
     Hint(if (count == 0) stringResource(R.string.map_rooms_hint) else pluralStringResource(R.plurals.map_rooms_selected, count, count))
     if (count > 0) {
-        IterationPicker(state.iterations, max = 3, onChange = actions::setIterations)
+        IterationPicker(state.iterations, state.segmentProperties.iterationCount.max, actions::setIterations)
         PrimaryAction(pluralStringResource(R.plurals.home_clean_rooms, count, count), !state.sending, actions::cleanSelectedRooms)
     }
 }

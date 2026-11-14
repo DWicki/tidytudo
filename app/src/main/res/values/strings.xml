@@ -32,6 +32,7 @@
     <string name="add_robot_none_found">No robot announced itself.</string>
     <string name="add_robot_scan_hint">Some routers block announcements. A network scan checks every address in your Wi-Fi for Valetudo.</string>
     <string name="add_robot_scan_button">Scan network</string>
+    <string name="add_robot_scan_more">Robot missing? Scan the network</string>
     <string name="add_robot_scanning">Checking all addresses in your network…</string>
     <string name="add_robot_already_added">Already added</string>
     <string name="add_robot_manual_title">Enter address</string>
@@ -255,6 +256,8 @@
     <string name="schedules_empty_text">Let the robot clean automatically, for example every weekday while you are at work.</string>
     <string name="schedules_every_day">Every day</string>
     <string name="schedules_run_now">Run now</string>
+    <string name="schedules_run_confirm">Start this cleaning now?</string>
+    <string name="schedules_delete_confirm">Delete this schedule?</string>
     <string name="schedules_rooms_label">Rooms</string>
     <string name="schedules_rooms_hint">No room selected means the whole home.</string>
     <string name="schedules_keep_current">As set</string>
@@ -317,6 +320,8 @@
         <item quantity="one">%1$d capability</item>
         <item quantity="other">%1$d capabilities</item>
     </plurals>
+    <string name="info_show">Show</string>
+    <string name="info_hide">Hide</string>
     <string name="info_unknown_capabilities">Supported by the robot, not yet by this app: %1$s</string>
     <string name="duration_hours_minutes">%1$d h %2$d min</string>
     <plurals name="duration_minutes">

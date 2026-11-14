@@ -24,12 +24,13 @@ data class MapViewport(val scale: Float, val offset: Offset) {
     fun panned(delta: Offset) = copy(offset = offset + delta)
 
     companion object {
-        /** Fits [bounds] into [canvas] with a margin, centred. */
-        fun fit(bounds: PixelBounds, canvas: Size, margin: Float = 0.92f): MapViewport {
-            val scale = min(canvas.width / bounds.width, canvas.height / bounds.height) * margin
+        /** Fits [bounds] into [canvas] minus [topInset] (overlaid controls) with a margin, centred. */
+        fun fit(bounds: PixelBounds, canvas: Size, topInset: Float = 0f, margin: Float = 0.92f): MapViewport {
+            val usableHeight = canvas.height - topInset
+            val scale = min(canvas.width / bounds.width, usableHeight / bounds.height) * margin
             val offset = Offset(
                 (canvas.width - bounds.width * scale) / 2f,
-                (canvas.height - bounds.height * scale) / 2f,
+                topInset + (usableHeight - bounds.height * scale) / 2f,
             )
             return MapViewport(scale, offset)
         }

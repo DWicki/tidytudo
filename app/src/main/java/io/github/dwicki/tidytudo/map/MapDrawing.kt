@@ -154,6 +154,8 @@ private fun DrawScope.drawHandle(center: Offset, color: Color) {
 private fun DrawScope.drawRobot(center: Offset, angle: Float, style: OverlayStyle, px: Float) {
     val radius = ROBOT_RADIUS_DP * px * density
     drawCircle(style.robotOutline.copy(alpha = 0.18f), radius * 1.8f, center)
+    // A ring in the surface colour keeps the robot visible on a selected (primary-coloured) room.
+    drawCircle(style.robot, radius * 1.3f, center)
     drawCircle(style.robot, radius, center)
     drawCircle(style.robotOutline, radius, center, style = Stroke(radius * 0.22f))
     // Valetudo's angle: 0° points up, clockwise, like its web UI's rotate().
