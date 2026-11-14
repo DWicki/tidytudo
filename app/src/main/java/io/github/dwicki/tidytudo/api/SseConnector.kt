@@ -13,8 +13,9 @@ import java.util.concurrent.TimeUnit
 class SseException(val error: ApiError) : IOException("SSE stream failed: $error")
 
 /**
- * Opens Valetudo's server-sent event streams. The flow completes only by failure or cancellation;
- * reconnecting is the caller's job, because the right backoff depends on what the stream is for.
+ * Opens Valetudo's server-sent event streams. The flow completes when the robot closes the stream
+ * and fails with [SseException] on errors; reconnecting is the caller's job, because the right
+ * backoff depends on what the stream is for.
  */
 class SseConnector(private val transport: HttpTransport) {
 
@@ -43,7 +44,8 @@ class SseConnector(private val transport: HttpTransport) {
             try {
                 while (true) {
                     currentCoroutineContext().ensureActive()
-                    val line = source.readUtf8Line() ?: throw SseException(ApiError.Network(IOException("Stream closed")))
+                    // End of stream completes the flow normally; throwing here would drop events still buffered by flowOn.
+                    val line = source.readUtf8Line() ?: break
                     parser.feed(line)?.let { emit(it) }
                 }
             } catch (error: IOException) {
