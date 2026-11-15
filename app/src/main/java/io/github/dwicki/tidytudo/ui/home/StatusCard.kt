@@ -40,6 +40,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -123,23 +124,37 @@ fun StatusCard(
                 }
             }
             Spacer(Modifier.height(20.dp))
-            Controls(state, online, canLocate, busyAction, selectedRooms, onToggle, onCleanRooms, onStop, onDock, onLocate)
+            Controls(state, online, canLocate, busyAction, selectedRooms, tone.button to tone.onButton, onToggle, onCleanRooms, onStop, onDock, onLocate)
         }
     }
 }
 
 /** [accent] draws the robot: the brand colour on the neutral card, the content colour on tinted ones. */
-private data class Tone(val container: Color, val content: Color, val accent: Color = content)
+private data class Tone(
+    val container: Color,
+    val content: Color,
+    val accent: Color = content,
+    /** Secondary buttons need their own surface on tinted cards, where tonal buttons would vanish. */
+    val button: Color,
+    val onButton: Color,
+)
 
 @Composable
 private fun statusTone(status: StatusValue, unavailable: Boolean): Tone {
     val colors = MaterialTheme.colorScheme
+    val raised = colors.surfaceContainerLowest
     return when {
-        unavailable -> Tone(colors.surfaceContainer, colors.onSurfaceVariant)
-        status == StatusValue.ERROR -> Tone(colors.errorContainer, colors.onErrorContainer)
-        status.isActive -> Tone(colors.primaryContainer, colors.onPrimaryContainer)
-        status == StatusValue.PAUSED -> Tone(colors.secondaryContainer, colors.onSecondaryContainer)
-        else -> Tone(colors.surfaceContainerHigh, colors.onSurface, colors.primary)
+        unavailable -> Tone(colors.surfaceContainer, colors.onSurfaceVariant, button = colors.secondaryContainer, onButton = colors.onSecondaryContainer)
+        status == StatusValue.ERROR -> Tone(colors.errorContainer, colors.onErrorContainer, button = raised, onButton = colors.onSurface)
+        status.isActive -> Tone(colors.primaryContainer, colors.onPrimaryContainer, button = raised, onButton = colors.onSurface)
+        status == StatusValue.PAUSED -> Tone(colors.secondaryContainer, colors.onSecondaryContainer, button = raised, onButton = colors.onSurface)
+        else -> Tone(
+            colors.surfaceContainerHigh,
+            colors.onSurface,
+            colors.primary,
+            button = colors.secondaryContainer,
+            onButton = colors.onSecondaryContainer,
+        )
     }
 }
 
@@ -227,12 +242,14 @@ private fun Controls(
     canLocate: Boolean,
     busyAction: String?,
     selectedRooms: Int,
+    secondary: Pair<Color, Color>,
     onToggle: () -> Unit,
     onCleanRooms: () -> Unit,
     onStop: () -> Unit,
     onDock: () -> Unit,
     onLocate: () -> Unit,
 ) {
+    val (secondaryContainer, onSecondary) = secondary
     val status = state?.status?.value ?: StatusValue.UNKNOWN
     val hasJob = status.isActive || status == StatusValue.PAUSED
     val action = when {
@@ -254,18 +271,24 @@ private fun Controls(
         }
         // A running job should not shout: pausing is a tonal button, starting a filled one.
         if (action == MainAction.PAUSE) {
-            FilledTonalButton(onClick = onMain, enabled = enabled, modifier = buttonModifier, shape = CircleShape) { label() }
+            FilledTonalButton(
+                onClick = onMain,
+                enabled = enabled,
+                modifier = buttonModifier,
+                shape = CircleShape,
+                colors = ButtonDefaults.filledTonalButtonColors(containerColor = secondaryContainer, contentColor = onSecondary),
+            ) { label() }
         } else {
             Button(onClick = onMain, enabled = enabled, modifier = buttonModifier, shape = CircleShape) { label() }
         }
         if (status != StatusValue.DOCKED && status != StatusValue.UNKNOWN) {
-            RoundAction(Icons.Filled.Home, stringResource(R.string.action_dock), enabled, busyAction == HomeViewModel.ACTION_DOCK, onDock)
+            RoundAction(Icons.Filled.Home, stringResource(R.string.action_dock), enabled, busyAction == HomeViewModel.ACTION_DOCK, secondary, onDock)
         }
         if (hasJob) {
-            RoundAction(Icons.Filled.Stop, stringResource(R.string.action_stop), enabled, busyAction == HomeViewModel.ACTION_STOP, onStop)
+            RoundAction(Icons.Filled.Stop, stringResource(R.string.action_stop), enabled, busyAction == HomeViewModel.ACTION_STOP, secondary, onStop)
         }
         if (canLocate) {
-            RoundAction(Icons.AutoMirrored.Outlined.VolumeUp, stringResource(R.string.action_locate), enabled, busyAction == HomeViewModel.ACTION_LOCATE, onLocate)
+            RoundAction(Icons.AutoMirrored.Outlined.VolumeUp, stringResource(R.string.action_locate), enabled, busyAction == HomeViewModel.ACTION_LOCATE, secondary, onLocate)
         }
     }
 }
@@ -299,8 +322,13 @@ private fun ButtonContent(icon: ImageVector, label: String, busy: Boolean) {
 }
 
 @Composable
-private fun RoundAction(icon: ImageVector, label: String, enabled: Boolean, busy: Boolean, onClick: () -> Unit) {
-    FilledTonalIconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(BUTTON_HEIGHT)) {
+private fun RoundAction(icon: ImageVector, label: String, enabled: Boolean, busy: Boolean, colors: Pair<Color, Color>, onClick: () -> Unit) {
+    FilledTonalIconButton(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = Modifier.size(BUTTON_HEIGHT),
+        colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = colors.first, contentColor = colors.second),
+    ) {
         if (busy) {
             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = LocalContentColor.current)
         } else {

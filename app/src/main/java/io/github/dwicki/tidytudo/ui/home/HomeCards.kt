@@ -542,8 +542,9 @@ fun AttentionCards(
         if (pendingMapChange) {
             AttentionCard(
                 icon = Icons.Outlined.Map,
-                container = colors.surfaceContainerHighest,
+                container = colors.surfaceContainerHigh,
                 content = colors.onSurface,
+                iconTint = colors.primary,
                 title = stringResource(R.string.event_pending_map_change),
                 text = stringResource(R.string.event_pending_map_change_text),
                 actions = listOf(
@@ -555,8 +556,9 @@ fun AttentionCards(
         events.filter { it.kind != RobotEvent.Kind.PENDING_MAP_CHANGE }.forEach { event ->
             AttentionCard(
                 icon = Icons.Outlined.WarningAmber,
-                container = colors.tertiaryContainer,
-                content = colors.onTertiaryContainer,
+                container = colors.surfaceContainerHigh,
+                content = colors.onSurface,
+                iconTint = colors.primary,
                 title = stringResource(Labels.eventTitle(event.kind)),
                 text = Labels.eventDescription(context, event),
                 actions = event.interactions.map { interaction ->
@@ -574,11 +576,12 @@ private fun AttentionCard(
     content: Color,
     title: String,
     text: String,
+    iconTint: Color = content,
     actions: List<Pair<String, () -> Unit>> = emptyList(),
 ) {
     Card(colors = CardDefaults.cardColors(containerColor = container, contentColor = content), shape = MaterialTheme.shapes.large) {
         Row(Modifier.padding(start = 20.dp, end = 16.dp, top = 16.dp, bottom = if (actions.isEmpty()) 16.dp else 12.dp)) {
-            Icon(icon, contentDescription = null, modifier = Modifier.padding(top = 2.dp))
+            Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.padding(top = 2.dp))
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleSmall)

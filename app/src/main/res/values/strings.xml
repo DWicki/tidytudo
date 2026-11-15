@@ -219,7 +219,7 @@
     <string name="consumables_reset">Reset</string>
     <string name="consumables_reset_title">Reset %1$s?</string>
     <string name="consumables_reset_text">Do this after you replaced or cleaned the part. The counter starts again from full.</string>
-    <string name="consumables_percent_left">%1$d %% left</string>
+    <string name="consumables_percent_left">%1$d%% left</string>
     <plurals name="consumables_hours_left">
         <item quantity="one">%1$d hour left</item>
         <item quantity="other">%1$d hours left</item>
@@ -286,7 +286,7 @@
     <string name="settings_dnd_from">From %1$s</string>
     <string name="settings_dnd_until">Until %1$s</string>
     <string name="settings_sound_title">Sound</string>
-    <string name="settings_volume">Volume %1$d %%</string>
+    <string name="settings_volume">Volume %1$d%%</string>
     <string name="settings_test_sound">Play test sound</string>
     <string name="settings_voice_pack">Voice: %1$s</string>
     <string name="settings_carpet_sensor_title">When a carpet is detected</string>
