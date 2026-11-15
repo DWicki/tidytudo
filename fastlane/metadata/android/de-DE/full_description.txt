@@ -1,0 +1,21 @@
+Tidytudo ist eine schnelle, native App für Saugroboter mit <a href="https://valetudo.cloud">Valetudo</a>, der Open-Source-Firmware, die sie von der Cloud des Herstellers befreit. Die App spricht nur mit deinen eigenen Robotern in deinem eigenen Netzwerk: kein Konto, kein Server, keine Google-Dienste, kein Tracking.
+
+<b>Funktionen</b>
+<ul>
+<li>Findet deinen Roboter im Netzwerk von selbst oder verbindet per Adresse; unterstützt Valetudo-Passwörter und selbst signierte Zertifikate</li>
+<li>Live-Status, Akku, Fehler in verständlichen Worten, Station und Aufsätze</li>
+<li>Starten, pausieren, stoppen, zur Station schicken und finden mit einem Tipp</li>
+<li>Ausgewählte Räume reinigen, Räume und Modi als Vorlagen speichern</li>
+<li>Karte mit Räumen, Weg und Roboter: Räume wählen, Zonen zeichnen, den Roboter zu einer Stelle schicken, Sperrzonen und virtuelle Wände bearbeiten</li>
+<li>Reinigungsverlauf mit Karte, Dauer, Fläche und Fotos der erkannten Hindernisse, nur auf deinem Telefon gespeichert</li>
+<li>Verschleißteile, Meldungen des Roboters, Zeitpläne in Ortszeit, Ruhezeit, Lautstärke und mehr</li>
+<li>Widget, Schnelleinstellung, Reinigungs-Benachrichtigung, Meldungen bei Fehlern und Wartung, Verknüpfungen im Launcher</li>
+<li>Mehrere Roboter, Deutsch und Englisch, helles und dunkles Design</li>
+</ul>
+
+Alles richtet sich danach, was dein Roboter meldet, deshalb funktioniert die App mit jedem Roboter, den Valetudo unterstützt.
+
+<b>Datenschutz</b>
+Nichts verlässt dein Telefon außer Anfragen an deine Roboter. Passwörter werden mit dem Android-Keystore verschlüsselt; Karten und Fotos bleiben im privaten Speicher der App und werden nie gesichert.
+
+Tidytudo ist ein unabhängiges Projekt und nicht mit dem Valetudo-Projekt verbunden.

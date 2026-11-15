@@ -1,0 +1,21 @@
+Tidytudo is a fast, native app for robot vacuums running <a href="https://valetudo.cloud">Valetudo</a>, the open-source firmware that frees them from the vendor's cloud. It talks only to your own robots, on your own network: no account, no server, no Google services, no tracking.
+
+<b>Features</b>
+<ul>
+<li>Finds your robot on the network by itself, or connects by address; supports Valetudo passwords and self-signed certificates</li>
+<li>Live status, battery, errors in plain language, dock and attachments</li>
+<li>Start, pause, stop, dock and locate with one tap</li>
+<li>Clean selected rooms, save rooms and modes as presets</li>
+<li>Map with rooms, path and robot: select rooms, draw zones, send the robot to a spot, edit no-go areas and virtual walls</li>
+<li>Cleaning history with map, duration, area and photos of obstacles the robot recognised, stored only on your phone</li>
+<li>Consumables, messages from the robot, schedules in local time, quiet hours, volume and more</li>
+<li>Widget, quick-settings tile, cleaning notification, alerts on errors and maintenance, launcher shortcuts</li>
+<li>Several robots, English and German, light and dark theme</li>
+</ul>
+
+Everything adapts to what your robot reports it can do, so it works with every robot Valetudo supports.
+
+<b>Privacy</b>
+Nothing leaves your phone except requests to your robots. Passwords are encrypted with the Android Keystore; maps and photos stay in the app's private storage and are never backed up.
+
+Tidytudo is an independent project and not affiliated with the Valetudo project.

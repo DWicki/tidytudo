@@ -1,0 +1,1 @@
+First release: find and control Valetudo robots, live status, rooms, zones, go-to and no-go editing on the map, presets, cleaning history with obstacle photos, consumables, schedules, settings, widget, tile, notifications and shortcuts. English and German.

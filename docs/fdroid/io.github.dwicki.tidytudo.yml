@@ -1,0 +1,28 @@
+# Draft for https://gitlab.com/fdroid/fdroiddata (metadata/io.github.dwicki.tidytudo.yml)
+Categories:
+  - Connectivity
+  - Smart Home
+License: GPL-3.0-or-later
+AuthorName: DWicki
+WebSite: https://github.com/DWicki/Tidytudo
+SourceCode: https://github.com/DWicki/Tidytudo
+IssueTracker: https://github.com/DWicki/Tidytudo/issues
+Changelog: https://github.com/DWicki/Tidytudo/blob/HEAD/CHANGELOG.md
+
+AutoName: Tidytudo
+
+RepoType: git
+Repo: https://github.com/DWicki/Tidytudo.git
+
+Builds:
+  - versionName: 1.0.0
+    versionCode: 1
+    commit: v1.0.0
+    subdir: app
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 1.0.0
+CurrentVersionCode: 1

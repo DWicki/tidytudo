@@ -1,0 +1,1 @@
+Erste Version: Valetudo-Roboter finden und steuern, Live-Status, Räume, Zonen, Hinfahren und Sperrzonen auf der Karte, Vorlagen, Reinigungsverlauf mit Fotos der Hindernisse, Verschleißteile, Zeitpläne, Einstellungen, Widget, Schnelleinstellung, Benachrichtigungen und Verknüpfungen. Deutsch und Englisch.
