@@ -1,5 +1,7 @@
 package io.github.dwicki.tidytudo.ui.rooms
 
+import io.github.dwicki.tidytudo.ui.components.TextInputDialogProperties
+import io.github.dwicki.tidytudo.ui.components.aboveKeyboard
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -41,6 +43,8 @@ fun RenameRoomDialog(currentName: String?, onSave: (String) -> Unit, onDismiss: 
     }
     AlertDialog(
         onDismissRequest = onDismiss,
+        properties = TextInputDialogProperties,
+        modifier = Modifier.aboveKeyboard(),
         icon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
         title = { Text(stringResource(R.string.rooms_rename_title)) },
         text = {

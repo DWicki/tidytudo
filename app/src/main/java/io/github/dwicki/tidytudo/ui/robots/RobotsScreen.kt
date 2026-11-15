@@ -1,5 +1,7 @@
 package io.github.dwicki.tidytudo.ui.robots
 
+import io.github.dwicki.tidytudo.ui.components.aboveKeyboard
+import io.github.dwicki.tidytudo.ui.components.TextInputDialogProperties
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -121,6 +123,8 @@ private fun RenameDialog(robot: Robot, onSave: (String) -> Unit, onDismiss: () -
     var name by remember { mutableStateOf(robot.nickname) }
     AlertDialog(
         onDismissRequest = onDismiss,
+        properties = TextInputDialogProperties,
+        modifier = Modifier.aboveKeyboard(),
         title = { Text(stringResource(R.string.robots_rename)) },
         text = {
             OutlinedTextField(

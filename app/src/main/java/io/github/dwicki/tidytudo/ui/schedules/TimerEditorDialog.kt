@@ -1,5 +1,7 @@
 package io.github.dwicki.tidytudo.ui.schedules
 
+import io.github.dwicki.tidytudo.ui.components.aboveKeyboard
+import io.github.dwicki.tidytudo.ui.components.TextInputDialogProperties
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,6 +45,8 @@ fun TimerEditorDialog(initial: ValetudoTimer, data: SchedulesData, onSave: (Vale
     var pickingTime by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onDismiss,
+        properties = TextInputDialogProperties,
+        modifier = Modifier.aboveKeyboard(),
         title = { Text(stringResource(if (initial.id.isEmpty()) R.string.schedules_new else R.string.schedules_edit)) },
         text = { TimerEditorContent(draft, data, onChange = { draft = it }, onPickTime = { pickingTime = true }) },
         confirmButton = {

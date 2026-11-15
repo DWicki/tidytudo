@@ -1,5 +1,7 @@
 package io.github.dwicki.tidytudo.ui.onboarding
 
+import io.github.dwicki.tidytudo.ui.components.aboveKeyboard
+import io.github.dwicki.tidytudo.ui.components.TextInputDialogProperties
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -64,6 +66,8 @@ private fun CredentialsDialog(rejected: Boolean, onSubmit: (String, String) -> U
     var visible by rememberSaveable { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onDismiss,
+        properties = TextInputDialogProperties,
+        modifier = Modifier.aboveKeyboard(),
         icon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
         title = { Text(stringResource(R.string.credentials_title)) },
         text = {
