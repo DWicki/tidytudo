@@ -11,6 +11,8 @@
     <!-- Keeps the live connection while cleaning or monitoring; Android kills it otherwise (ADR-6). -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Restart background recording after a reboot when the user enabled it (F-8.6). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".TidytudoApp"
@@ -82,5 +84,14 @@
         <receiver
             android:name=".service.CommandReceiver"
             android:exported="false" />
+
+        <receiver
+            android:name=".service.StartupReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>
