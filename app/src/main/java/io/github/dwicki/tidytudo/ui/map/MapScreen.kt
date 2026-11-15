@@ -93,7 +93,12 @@ private fun MapContent(
     ) {
         MapCanvas(
             map = displayedMap,
-            selectedSegments = state.selectedSegments.toSet(),
+            // Outside room mode, highlight the rooms the robot is cleaning right now.
+            selectedSegments = if (state.mode == MapMode.ROOMS) {
+                state.selectedSegments.toSet()
+            } else {
+                map.segments.filter { it.active }.map { it.id }.toSet()
+            },
             shapes = shapes,
             viewState = viewState,
             description = stringResource(R.string.map_description),
