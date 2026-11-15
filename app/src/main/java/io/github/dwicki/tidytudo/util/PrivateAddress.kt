@@ -28,22 +28,4 @@ object PrivateAddress {
         val second = bytes[1].toInt() and 0xFF
         return first == 100 && second in 64..127
     }
-
-    /** Host names that resolve via mDNS or are obviously local; checked before DNS for a quick UI hint. */
-    fun looksLocal(host: String): Boolean {
-        val lower = host.lowercase()
-        if (lower.endsWith(".local") || lower.endsWith(".lan") || lower.endsWith(".home.arpa") || !lower.contains('.')) {
-            return true
-        }
-        val literal = parseIpLiteral(lower) ?: return false
-        return isPrivate(literal)
-    }
-
-    private fun parseIpLiteral(host: String): InetAddress? {
-        val candidate = host.removePrefix("[").removeSuffix("]")
-        val isIpv4 = candidate.matches(Regex("""\d{1,3}(\.\d{1,3}){3}"""))
-        val isIpv6 = candidate.contains(':') && candidate.all { it.isLetterOrDigit() || it == ':' || it == '.' }
-        // InetAddress.getByName does not touch DNS for literals, so this is safe on any thread.
-        return if (isIpv4 || isIpv6) runCatching { InetAddress.getByName(candidate) }.getOrNull() else null
-    }
 }

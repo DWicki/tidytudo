@@ -29,6 +29,7 @@ class CommandActivity : Activity() {
             return
         }
         Toast.makeText(this, getString(R.string.shortcut_starting, preset.name), Toast.LENGTH_SHORT).show()
+        intent.getStringExtra(Shortcuts.EXTRA_SHORTCUT_ID)?.let { Shortcuts.reportUsed(this, it) }
         MonitorService.watch(this, robot.id)
         val applicationContext = applicationContext
         container.appScope.launch {

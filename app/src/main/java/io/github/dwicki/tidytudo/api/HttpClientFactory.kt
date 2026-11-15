@@ -1,5 +1,6 @@
 package io.github.dwicki.tidytudo.api
 
+import android.annotation.SuppressLint
 import io.github.dwicki.tidytudo.util.PrivateAddress
 import okhttp3.Credentials
 import okhttp3.Interceptor
@@ -92,6 +93,9 @@ object HttpClientFactory {
             chain.proceed(chain.request().newBuilder().header("Authorization", header).build())
     }
 
+    // Deliberate: it delegates to the platform trust manager and only additionally accepts the one
+    // certificate the user confirmed by fingerprint (F-1.5); it never disables validation.
+    @SuppressLint("CustomX509TrustManager")
     private class PinningTrustManager(
         private val platform: X509TrustManager,
         private val pinnedSha256: String?,

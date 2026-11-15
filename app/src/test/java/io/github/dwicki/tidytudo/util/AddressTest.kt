@@ -35,15 +35,6 @@ class AddressTest {
     }
 
     @Test
-    fun `local looking host names`() {
-        assertTrue(PrivateAddress.looksLocal("robot.local"))
-        assertTrue(PrivateAddress.looksLocal("valetudo"))
-        assertTrue(PrivateAddress.looksLocal("192.168.0.4"))
-        assertFalse(PrivateAddress.looksLocal("example.com"))
-        assertFalse(PrivateAddress.looksLocal("8.8.4.4"))
-    }
-
-    @Test
     fun `redactor removes addresses and credentials`() {
         val text = Redactor.redact(
             "GET http://192.168.1.20/api/v2 failed, Authorization: Basic dXNlcjpwdw== password=hunter2 host robot.local ip 10.0.0.7",

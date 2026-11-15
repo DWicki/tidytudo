@@ -76,7 +76,7 @@ flowchart LR
 | F-2.3 | Start, stop, pause, return to dock (`BasicControlCapability`) with only the actions that make sense for the current status | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 | F-2.4 | Locate the robot (`LocateCapability`) | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 | F-2.5 | Fan speed, water usage and operation mode presets, showing only presets the robot reports | 🔬 (presets shown correctly on the real robot; changing them only tested with the mock) |
-| F-2.6 | Show attachments and dock components (mop attached, water tanks, dust bag) and dock status | ✅ (Fairphone 6, Valetudo 2026.08.0) |
+| F-2.6 | Show attachments and dock components (mop attached, water tanks, dust bag) and dock status | ✅ (Fairphone 6, Valetudo 2026.08.0; attachments added in the refactor pass, shown with the mock) |
 | F-2.7 | Show robot errors in plain language (message, subsystem, severity) | 🔬 |
 | F-2.8 | Dock actions: empty dust bin, clean mop, dry mop (manual trigger capabilities) | 🔬 |
 
@@ -98,7 +98,7 @@ flowchart LR
 | F-4.2 | Zone cleaning: draw up to the reported number of rectangles, resize/move, iterations | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 | F-4.3 | Go to location: tap a point on the map | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 | F-4.4 | Edit no-go areas, no-mop areas and virtual walls and save them | 🔬 (works on the phone against the mock server; not yet on the real robot) |
-| F-4.5 | Rename rooms (`MapSegmentRenameCapability`) | 🟡 (API call implemented, no UI yet) |
+| F-4.5 | Rename rooms (`MapSegmentRenameCapability`): select one room on the map, then "Rename room" | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 | F-4.6 | Presets: save a set of rooms + fan/water/mode as a named preset and start it in one tap | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 
 ### F-5 Maintenance and information

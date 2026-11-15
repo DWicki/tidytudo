@@ -2,6 +2,7 @@ package io.github.dwicki.tidytudo.ui.appsettings
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,10 +40,6 @@ import io.github.dwicki.tidytudo.ui.components.clickableRow
 import io.github.dwicki.tidytudo.ui.components.rememberMonitoringSwitch
 import kotlinx.coroutines.flow.StateFlow
 
-class AppSettingsViewModel(container: AppContainer) : ViewModel() {
-    val monitoring: StateFlow<Boolean> = container.settings.backgroundMonitoring
-}
-
 /** App-wide settings: background alerts (F-7.4), language (F-7.6), privacy and about. */
 @Composable
 fun AppSettingsScreen(onBack: () -> Unit) {
@@ -67,7 +64,7 @@ fun AppSettingsScreen(onBack: () -> Unit) {
                         trailingContent = { Switch(checked = monitoring, onCheckedChange = setMonitoring) },
                         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                     )
-                    NavigationRow(Icons.Outlined.Language, stringResource(R.string.app_settings_language), stringResource(R.string.app_settings_language_text)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) NavigationRow(Icons.Outlined.Language, stringResource(R.string.app_settings_language), stringResource(R.string.app_settings_language_text)) {
                         context.startActivity(
                             Intent(Settings.ACTION_APP_LOCALE_SETTINGS, Uri.fromParts("package", context.packageName, null)),
                         )

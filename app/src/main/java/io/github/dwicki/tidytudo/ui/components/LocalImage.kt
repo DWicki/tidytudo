@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -22,14 +25,15 @@ import java.io.File
  */
 @Composable
 fun LocalImage(file: File, contentDescription: String?, modifier: Modifier = Modifier, maxSize: Int = 0) {
-    val bitmap by produceState<ImageBitmap?>(null, file, maxSize) {
-        value = withContext(Dispatchers.IO) { decode(file, maxSize) }
+    var image by remember(file, maxSize) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(file, maxSize) {
+        image = withContext(Dispatchers.IO) { decode(file, maxSize) }
     }
-    val image = bitmap
-    if (image == null) {
+    val current = image
+    if (current == null) {
         Box(modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest))
     } else {
-        Image(image, contentDescription, modifier, contentScale = ContentScale.Crop)
+        Image(current, contentDescription, modifier, contentScale = ContentScale.Crop)
     }
 }
 

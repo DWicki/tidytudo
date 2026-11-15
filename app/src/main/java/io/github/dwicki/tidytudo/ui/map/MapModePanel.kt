@@ -21,14 +21,21 @@ import androidx.compose.material.icons.outlined.Grid4x4
 import androidx.compose.material.icons.outlined.HorizontalRule
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.WaterDrop
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -86,18 +93,46 @@ fun ModePanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Unit, actio
 @Composable
 private fun RoomsPanel(state: MapUiState, actions: MapViewModel) {
     val count = state.selectedSegments.size
+    var renaming by remember { mutableStateOf(false) }
     Hint(if (count == 0) stringResource(R.string.map_rooms_hint) else pluralStringResource(R.plurals.map_rooms_selected, count, count))
     if (count > 0) {
         IterationPicker(state.iterations, state.segmentProperties.iterationCount.max, actions::setIterations)
         val startJob = rememberJobStarter()
         PrimaryAction(pluralStringResource(R.plurals.home_clean_rooms, count, count), !state.sending) { startJob(actions::cleanSelectedRooms) }
+        if (count == 1 && state.canRename) {
+            TextButton(onClick = { renaming = true }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.map_rename_room)) }
+        }
+    }
+    if (renaming) {
+        RenameRoomDialog(onSave = { actions.renameSelectedRoom(it); renaming = false }, onDismiss = { renaming = false })
     }
 }
 
 @Composable
+private fun RenameRoomDialog(onSave: (String) -> Unit, onDismiss: () -> Unit) {
+    var name by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.map_rename_room)) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it.take(MAX_ROOM_NAME) },
+                singleLine = true,
+                label = { Text(stringResource(R.string.map_room_name)) },
+            )
+        },
+        confirmButton = { TextButton(onClick = { onSave(name) }, enabled = name.isNotBlank()) { Text(stringResource(R.string.action_save)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
+}
+
+private const val MAX_ROOM_NAME = 30
+
+@Composable
 private fun ZonesPanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Unit, actions: MapViewModel) {
     val max = state.zoneProperties.zoneCount.max
-    Hint(stringResource(R.string.map_zones_hint, max))
+    Hint(pluralStringResource(R.plurals.map_zones_hint, max, max))
     ShapeToolbar(
         tools = listOf(Triple(R.string.map_add_zone, Icons.Outlined.CropFree, EditableShape.Kind.ZONE)),
         canUndo = state.zones.isNotEmpty(),

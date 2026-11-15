@@ -5,11 +5,11 @@
   resolved socket address (HttpClientFactory.CleartextGuard, ADR-7). User-installed CAs are
   trusted for people who run a private CA; self-signed certificates are pinned per robot in code.
 -->
-<network-security-config>
-    <base-config cleartextTrafficPermitted="true">
+<network-security-config xmlns:tools="http://schemas.android.com/tools">
+    <base-config cleartextTrafficPermitted="true" tools:ignore="InsecureBaseConfiguration">
         <trust-anchors>
             <certificates src="system" />
-            <certificates src="user" />
+            <certificates src="user" tools:ignore="AcceptsUserCertificates" />
         </trust-anchors>
     </base-config>
 </network-security-config>

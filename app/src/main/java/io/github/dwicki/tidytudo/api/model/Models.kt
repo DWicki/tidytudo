@@ -7,16 +7,15 @@ import kotlinx.serialization.Serializable
 // ignores the rest, so new fields in future Valetudo versions do no harm (Q-7).
 
 @Serializable
-data class ValetudoVersion(val release: String, val commit: String = "")
+data class ValetudoVersion(val release: String)
 
 @Serializable
-data class ValetudoInfo(val systemId: String = "", val embedded: Boolean = true)
+data class ValetudoInfo(val systemId: String = "")
 
 @Serializable
 data class RobotInfo(
     val manufacturer: String = "",
     val modelName: String = "",
-    val implementation: String = "",
 )
 
 @Serializable
@@ -25,7 +24,6 @@ data class RobotProperties(val firmwareVersion: String? = null)
 @Serializable
 data class HostInfo(
     val hostname: String = "",
-    val arch: String = "",
     val uptime: Long = 0,
     val mem: Memory = Memory(),
 ) {
@@ -89,13 +87,7 @@ data class DoNotDisturb(
 data class SpeakerVolume(val volume: Int)
 
 @Serializable
-data class VoicePackState(
-    val currentLanguage: String = "",
-    val operationStatus: OperationStatus = OperationStatus(),
-) {
-    @Serializable
-    data class OperationStatus(val type: String = "idle", val progress: Int? = null)
-}
+data class VoicePackState(val currentLanguage: String = "")
 
 @Serializable
 data class DataPoint(val type: String, val value: Long)

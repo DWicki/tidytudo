@@ -27,98 +27,83 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.dwicki.tidytudo.R
+import io.github.dwicki.tidytudo.api.model.MapSegment
 import io.github.dwicki.tidytudo.api.model.ValetudoTimer
 import io.github.dwicki.tidytudo.ui.Labels
 import io.github.dwicki.tidytudo.ui.components.TimePickerDialog
-import io.github.dwicki.tidytudo.util.LocalSchedule
 import io.github.dwicki.tidytudo.util.TimeFormat
 import java.time.DayOfWeek
-import java.time.LocalTime
 import java.time.format.TextStyle
 import java.util.Locale
 
 /** Editor for one timer, in local time; converted to UTC only when saving. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TimerEditorDialog(initial: ValetudoTimer, data: SchedulesData, onSave: (ValetudoTimer) -> Unit, onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    val isNew = initial.id.isEmpty()
-    val local = if (isNew) LocalSchedule(DayOfWeek.entries.toSet(), LocalTime.of(DEFAULT_HOUR, 0)) else TimeFormat.toLocal(initial.dow, initial.hour, initial.minute)
-    var time by remember { mutableStateOf(local.time) }
+    var draft by remember { mutableStateOf(TimerDraft.from(initial)) }
     var pickingTime by remember { mutableStateOf(false) }
-    var days by remember { mutableStateOf(local.days) }
-    var label by remember { mutableStateOf(initial.label.orEmpty()) }
-    var rooms by remember { mutableStateOf(initial.action.params.segmentIds.orEmpty()) }
-    var preActions by remember { mutableStateOf(initial.preActions.associate { it.type to it.params.value }) }
-    val canChooseRooms = ValetudoTimer.SEGMENT_CLEANUP in data.properties.supportedActions && data.segments.isNotEmpty()
-
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(if (isNew) R.string.schedules_new else R.string.schedules_edit)) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                // A tappable time instead of TimeInput: TimeInput focuses itself and the keyboard hides the dialog.
-                TextButton(onClick = { pickingTime = true }) {
-                    Text(TimeFormat.time(context, time), style = MaterialTheme.typography.displayMedium)
-                }
-                DayPicker(days) { days = it }
-                Spacer(Modifier.height(12.dp))
-                if (canChooseRooms) {
-                    SectionLabel(stringResource(R.string.schedules_rooms_label))
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        data.segments.forEach { segment ->
-                            FilterChip(
-                                selected = segment.id in rooms,
-                                onClick = { rooms = if (segment.id in rooms) rooms - segment.id else rooms + segment.id },
-                                label = { Text(segment.name ?: segment.id) },
-                            )
-                        }
-                    }
-                    Text(stringResource(R.string.schedules_rooms_hint), style = MaterialTheme.typography.bodySmall)
-                }
-                data.preActionOptions.forEach { (type, options) ->
-                    PreActionPicker(type, options, preActions[type]) { value ->
-                        preActions = if (value == null) preActions - type else preActions + (type to value)
-                    }
-                }
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = label,
-                    onValueChange = { label = it.take(MAX_LABEL) },
-                    singleLine = true,
-                    label = { Text(stringResource(R.string.schedules_label)) },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        },
+        title = { Text(stringResource(if (initial.id.isEmpty()) R.string.schedules_new else R.string.schedules_edit)) },
+        text = { TimerEditorContent(draft, data, onChange = { draft = it }, onPickTime = { pickingTime = true }) },
         confirmButton = {
-            TextButton(
-                enabled = days.isNotEmpty(),
-                onClick = {
-                    val (utcDays, hour, minute) = TimeFormat.toUtc(LocalSchedule(days, time))
-                    val action = if (rooms.isEmpty()) {
-                        ValetudoTimer.Action(ValetudoTimer.FULL_CLEANUP)
-                    } else {
-                        ValetudoTimer.Action(ValetudoTimer.SEGMENT_CLEANUP, ValetudoTimer.Params(segmentIds = rooms, iterations = 1))
-                    }
-                    onSave(
-                        initial.copy(
-                            label = label.ifBlank { null },
-                            dow = utcDays,
-                            hour = hour,
-                            minute = minute,
-                            action = action,
-                            preActions = preActions.map { (type, value) -> ValetudoTimer.PreAction(type, ValetudoTimer.PreActionParams(value)) },
-                        ),
-                    )
-                },
-            ) { Text(stringResource(R.string.action_save)) }
+            TextButton(enabled = draft.days.isNotEmpty(), onClick = { onSave(draft.applyTo(initial)) }) {
+                Text(stringResource(R.string.action_save))
+            }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
     if (pickingTime) {
-        TimePickerDialog(initial = time, onConfirm = { time = it; pickingTime = false }, onDismiss = { pickingTime = false })
+        TimePickerDialog(
+            initial = draft.time,
+            onConfirm = { draft = draft.copy(time = it); pickingTime = false },
+            onDismiss = { pickingTime = false },
+        )
     }
+}
+
+@Composable
+private fun TimerEditorContent(draft: TimerDraft, data: SchedulesData, onChange: (TimerDraft) -> Unit, onPickTime: () -> Unit) {
+    val context = LocalContext.current
+    Column(Modifier.verticalScroll(rememberScrollState())) {
+        // A tappable time instead of TimeInput: TimeInput focuses itself and the keyboard hides the dialog.
+        TextButton(onClick = onPickTime) {
+            Text(TimeFormat.time(context, draft.time), style = MaterialTheme.typography.displayMedium)
+        }
+        DayPicker(draft.days) { onChange(draft.copy(days = it)) }
+        Spacer(Modifier.height(12.dp))
+        if (ValetudoTimer.SEGMENT_CLEANUP in data.properties.supportedActions && data.segments.isNotEmpty()) {
+            RoomPicker(data.segments, draft.rooms) { onChange(draft.copy(rooms = it)) }
+        }
+        data.preActionOptions.forEach { (type, options) ->
+            PreActionPicker(type, options, draft.preActions[type]) { value ->
+                onChange(draft.copy(preActions = if (value == null) draft.preActions - type else draft.preActions + (type to value)))
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        OutlinedTextField(
+            value = draft.label,
+            onValueChange = { onChange(draft.copy(label = it.take(MAX_LABEL))) },
+            singleLine = true,
+            label = { Text(stringResource(R.string.schedules_label)) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun RoomPicker(segments: List<MapSegment>, selected: List<String>, onChange: (List<String>) -> Unit) {
+    SectionLabel(stringResource(R.string.schedules_rooms_label))
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        segments.forEach { segment ->
+            FilterChip(
+                selected = segment.id in selected,
+                onClick = { onChange(if (segment.id in selected) selected - segment.id else selected + segment.id) },
+                label = { Text(segment.name ?: segment.id) },
+            )
+        }
+    }
+    Text(stringResource(R.string.schedules_rooms_hint), style = MaterialTheme.typography.bodySmall)
 }
 
 @Composable
@@ -158,5 +143,4 @@ private fun SectionLabel(text: String) {
     Text(text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-private const val DEFAULT_HOUR = 9
 private const val MAX_LABEL = 24

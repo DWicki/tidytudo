@@ -233,7 +233,7 @@ fun DockActionsCard(state: RobotState?, capabilities: Set<String>, busyAction: S
     val triggers = Capabilities.dockTriggers.filter { it in capabilities }
     val context = LocalContext.current
     val dockStatus = state?.dockStatus
-    if (triggers.isEmpty() && state?.dockComponents.isNullOrEmpty()) return
+    if (triggers.isEmpty() && state?.dockComponents.isNullOrEmpty() && state?.attachments.isNullOrEmpty()) return
     SectionCard(
         title = stringResource(R.string.home_dock_title),
         trailing = {
@@ -242,14 +242,19 @@ fun DockActionsCard(state: RobotState?, capabilities: Set<String>, busyAction: S
             }
         },
     ) {
+        state?.attachments?.forEach { attachment ->
+            StatusRow(
+                label = Labels.attachment(context, attachment.type),
+                value = stringResource(if (attachment.attached) R.string.attachment_attached else R.string.attachment_missing),
+                attention = false,
+            )
+        }
         state?.dockComponents?.forEach { component ->
-            Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
-                Text(Labels.dockComponent(context, component.type), modifier = Modifier.weight(1f))
-                Text(
-                    Labels.dockComponentValue(context, component.value),
-                    color = if (component.needsAttention) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            StatusRow(
+                label = Labels.dockComponent(context, component.type),
+                value = Labels.dockComponentValue(context, component.value),
+                attention = component.needsAttention,
+            )
         }
         if (triggers.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
@@ -264,6 +269,14 @@ fun DockActionsCard(state: RobotState?, capabilities: Set<String>, busyAction: S
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun StatusRow(label: String, value: String, attention: Boolean) {
+    Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
+        Text(label, modifier = Modifier.weight(1f))
+        Text(value, color = if (attention) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -282,7 +295,7 @@ fun AttentionCards(
             AttentionCard(
                 icon = Icons.Outlined.ErrorOutline,
                 container = MaterialTheme.colorScheme.errorContainer,
-                title = stringResource(R.string.home_error_title, context.getString(Labels.errorSubsystem(error.subsystem))),
+                title = stringResource(Labels.errorSubsystem(error.subsystem)),
                 text = error.message.ifBlank { stringResource(R.string.home_error_no_message) },
             )
         }

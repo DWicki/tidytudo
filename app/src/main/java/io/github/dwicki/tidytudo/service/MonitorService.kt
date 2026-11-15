@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.os.Build
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import io.github.dwicki.tidytudo.R
@@ -46,11 +47,13 @@ class MonitorService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
-        startForeground(
-            Notifications.MONITOR_NOTIFICATION_ID,
-            Notifications.monitoring(this, 1),
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
-        )
+        val notification = Notifications.monitoring(this, 1)
+        // The specialUse type exists from Android 14; before that the manifest type is not checked.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(Notifications.MONITOR_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(Notifications.MONITOR_NOTIFICATION_ID, notification)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

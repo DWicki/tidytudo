@@ -37,6 +37,7 @@ data class MapUiState(
     val segmentProperties: SegmentCleaningProperties = SegmentCleaningProperties(),
     val supportedRestrictionTypes: List<String> = listOf("regular"),
     val sending: Boolean = false,
+    val canRename: Boolean = false,
 )
 
 /** Map interactions (F-3, F-4.1 – F-4.4): selection and drawing state, plus the commands that use them. */
@@ -62,7 +63,10 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
     fun setMode(mode: MapMode) {
         state.update { it.copy(mode = mode) }
         when (mode) {
-            MapMode.ROOMS -> loadSegmentProperties()
+            MapMode.ROOMS -> {
+                loadSegmentProperties()
+                state.update { it.copy(canRename = Capabilities.SEGMENT_RENAME in live.value.capabilities) }
+            }
             MapMode.ZONES -> loadZoneProperties()
             MapMode.RESTRICTIONS -> loadRestrictions()
             else -> Unit
@@ -128,6 +132,12 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
         send(clear = { it.copy(selectedSegments = emptyList()) }) {
             session.client.cleanSegments(current.selectedSegments, current.iterations, current.segmentProperties.customOrderSupport)
         }
+    }
+
+    /** Renames the one selected room; the next map update shows the new name. */
+    fun renameSelectedRoom(name: String) {
+        val id = state.value.selectedSegments.singleOrNull() ?: return
+        send(startsJob = false, clear = { it }) { session.client.renameSegment(id, name.trim()) }
     }
 
     fun cleanZones() {

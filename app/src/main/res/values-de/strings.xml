@@ -107,7 +107,6 @@
     <string name="home_preset_everything">Überall</string>
     <string name="home_preset_starting">Startet …</string>
     <string name="home_dock_title">Station</string>
-    <string name="home_error_title">%1$s</string>
     <string name="home_error_no_message">Details siehst du am Roboter.</string>
     <plurals name="home_clean_rooms">
         <item quantity="one">%1$d Raum reinigen</item>
@@ -144,6 +143,8 @@
     <string name="attachment_dustbin">Staubbehälter</string>
     <string name="attachment_watertank">Wassertank</string>
     <string name="attachment_mop">Mopp</string>
+    <string name="attachment_attached">Montiert</string>
+    <string name="attachment_missing">Nicht montiert</string>
 
     <string name="map_description">Karte des Grundrisses, den der Roboter kennt</string>
     <string name="map_empty_title">Noch keine Karte</string>
@@ -159,13 +160,16 @@
         <item quantity="one">%1$d Raum ausgewählt</item>
         <item quantity="other">%1$d Räume ausgewählt</item>
     </plurals>
-    <string name="map_zones_hint">Füge bis zu %1$d Zonen hinzu und ziehe sie an ihren Platz. Mit dem runden Griff änderst du die Größe.</string>
+    <plurals name="map_zones_hint">
+        <item quantity="one">Füge eine Zone hinzu und ziehe sie an ihren Platz. Mit dem runden Griff änderst du die Größe.</item>
+        <item quantity="other">Füge bis zu %1$d Zonen hinzu und ziehe sie an ihren Platz. Mit dem runden Griff änderst du die Größe.</item>
+    </plurals>
     <string name="map_add_zone">Zone hinzufügen</string>
     <plurals name="map_clean_zones">
         <item quantity="one">%1$d Zone reinigen</item>
         <item quantity="other">%1$d Zonen reinigen</item>
     </plurals>
-    <string name="map_go_to_hint">Tippe auf die Stelle, zu der der Roboter fahren soll.</string>
+    <string name="map_go_to_hint">Tippe auf die Stelle, an die der Roboter fahren soll.</string>
     <string name="map_go_to_ready">Nochmals tippen, um das Ziel zu verschieben.</string>
     <string name="map_go_to_action">Hinfahren</string>
     <string name="map_restrictions_hint">Bereiche und Wände, die der Roboter nicht überqueren darf. Ziehen zum Verschieben, Griffe zum Ändern der Größe.</string>
@@ -173,6 +177,8 @@
     <string name="map_add_no_mop">Nicht wischen</string>
     <string name="map_add_wall">Virtuelle Wand</string>
     <string name="map_undo">Letzte entfernen</string>
+    <string name="map_rename_room">Raum umbenennen</string>
+    <string name="map_room_name">Name des Raums</string>
     <string name="map_save_restrictions">Sperrzonen speichern</string>
 
     <string name="hub_care">Pflege</string>

@@ -26,9 +26,7 @@ data class Status(
     /** `none`, `zone`, `segment`, `spot`, `target`, `resumable`, `mapping`, or something newer. */
     val flag: String = "none",
     val error: RobotError? = null,
-) {
-    val isResumable: Boolean get() = flag == "resumable"
-}
+)
 
 enum class StatusValue(val apiName: String) {
     ERROR("error"),

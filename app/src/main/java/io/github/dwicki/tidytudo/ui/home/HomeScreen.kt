@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.dwicki.tidytudo.R
 import io.github.dwicki.tidytudo.api.Capabilities
 import io.github.dwicki.tidytudo.api.Connection
+import io.github.dwicki.tidytudo.api.LiveState
 import io.github.dwicki.tidytudo.data.CleaningPreset
 import io.github.dwicki.tidytudo.data.Robot
 import io.github.dwicki.tidytudo.ui.components.ErrorSnackbarEffect
@@ -50,6 +51,44 @@ fun HomeScreen(robot: Robot, contentPadding: PaddingValues, snackbar: SnackbarHo
         if (live.connection == Connection.Online) viewModel.refreshExtras()
     }
 
+    HomeContent(
+        viewModel = viewModel,
+        live = live,
+        extras = extras,
+        selection = selection,
+        busy = busy,
+        presets = presets,
+        contentPadding = contentPadding,
+        startJob = startJob,
+        onOpenMap = onOpenMap,
+        onNewPreset = { presetDialog = true },
+        onDeletePreset = { presetToDelete = it.id },
+    )
+    PresetDialogs(
+        viewModel = viewModel,
+        presets = presets,
+        showNameDialog = presetDialog,
+        roomCount = selection.ids.size,
+        presetToDelete = presetToDelete,
+        onClose = { presetDialog = false; presetToDelete = null },
+    )
+}
+
+/** The scrolling card list; state lives in [HomeScreen] and the view model. */
+@Composable
+private fun HomeContent(
+    viewModel: HomeViewModel,
+    live: LiveState,
+    extras: HomeExtras,
+    selection: RoomSelection,
+    busy: String?,
+    presets: List<CleaningPreset>,
+    contentPadding: PaddingValues,
+    startJob: (() -> Unit) -> Unit,
+    onOpenMap: () -> Unit,
+    onNewPreset: () -> Unit,
+    onDeletePreset: (CleaningPreset) -> Unit,
+) {
     val online = live.connection == Connection.Online
     val capabilities = live.capabilities
     LazyColumn(
@@ -87,7 +126,7 @@ fun HomeScreen(robot: Robot, contentPadding: PaddingValues, snackbar: SnackbarHo
                 onToggleRoom = viewModel::toggleRoom,
                 onIterations = viewModel::setIterations,
                 onClean = { startJob(viewModel::cleanSelectedRooms) },
-                onSavePreset = { presetDialog = true },
+                onSavePreset = onNewPreset,
                 onOpenMap = onOpenMap,
             )
         }
@@ -97,27 +136,29 @@ fun HomeScreen(robot: Robot, contentPadding: PaddingValues, snackbar: SnackbarHo
                 busyAction = busy,
                 enabled = online,
                 onRun = { preset -> startJob { viewModel.runPreset(preset) } },
-                onLongPress = { presetToDelete = it.id },
-                onAdd = { presetDialog = true },
+                onLongPress = onDeletePreset,
+                onAdd = onNewPreset,
             )
         }
         item { ModesCard(live.state, extras.presetOptions, online, viewModel::setPreset) }
         item { DockActionsCard(live.state, capabilities, busy, online, viewModel::triggerDock) }
     }
+}
 
-    if (presetDialog) {
-        PresetNameDialog(
-            roomCount = selection.ids.size,
-            onSave = { name -> viewModel.savePreset(name); presetDialog = false },
-            onDismiss = { presetDialog = false },
-        )
+@Composable
+private fun PresetDialogs(
+    viewModel: HomeViewModel,
+    presets: List<CleaningPreset>,
+    showNameDialog: Boolean,
+    roomCount: Int,
+    presetToDelete: String?,
+    onClose: () -> Unit,
+) {
+    if (showNameDialog) {
+        PresetNameDialog(roomCount = roomCount, onSave = { name -> viewModel.savePreset(name); onClose() }, onDismiss = onClose)
     }
     presets.firstOrNull { it.id == presetToDelete }?.let { preset ->
-        DeletePresetDialog(
-            preset = preset,
-            onDelete = { viewModel.deletePreset(preset); presetToDelete = null },
-            onDismiss = { presetToDelete = null },
-        )
+        DeletePresetDialog(preset = preset, onDelete = { viewModel.deletePreset(preset); onClose() }, onDismiss = onClose)
     }
 }
 

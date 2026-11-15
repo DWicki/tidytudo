@@ -116,7 +116,6 @@
     <string name="home_preset_everything">Everywhere</string>
     <string name="home_preset_starting">Starting…</string>
     <string name="home_dock_title">Dock</string>
-    <string name="home_error_title">%1$s</string>
     <string name="home_error_no_message">Check the robot for details.</string>
     <plurals name="home_clean_rooms">
         <item quantity="one">Clean %1$d room</item>
@@ -154,6 +153,8 @@
     <string name="attachment_dustbin">Dust bin</string>
     <string name="attachment_watertank">Water tank</string>
     <string name="attachment_mop">Mop</string>
+    <string name="attachment_attached">Attached</string>
+    <string name="attachment_missing">Not attached</string>
 
     <!-- Map -->
     <string name="map_description">Map of the robot\'s floor plan</string>
@@ -170,7 +171,10 @@
         <item quantity="one">%1$d room selected</item>
         <item quantity="other">%1$d rooms selected</item>
     </plurals>
-    <string name="map_zones_hint">Add up to %1$d zones, then drag them into place. Drag the round handle to resize.</string>
+    <plurals name="map_zones_hint">
+        <item quantity="one">Add a zone, then drag it into place. Drag the round handle to resize.</item>
+        <item quantity="other">Add up to %1$d zones, then drag them into place. Drag the round handle to resize.</item>
+    </plurals>
     <string name="map_add_zone">Add zone</string>
     <plurals name="map_clean_zones">
         <item quantity="one">Clean %1$d zone</item>
@@ -184,6 +188,8 @@
     <string name="map_add_no_mop">No-mop area</string>
     <string name="map_add_wall">Virtual wall</string>
     <string name="map_undo">Remove last</string>
+    <string name="map_rename_room">Rename room</string>
+    <string name="map_room_name">Room name</string>
     <string name="map_save_restrictions">Save restrictions</string>
 
     <!-- Robot hub -->

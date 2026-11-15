@@ -20,6 +20,7 @@ object Shortcuts {
     const val EXTRA_PRESET_ID = "preset_id"
     const val EXTRA_SEGMENT_ID = "segment_id"
     const val EXTRA_LABEL = "label"
+    const val EXTRA_SHORTCUT_ID = "shortcut_id"
 
     fun publish(context: Context, robot: Robot, rooms: List<RoomShortcut>) {
         val manager = context.getSystemService(ShortcutManager::class.java) ?: return
@@ -38,12 +39,12 @@ object Shortcuts {
         runCatching { manager.dynamicShortcuts = shortcuts }
     }
 
-    fun clear(context: Context) {
-        context.getSystemService(ShortcutManager::class.java)?.removeAllDynamicShortcuts()
+    fun reportUsed(context: Context, shortcutId: String) {
+        context.getSystemService(ShortcutManager::class.java)?.reportShortcutUsed(shortcutId)
     }
 
     private fun build(context: Context, id: String, label: String, icon: Int, extras: Intent.() -> Intent): ShortcutInfo.Builder {
-        val intent = Intent(context, CommandActivity::class.java).setAction(Intent.ACTION_VIEW).extras()
+        val intent = Intent(context, CommandActivity::class.java).setAction(Intent.ACTION_VIEW).extras().putExtra(EXTRA_SHORTCUT_ID, id)
         return ShortcutInfo.Builder(context, id)
             .setShortLabel(label.take(MAX_SHORT_LABEL))
             .setLongLabel(context.getString(R.string.shortcut_clean_label, label))

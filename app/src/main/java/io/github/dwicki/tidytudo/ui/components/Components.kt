@@ -149,12 +149,12 @@ fun LoadingBox(modifier: Modifier = Modifier) {
 /** Full-area message for failures and empty states, with an optional action. */
 @Composable
 fun MessageBox(
-    icon: ImageVector = Icons.Outlined.CloudOff,
     title: String,
+    modifier: Modifier = Modifier,
+    icon: ImageVector = Icons.Outlined.CloudOff,
     text: String? = null,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier.fillMaxSize().padding(32.dp),
