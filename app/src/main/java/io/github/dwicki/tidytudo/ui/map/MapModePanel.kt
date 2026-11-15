@@ -75,6 +75,7 @@ fun ModePanel(
     actions: MapViewModel,
     modifier: Modifier = Modifier,
     roomName: (String) -> String? = { null },
+    modeRow: @Composable () -> Unit = {},
 ) {
     Surface(
         shape = MaterialTheme.shapes.large,
@@ -85,11 +86,12 @@ fun ModePanel(
         AnimatedContent(targetState = state.mode, label = "mapMode") { mode ->
             Column(Modifier.padding(20.dp)) {
                 when (mode) {
-                    MapMode.ROOMS -> RoomsPanel(state, actions, roomName)
-                    MapMode.ZONES -> ZonesPanel(state, onAddShape, actions)
+                    MapMode.ROOMS -> RoomsPanel(state, actions, roomName, modeRow)
+                    MapMode.ZONES -> ZonesPanel(state, onAddShape, actions, modeRow)
                     MapMode.GO_TO -> GoToPanel(state, actions)
                     MapMode.RESTRICTIONS -> RestrictionsPanel(state, onAddShape, actions)
-                    MapMode.VIEW -> Hint(stringResource(R.string.map_view_hint), spaced = false)
+                    // The map shows the status card instead of this panel while viewing.
+                    MapMode.VIEW -> Unit
                 }
             }
         }
@@ -97,7 +99,7 @@ fun ModePanel(
 }
 
 @Composable
-private fun RoomsPanel(state: MapUiState, actions: MapViewModel, roomName: (String) -> String?) {
+private fun RoomsPanel(state: MapUiState, actions: MapViewModel, roomName: (String) -> String?, modeRow: @Composable () -> Unit) {
     val count = state.selectedSegments.size
     var renaming by remember { mutableStateOf(false) }
     if (count == 0) {
@@ -106,7 +108,11 @@ private fun RoomsPanel(state: MapUiState, actions: MapViewModel, roomName: (Stri
         // Which rooms, by name, and a way to start over.
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
             Text(
-                state.selectedSegments.map { roomName(it) ?: it }.joinToString(", "),
+                // Numbered like the labels on the map when the robot cleans in this order.
+                state.selectedSegments.mapIndexed { index, id ->
+                    val name = roomName(id) ?: id
+                    if (state.segmentProperties.customOrderSupport && state.selectedSegments.size > 1) "${index + 1} $name" else name
+                }.joinToString(", "),
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -119,6 +125,8 @@ private fun RoomsPanel(state: MapUiState, actions: MapViewModel, roomName: (Stri
     }
     if (count > 0) {
         IterationPicker(state.iterations, state.segmentProperties.iterationCount.max, actions::setIterations)
+        Spacer(Modifier.height(8.dp))
+        modeRow()
         val startJob = rememberJobStarter()
         PrimaryAction(pluralStringResource(R.plurals.home_clean_rooms, count, count), !state.sending) { startJob(actions::cleanSelectedRooms) }
         if (count == 1 && state.canRename) {
@@ -136,7 +144,7 @@ private fun RoomsPanel(state: MapUiState, actions: MapViewModel, roomName: (Stri
 
 
 @Composable
-private fun ZonesPanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Unit, actions: MapViewModel) {
+private fun ZonesPanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Unit, actions: MapViewModel, modeRow: @Composable () -> Unit) {
     val max = state.zoneProperties.zoneCount.max
     Hint(pluralStringResource(R.plurals.map_zones_hint, max, max))
     ShapeToolbar(
@@ -147,6 +155,8 @@ private fun ZonesPanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Un
     )
     if (state.zones.isNotEmpty()) {
         IterationPicker(state.iterations, state.zoneProperties.iterationCount.max, actions::setIterations)
+        Spacer(Modifier.height(8.dp))
+        modeRow()
         val startJob = rememberJobStarter()
         PrimaryAction(pluralStringResource(R.plurals.map_clean_zones, state.zones.size, state.zones.size), !state.sending) { startJob(actions::cleanZones) }
     }

@@ -64,6 +64,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.dwicki.tidytudo.R
@@ -80,6 +84,10 @@ import kotlinx.coroutines.delay
  * The top of the home screen (F-2.1 – F-2.4): what the robot is doing, in one headline and one
  * supporting line, and the buttons to change it. The card's colour follows the state, so docked,
  * cleaning, paused and error look different at a glance.
+ *
+ * [compact] is the map's version: a smaller robot and headline, so the map keeps its room. [extra]
+ * goes between the status and the buttons (the cleaning mode row) and gets a raised surface colour
+ * that reads on every tone of the card. [hint] is shown under the buttons while nothing runs.
  */
 @Composable
 fun StatusCard(
@@ -94,6 +102,9 @@ fun StatusCard(
     onDock: () -> Unit,
     onLocate: () -> Unit,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
+    extra: (@Composable (raised: Color) -> Unit)? = null,
+    hint: String? = null,
 ) {
     val state = live.state
     val status = state?.status?.value ?: StatusValue.UNKNOWN
@@ -111,12 +122,19 @@ fun StatusCard(
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = container, contentColor = content),
     ) {
-        Column(Modifier.padding(20.dp)) {
+        Column(Modifier.padding(if (compact) 16.dp else 20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                RobotAvatar(status = status, dimmed = !online, color = accent, cutout = container, modifier = Modifier.size(72.dp))
+                RobotAvatar(
+                    status = status,
+                    dimmed = !online,
+                    color = accent,
+                    cutout = container,
+                    modifier = Modifier.size(if (compact) COMPACT_AVATAR else 72.dp),
+                )
                 Spacer(Modifier.width(16.dp))
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Headline(state, offline)
+                // Polite live region: TalkBack announces "Paused", "Returning to dock" as they happen.
+                Column(Modifier.weight(1f).semantics { liveRegion = LiveRegionMode.Polite }, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Headline(state, offline, compact)
                     when {
                         offline -> ConnectionLine(R.string.status_reconnecting)
                         stale -> DelayedConnectionLine(R.string.status_updating)
@@ -124,8 +142,22 @@ fun StatusCard(
                     }
                 }
             }
-            Spacer(Modifier.height(20.dp))
+            if (extra != null) {
+                Spacer(Modifier.height(if (compact) 12.dp else 16.dp))
+                extra(tone.button)
+            }
+            Spacer(Modifier.height(if (compact) 12.dp else 20.dp))
             Controls(state, online, canLocate, busyAction, selectedRooms, tone.button to tone.onButton, onToggle, onCleanRooms, onStop, onDock, onLocate)
+            val idle = state?.status?.value.let { it == null || !(it.isActive || it == StatusValue.PAUSED) }
+            if (hint != null && idle) {
+                Text(
+                    hint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = LocalContentColor.current.copy(alpha = SECONDARY_ALPHA),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                )
+            }
         }
     }
 }
@@ -156,7 +188,7 @@ private fun statusTone(status: StatusValue, unavailable: Boolean): Tone {
 }
 
 @Composable
-private fun Headline(state: RobotState?, offline: Boolean) {
+private fun Headline(state: RobotState?, offline: Boolean, compact: Boolean) {
     val context = LocalContext.current
     val text = when {
         state == null && offline -> stringResource(R.string.status_offline)
@@ -164,7 +196,7 @@ private fun Headline(state: RobotState?, offline: Boolean) {
         else -> context.getString(Labels.status(state.status.value))
     }
     AnimatedContent(targetState = text, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "status") { value ->
-        Text(value, style = MaterialTheme.typography.headlineSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(value, style = if (compact) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -385,6 +417,7 @@ private fun RobotAvatar(status: StatusValue, dimmed: Boolean, color: Color, cuto
 }
 
 private val BUTTON_HEIGHT = 56.dp
+private val COMPACT_AVATAR = 48.dp
 private const val SECONDARY_ALPHA = 0.8f
 private const val LOW_BATTERY = 20
 private const val SECONDS_PER_MINUTE = 60L

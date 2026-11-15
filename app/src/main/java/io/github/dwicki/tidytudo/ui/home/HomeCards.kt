@@ -344,104 +344,6 @@ fun IterationPicker(iterations: Int, max: Int, onChange: (Int) -> Unit) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Cleaning settings
-// ---------------------------------------------------------------------------------------------
-
-/**
- * Operation mode, suction and water (F-2.5) as three tiles showing the current value; each opens
- * a picker. Suction is hidden in mop-only mode and water in vacuum-only mode, where they do nothing.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CleaningSettings(state: RobotState?, options: Map<String, List<String>>, enabled: Boolean, onSelect: (String, String) -> Unit) {
-    val context = LocalContext.current
-    val mode = state?.operationMode
-    val settings = listOf(
-        Setting(Capabilities.OPERATION_MODE, R.string.home_mode_operation, Icons.Outlined.CleaningServices, mode, R.string.home_modes_title),
-        Setting(Capabilities.FAN_SPEED, R.string.home_mode_fan, Icons.Outlined.Air, state?.fanSpeed),
-        Setting(Capabilities.WATER_USAGE, R.string.home_mode_water, Icons.Outlined.WaterDrop, state?.waterUsage),
-    ).filter { options[it.capability].orEmpty().isNotEmpty() }
-        .filterNot { it.capability == Capabilities.FAN_SPEED && mode == MODE_MOP }
-        .filterNot { it.capability == Capabilities.WATER_USAGE && mode == MODE_VACUUM }
-    if (settings.isEmpty()) return
-    var open by rememberSaveable { mutableStateOf<String?>(null) }
-
-    // A settings list rather than tiles: long values ("Vacuum and mop", "Saugen und wischen") get the
-    // whole width next to their label instead of wrapping inside a narrow tile.
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-    ) {
-        Column(Modifier.padding(top = 4.dp, bottom = 8.dp)) {
-            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = ROW_HORIZONTAL_PADDING), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.home_modes_title), style = MaterialTheme.typography.titleMedium)
-            }
-            settings.forEach { setting ->
-                SettingRow(
-                    icon = setting.icon,
-                    label = stringResource(setting.label),
-                    value = setting.current?.let { Labels.preset(context, it) } ?: "–",
-                    enabled = enabled,
-                    onClick = { open = setting.capability },
-                )
-            }
-        }
-    }
-
-    settings.firstOrNull { it.capability == open }?.let { setting ->
-        ModalBottomSheet(onDismissRequest = { open = null }) {
-            Text(
-                stringResource(setting.sheetTitle),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-            )
-            options[setting.capability].orEmpty().forEach { value ->
-                ListItem(
-                    modifier = Modifier
-                        .clickable(role = Role.RadioButton) { onSelect(setting.capability, value); open = null }
-                        .padding(horizontal = 8.dp),
-                    headlineContent = { Text(Labels.preset(context, value)) },
-                    leadingContent = { RadioButton(selected = value == setting.current, onClick = null) },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                )
-            }
-            Spacer(Modifier.height(24.dp))
-        }
-    }
-}
-
-private data class Setting(val capability: String, val label: Int, val icon: ImageVector, val current: String?, val sheetTitle: Int = label)
-
-/** One setting: icon, name, current value on the right, and an arrow that says it opens a choice. */
-@Composable
-private fun SettingRow(icon: ImageVector, label: String, value: String, enabled: Boolean, onClick: () -> Unit) {
-    val colors = MaterialTheme.colorScheme
-    AppListItem(
-        title = label,
-        icon = icon,
-        enabled = enabled,
-        onClick = onClick,
-        trailing = {
-            Text(
-                value,
-                style = MaterialTheme.typography.bodyLarge,
-                color = colors.primary,
-                // Two lines for long German values such as "Erst saugen, dann wischen" on narrow phones.
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.End,
-                modifier = Modifier.widthIn(max = 200.dp),
-            )
-            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = colors.onSurfaceVariant)
-        },
-    )
-}
-
-private const val MODE_MOP = "mop"
-private const val MODE_VACUUM = "vacuum"
-
-// ---------------------------------------------------------------------------------------------
 // Dock
 // ---------------------------------------------------------------------------------------------
 
@@ -449,6 +351,7 @@ private const val MODE_VACUUM = "vacuum"
  * The dock (F-2.8) in one line while all is well; it opens to show attachments, tanks and the dock
  * buttons, and opens by itself when something needs attention.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DockCard(state: RobotState?, capabilities: Set<String>, busyAction: String?, enabled: Boolean, onTrigger: (String) -> Unit) {
     val triggers = Capabilities.dockTriggers.filter { it in capabilities }
@@ -456,7 +359,9 @@ fun DockCard(state: RobotState?, capabilities: Set<String>, busyAction: String?,
     val context = LocalContext.current
     val problems = state?.dockComponents.orEmpty().filter { it.needsAttention }
     var expanded by rememberSaveable { mutableStateOf(false) }
-    val open = expanded || problems.isNotEmpty()
+    // Only attachments and tanks fold away; with none, there is nothing to open.
+    val hasDetails = !state?.dockComponents.isNullOrEmpty() || !state?.attachments.isNullOrEmpty()
+    val open = hasDetails && (expanded || problems.isNotEmpty())
     val activity = state?.dockStatus?.takeIf { it != "idle" }?.let { Labels.dockStatus(context, it) }
     val summary = when {
         problems.isNotEmpty() -> problems.joinToString(", ") {
@@ -478,7 +383,7 @@ fun DockCard(state: RobotState?, capabilities: Set<String>, busyAction: String?,
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 72.dp)
-                .clickable(enabled = healthy, role = Role.Button) { expanded = !expanded }
+                .clickable(enabled = healthy && hasDetails, role = Role.Button) { expanded = !expanded }
                 .padding(start = ROW_HORIZONTAL_PADDING, end = 12.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -496,7 +401,7 @@ fun DockCard(state: RobotState?, capabilities: Set<String>, busyAction: String?,
                     color = if (healthy) colors.onSurfaceVariant else colors.error,
                 )
             }
-            if (healthy) {
+            if (healthy && hasDetails) {
                 Icon(
                     if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
                     contentDescription = null,
@@ -520,18 +425,21 @@ fun DockCard(state: RobotState?, capabilities: Set<String>, busyAction: String?,
                         attention = component.needsAttention,
                     )
                 }
-                if (triggers.isNotEmpty()) {
-                    Spacer(Modifier.height(8.dp))
-                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        triggers.forEach { capability ->
-                            AssistChip(
-                                onClick = { onTrigger(capability) },
-                                enabled = enabled && busyAction != capability,
-                                label = { Text(stringResource(Labels.dockTrigger(capability))) },
-                                leadingIcon = { Icon(triggerIcon(capability), contentDescription = null, modifier = Modifier.size(18.dp)) },
-                            )
-                        }
-                    }
+            }
+        }
+        // The dock buttons stay in sight: washing the mops is one tap, not "open the card, then tap".
+        if (triggers.isNotEmpty()) {
+            FlowRow(
+                Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                triggers.forEach { capability ->
+                    AssistChip(
+                        onClick = { onTrigger(capability) },
+                        enabled = enabled && busyAction != capability,
+                        label = { Text(stringResource(Labels.dockTrigger(capability))) },
+                        leadingIcon = { Icon(triggerIcon(capability), contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    )
                 }
             }
         }

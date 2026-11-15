@@ -29,6 +29,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.dwicki.tidytudo.R
+import io.github.dwicki.tidytudo.ui.cleaning.CleaningModeRow
 import io.github.dwicki.tidytudo.api.Capabilities
 import io.github.dwicki.tidytudo.api.Connection
 import io.github.dwicki.tidytudo.api.LiveState
@@ -92,6 +93,7 @@ fun HomeScreen(
         onNewPreset = { presetDialog = true },
         onPresetMenu = { presetMenu = it.id },
         onStop = { confirmStop = true },
+        modeRow = { CleaningModeRow(robot, snackbar, enabled = live.connection == Connection.Online) },
         onInteract = { event, interaction ->
             // Resetting a counter cannot be undone, so it asks first, as on the Consumables screen.
             if (interaction == RobotEvent.INTERACTION_RESET) eventToReset = event.id else viewModel.interact(event, interaction)
@@ -145,6 +147,7 @@ private fun HomeContent(
     onNewPreset: () -> Unit,
     onPresetMenu: (CleaningPreset) -> Unit,
     onStop: () -> Unit,
+    modeRow: @Composable () -> Unit,
     onInteract: (RobotEvent, String) -> Unit,
 ) {
     val online = live.connection == Connection.Online
@@ -180,6 +183,8 @@ private fun HomeContent(
                 AttentionCards(live.state, extras.openEvents, extras.pendingMapChange, onInteract, viewModel::answerMapChange)
             }
         }
+        // The mode right under the main button: what "Clean all" will do is visible before starting.
+        item { modeRow() }
         item {
             PresetsRow(
                 presets = presets,
@@ -206,7 +211,6 @@ private fun HomeContent(
                 onRenameRoom = onRenameRoom,
             )
         }
-        item { CleaningSettings(live.state, extras.presetOptions, online, viewModel::setPreset) }
         item { DockCard(live.state, capabilities, busy, online, viewModel::triggerDock) }
     }
 }

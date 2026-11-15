@@ -1,6 +1,17 @@
 package io.github.dwicki.tidytudo.ui.map
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.material.icons.outlined.FitScreen
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import io.github.dwicki.tidytudo.api.Capabilities
+import io.github.dwicki.tidytudo.api.Connection
+import io.github.dwicki.tidytudo.ui.cleaning.CleaningModeRow
+import io.github.dwicki.tidytudo.ui.components.rememberJobStarter
+import io.github.dwicki.tidytudo.ui.home.ConfirmDialog
+import io.github.dwicki.tidytudo.ui.home.HomeViewModel
+import io.github.dwicki.tidytudo.ui.home.StatusCard
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
 import androidx.activity.compose.BackHandler
@@ -63,6 +74,43 @@ fun MapScreen(
     val live by viewModel.live.collectAsStateWithLifecycle()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     ErrorSnackbarEffect(viewModel.errors, snackbar)
+    // Start, pause, dock and stop come from the home screen's logic, so both screens behave alike.
+    val home = robotViewModel(robot) { container, current -> HomeViewModel(container, current) }
+    val progress by home.progress.collectAsStateWithLifecycle()
+    val busy by home.busy.collectAsStateWithLifecycle()
+    ErrorSnackbarEffect(home.errors, snackbar)
+    val startJob = rememberJobStarter()
+    var confirmStop by rememberSaveable { mutableStateOf(false) }
+    if (confirmStop) {
+        ConfirmDialog(
+            title = stringResource(R.string.stop_confirm_title),
+            text = stringResource(R.string.stop_confirm_text),
+            confirm = stringResource(R.string.action_stop),
+            onConfirm = { home.stop(); confirmStop = false },
+            onDismiss = { confirmStop = false },
+        )
+    }
+    val online = live.connection == Connection.Online
+    val modeRow: @Composable () -> Unit = {
+        CleaningModeRow(robot, snackbar, enabled = online, container = MaterialTheme.colorScheme.surfaceContainerHighest)
+    }
+    val statusPanel: @Composable () -> Unit = {
+        StatusCard(
+            live = live,
+            progress = progress,
+            canLocate = false,
+            busyAction = busy,
+            selectedRooms = 0,
+            onToggle = { startJob(home::toggle) },
+            onCleanRooms = {},
+            onStop = { confirmStop = true },
+            onDock = home::dock,
+            onLocate = {},
+            compact = true,
+            extra = { raised -> CleaningModeRow(robot, snackbar, enabled = online, container = raised) },
+            hint = stringResource(R.string.map_view_hint).takeIf { Capabilities.SEGMENT_CLEANING in live.capabilities },
+        )
+    }
 
     // Coming from the room card on the home screen: show the rooms (and the shared selection) at once.
     LaunchedEffect(openRooms, live.capabilities) {
@@ -97,7 +145,7 @@ fun MapScreen(
             text = stringResource(R.string.map_empty_text),
             modifier = Modifier.padding(contentPadding),
         )
-        else -> MapContent(currentMap, state, viewModel.availableModes(live.capabilities), viewModel, contentPadding)
+        else -> MapContent(currentMap, state, viewModel.availableModes(live.capabilities), viewModel, contentPadding, statusPanel, modeRow)
     }
 }
 
@@ -108,6 +156,8 @@ private fun MapContent(
     modes: List<MapMode>,
     viewModel: MapViewModel,
     contentPadding: PaddingValues,
+    statusPanel: @Composable () -> Unit,
+    modeRow: @Composable () -> Unit,
 ) {
     val viewState = rememberMapViewState()
     viewState.topInset = with(LocalDensity.current) { MODE_BAR_HEIGHT.toPx() }
@@ -176,13 +226,24 @@ private fun MapContent(
             ) {
                 Icon(Icons.Outlined.FitScreen, contentDescription = stringResource(R.string.map_fit))
             }
-            ModePanel(
+            // Viewing: the robot's status and controls with the cleaning mode. A tool: that tool's panel.
+            AnimatedContent(
+                targetState = state.mode == MapMode.VIEW,
                 modifier = Modifier.onSizeChanged { viewState.bottomInset = it.height.toFloat() },
-                roomName = { id -> map.segments.firstOrNull { it.id == id }?.name },
-                state = state,
-                onAddShape = { kind -> viewState.visibleCenter(map)?.let { viewModel.addShape(kind, it) } },
-                actions = viewModel,
-            )
+                label = "mapPanel",
+            ) { viewing ->
+                if (viewing) {
+                    statusPanel()
+                } else {
+                    ModePanel(
+                        roomName = { id -> map.segments.firstOrNull { it.id == id }?.name },
+                        state = state,
+                        onAddShape = { kind -> viewState.visibleCenter(map)?.let { viewModel.addShape(kind, it) } },
+                        actions = viewModel,
+                        modeRow = modeRow,
+                    )
+                }
+            }
         }
     }
 }

@@ -1,5 +1,17 @@
 package io.github.dwicki.tidytudo.ui.settings
 
+import io.github.dwicki.tidytudo.ui.components.AppListItem
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItem
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -70,11 +82,32 @@ fun RobotSettingsScreen(robot: Robot, onBack: () -> Unit) {
                 if (current.value.volume != null || current.value.voicePack != null) {
                     item { SoundCard(current.value, viewModel::setVolume, viewModel::testSound) }
                 }
+                // Grouped by what they are about, instead of one long "Behaviour" list.
+                val switches = current.value.switches
+                val navigation = switches.filterKeys { it in NAVIGATION_SWITCHES }
+                val camera = switches.filterKeys { it in CAMERA_SWITCHES }
+                val robotSwitches = switches.filterKeys { it !in NAVIGATION_SWITCHES && it !in CAMERA_SWITCHES && it != AUTO_DRYING }
+                if (navigation.isNotEmpty()) {
+                    item { SwitchesCard(stringResource(R.string.settings_navigation_title), navigation, viewModel::setSwitch) }
+                }
                 if (current.value.carpetSensorMode != null) {
                     item { CarpetSensorCard(current.value.carpetSensorMode, current.value.carpetSensorModes, viewModel::setCarpetSensorMode) }
                 }
-                if (current.value.switches.isNotEmpty()) {
-                    item { SwitchesCard(current.value.switches, viewModel::setSwitch) }
+                if (camera.isNotEmpty()) {
+                    item { SwitchesCard(stringResource(R.string.settings_camera_title), camera, viewModel::setSwitch) }
+                }
+                if (AUTO_DRYING in switches || current.value.washTemperature != null || current.value.autoEmptyInterval != null) {
+                    item {
+                        DockSettingsCard(
+                            settings = current.value,
+                            onSwitch = viewModel::setSwitch,
+                            onWashTemperature = viewModel::setWashTemperature,
+                            onAutoEmptyInterval = viewModel::setAutoEmptyInterval,
+                        )
+                    }
+                }
+                if (robotSwitches.isNotEmpty()) {
+                    item { SwitchesCard(stringResource(R.string.settings_robot_title), robotSwitches, viewModel::setSwitch) }
                 }
             }
         }
@@ -207,10 +240,92 @@ private fun CarpetSensorCard(current: String, modes: List<String>, onSelect: (St
     }
 }
 
+/**
+ * How the dock looks after the robot: settings that last. The one-tap dock actions (wash, dry,
+ * empty) stay on the home screen, where they are used.
+ */
 @Composable
-private fun SwitchesCard(switches: Map<String, Boolean>, onChange: (String, Boolean) -> Unit) {
+private fun DockSettingsCard(
+    settings: RobotSettings,
+    onSwitch: (String, Boolean) -> Unit,
+    onWashTemperature: (String) -> Unit,
+    onAutoEmptyInterval: (String) -> Unit,
+) {
     val context = LocalContext.current
-    ListCard(title = stringResource(R.string.settings_behaviour_title)) {
+    ListCard(title = stringResource(R.string.settings_dock_title)) {
+        settings.switches[AUTO_DRYING]?.let { enabled ->
+            SwitchListItem(
+                title = Labels.switchName(context, AUTO_DRYING),
+                checked = enabled,
+                onCheckedChange = { onSwitch(AUTO_DRYING, it) },
+            )
+        }
+        settings.washTemperature?.let { value ->
+            ChoiceRow(
+                title = stringResource(R.string.settings_wash_temperature),
+                value = value,
+                options = settings.washTemperatures,
+                label = { Labels.washTemperature(context, it) },
+                onSelect = onWashTemperature,
+            )
+        }
+        settings.autoEmptyInterval?.let { value ->
+            ChoiceRow(
+                title = stringResource(R.string.settings_auto_empty),
+                value = value,
+                options = settings.autoEmptyIntervals,
+                label = { Labels.autoEmptyInterval(context, it) },
+                onSelect = onAutoEmptyInterval,
+            )
+        }
+    }
+}
+
+/** A setting with a few named values: the current one on the right, the rest in a sheet. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ChoiceRow(title: String, value: String, options: List<String>, label: (String) -> String, onSelect: (String) -> Unit) {
+    var open by rememberSaveable { mutableStateOf(false) }
+    val choices = options.ifEmpty { listOf(value) }
+    AppListItem(
+        title = title,
+        onClick = { open = true },
+        enabled = choices.size > 1,
+        trailing = {
+            Text(
+                label(value),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 2,
+                textAlign = TextAlign.End,
+                modifier = Modifier.widthIn(max = 180.dp),
+            )
+            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        },
+    )
+    if (open) {
+        ModalBottomSheet(onDismissRequest = { open = false }) {
+            Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
+            Column(Modifier.selectableGroup().padding(bottom = 24.dp)) {
+                choices.forEach { option ->
+                    ListItem(
+                        modifier = Modifier
+                            .selectable(selected = option == value, role = Role.RadioButton) { onSelect(option); open = false }
+                            .padding(horizontal = 8.dp),
+                        headlineContent = { Text(label(option)) },
+                        leadingContent = { RadioButton(selected = option == value, onClick = null) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SwitchesCard(title: String, switches: Map<String, Boolean>, onChange: (String, Boolean) -> Unit) {
+    val context = LocalContext.current
+    ListCard(title = title) {
         switches.forEach { (capability, enabled) ->
             SwitchListItem(
                 title = Labels.switchName(context, capability),
@@ -221,3 +336,13 @@ private fun SwitchesCard(switches: Map<String, Boolean>, onChange: (String, Bool
         }
     }
 }
+
+private val NAVIGATION_SWITCHES = setOf(
+    "ObstacleAvoidanceControlCapability",
+    "PetObstacleAvoidanceControlCapability",
+    "CollisionAvoidantNavigationControlCapability",
+    "FloorMaterialDirectionAwareNavigationControlCapability",
+    "CarpetModeControlCapability",
+)
+private val CAMERA_SWITCHES = setOf("ObstacleImagesCapability", "CameraLightControlCapability")
+private const val AUTO_DRYING = "MopDockMopAutoDryingControlCapability"

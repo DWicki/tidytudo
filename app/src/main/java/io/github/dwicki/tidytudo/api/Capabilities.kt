@@ -28,6 +28,8 @@ object Capabilities {
     const val MOP_CLEAN_TRIGGER = "MopDockCleanManualTriggerCapability"
     const val MOP_DRY_TRIGGER = "MopDockDryManualTriggerCapability"
     const val OBSTACLE_IMAGES = "ObstacleImagesCapability"
+    const val WASH_TEMPERATURE = "MopDockMopWashTemperatureControlCapability"
+    const val AUTO_EMPTY_INTERVAL = "AutoEmptyDockAutoEmptyIntervalControlCapability"
 
     /** Dock actions that all take `{"action":"trigger"}`. */
     val dockTriggers = listOf(AUTO_EMPTY_TRIGGER, MOP_CLEAN_TRIGGER, MOP_DRY_TRIGGER)
@@ -56,6 +58,7 @@ object Capabilities {
         BASIC_CONTROL, LOCATE, FAN_SPEED, WATER_USAGE, OPERATION_MODE, SEGMENT_CLEANING, SEGMENT_RENAME,
         ZONE_CLEANING, GO_TO_LOCATION, VIRTUAL_RESTRICTIONS, CONSUMABLES, DO_NOT_DISTURB, SPEAKER_VOLUME,
         SPEAKER_TEST, VOICE_PACK, TOTAL_STATISTICS, CURRENT_STATISTICS, PENDING_MAP_CHANGE, CARPET_SENSOR_MODE,
+        WASH_TEMPERATURE, AUTO_EMPTY_INTERVAL,
     ) + dockTriggers + switches
 
     fun isKnown(name: String): Boolean = name in known

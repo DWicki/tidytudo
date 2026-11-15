@@ -205,7 +205,7 @@
     <string name="hub_consumables_text">Brushes, filters and sensors</string>
     <string name="hub_events_text">Errors and maintenance notices</string>
     <string name="hub_schedules_text">Automatic cleaning times</string>
-    <string name="hub_settings_text">Quiet hours, sound and behaviour</string>
+    <string name="hub_settings_text">Quiet hours, sound, navigation and dock</string>
     <string name="hub_info_text">Model, firmware and statistics</string>
     <string name="hub_robots_text">Add, rename or remove robots</string>
     <string name="hub_app_settings_text">Notifications, colours, language and privacy</string>
@@ -448,5 +448,29 @@
     <string name="action_more">More options</string>
     <string name="events_done">Done · %1$s</string>
     <string name="robots_active_short">In use</string>
-    <string name="map_view_hint">Tap a room to clean it, or choose a tool above.</string>
+    <string name="map_view_hint">Or tap rooms on the map to choose them.</string>
+    <!-- Cleaning mode row and sheet (Home and Map) -->
+    <string name="cleaning_mode_change">Change</string>
+    <string name="cleaning_mode_spoken">Cleaning mode: %1$s</string>
+    <string name="cleaning_mode_setting">%1$s: %2$s</string>
+    <string name="cleaning_mode_suction_unused">Not used when only mopping</string>
+    <string name="cleaning_mode_water_unused">Not used when only vacuuming</string>
+    <string name="cleaning_mode_mop_title">Mop</string>
+    <string name="cleaning_mode_mop_unused">Only used when mopping</string>
+    <!-- Robot settings groups and dock settings -->
+    <string name="settings_navigation_title">Navigation</string>
+    <string name="settings_camera_title">Camera</string>
+    <string name="settings_robot_title">Robot</string>
+    <string name="settings_dock_title">Dock</string>
+    <string name="settings_wash_temperature">Mop wash water</string>
+    <string name="settings_auto_empty">Empty the bin into the dock</string>
+    <string name="wash_temperature_cold">Cold</string>
+    <string name="wash_temperature_warm">Warm</string>
+    <string name="wash_temperature_hot">Hot</string>
+    <string name="wash_temperature_scalding">Very hot</string>
+    <string name="wash_temperature_boiling">Boiling</string>
+    <string name="auto_empty_off">Never</string>
+    <string name="auto_empty_infrequent">Now and then</string>
+    <string name="auto_empty_normal">After every cleaning</string>
+    <string name="auto_empty_frequent">Also during cleaning</string>
 </resources>

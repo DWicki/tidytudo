@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+Cleaning mode and map, after a UX review against the Dreamehome app:
+
+- Mode, suction, water and the mop switches (extend to edges, furniture legs, twist) live in one sheet, opened from a single row that shows the current mode: right under the main button on Home, and on the map. Modes are big tiles; settings the mode does not use stay visible, greyed, with the reason
+- Robots with more than four suction levels get wrapping chips instead of a cramped segmented row; "custom" is not offered
+- Map: while nothing is chosen, the panel is a compact status card with the mode, "Clean all", and pause, dock and stop while the robot works; the room and zone panels show the mode above their clean button; selected rooms are listed in cleaning order
+- Map: picked rooms show their place in the cleaning order on the map; the map is centred and moves aside smoothly when the panel grows; neighbouring rooms never share a colour; the old path fades while choosing or drawing; restriction tools wrap
+- Dock buttons (wash, dry, empty) are always visible on Home
+- Robot settings grouped into Navigation, Camera, Dock and Robot; new dock settings: mop wash water temperature and how often the bin is emptied into the dock; mop drying moved to Dock
+
 Whole app:
 
 - Every screen uses the home screen's language: round tonal icons, rows on one keyline, list cards, one style for section headings, medium title bars
@@ -20,7 +29,6 @@ Home screen redesign:
 - Status and controls in one card whose colour follows the state (docked, cleaning, paused, error), with a new robot drawing and one summary line: battery, what the robot or dock is doing, elapsed time and area
 - One main button: "Clean all", or "Clean n rooms" as soon as rooms are selected
 - Filled room chips with clearer selection; while rooms are selected the card says how many and offers to clear them; passes are a segmented control
-- Mode, suction and water as a settings list (name left, value right) that opens a picker, so long values such as "Vacuum and mop" fit; settings that do nothing in the current mode are hidden
 - Presets as pills right below the status, hidden while there are none
 - The dock collapses to one line while all is well and opens by itself when something needs attention
 - The robot name in the top bar is a pill that opens the switcher; the bar tints when content scrolls under it

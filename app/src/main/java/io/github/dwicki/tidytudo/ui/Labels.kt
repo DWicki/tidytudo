@@ -185,6 +185,23 @@ object Labels {
         else -> null
     }
 
+    fun washTemperature(context: Context, value: String): String = when (value) {
+        "cold" -> context.getString(R.string.wash_temperature_cold)
+        "warm" -> context.getString(R.string.wash_temperature_warm)
+        "hot" -> context.getString(R.string.wash_temperature_hot)
+        "scalding" -> context.getString(R.string.wash_temperature_scalding)
+        "boiling" -> context.getString(R.string.wash_temperature_boiling)
+        else -> humanize(value)
+    }
+
+    fun autoEmptyInterval(context: Context, value: String): String = when (value) {
+        "off" -> context.getString(R.string.auto_empty_off)
+        "infrequent" -> context.getString(R.string.auto_empty_infrequent)
+        "normal" -> context.getString(R.string.auto_empty_normal)
+        "frequent" -> context.getString(R.string.auto_empty_frequent)
+        else -> humanize(value)
+    }
+
     fun carpetSensorMode(context: Context, mode: String): String = when (mode) {
         "off" -> context.getString(R.string.carpet_sensor_off)
         "avoid" -> context.getString(R.string.carpet_sensor_avoid)

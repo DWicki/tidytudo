@@ -38,8 +38,6 @@ import java.util.UUID
 
 /** Data the home screen loads once per visit, on top of the live state. */
 data class HomeExtras(
-    /** Preset choices per capability (fan speed, water usage, operation mode). */
-    val presetOptions: Map<String, List<String>> = emptyMap(),
     val segments: List<MapSegment> = emptyList(),
     val segmentProperties: SegmentCleaningProperties = SegmentCleaningProperties(),
     val openEvents: List<RobotEvent> = emptyList(),
@@ -104,9 +102,6 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
 
     private suspend fun loadExtras(capabilities: Set<String>) {
         val client = session.client
-        val options = listOf(Capabilities.FAN_SPEED, Capabilities.WATER_USAGE, Capabilities.OPERATION_MODE)
-            .filter { it in capabilities }
-            .associateWith { client.presets(it).getOrNull().orEmpty() }
         val segments = if (Capabilities.SEGMENT_CLEANING in capabilities) client.segments().getOrNull().orEmpty() else emptyList()
         val properties = if (Capabilities.SEGMENT_CLEANING in capabilities) {
             client.segmentProperties().getOrNull() ?: SegmentCleaningProperties()
@@ -115,7 +110,7 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
         }
         val events = client.events().getOrNull().orEmpty().filterNot { it.processed }
         val pending = Capabilities.PENDING_MAP_CHANGE in capabilities && client.pendingMapChange().getOrNull()?.pending == true
-        extrasState.value = HomeExtras(options, segments.sortedBy { it.name ?: it.id }, properties, events, pending)
+        extrasState.value = HomeExtras(segments.sortedBy { it.name ?: it.id }, properties, events, pending)
         container.publishShortcuts(robot, segments.map { RoomShortcut(it.id, it.name ?: it.id) })
     }
 

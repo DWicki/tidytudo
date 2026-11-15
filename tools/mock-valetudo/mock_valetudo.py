@@ -54,7 +54,10 @@ FULL_CAPABILITIES = BASIC_CAPABILITIES + [
     "CarpetSensorModeControlCapability", "AutoEmptyDockManualTriggerCapability",
     "MopDockCleanManualTriggerCapability", "MopDockDryManualTriggerCapability",
     "ObstacleImagesCapability",
-    "MopDockMopWashTemperatureControlCapability",  # deliberately unknown to the app
+    "MopDockMopWashTemperatureControlCapability", "AutoEmptyDockAutoEmptyIntervalControlCapability",
+    "MopDockMopAutoDryingControlCapability", "MopExtensionControlCapability", "MopTwistControlCapability",
+    "MopExtensionFurnitureLegHandlingControlCapability",
+    "MapSnapshotCapability",  # deliberately unknown to the app
 ]
 
 # Fictional detections in cm, with the colour of their generated "photo".
@@ -225,8 +228,12 @@ class Robot:
         self.dnd = {"enabled": True, "start": {"hour": 21, "minute": 0}, "end": {"hour": 6, "minute": 0}}
         self.volume = 60
         self.switches = {"KeyLockCapability": False, "CarpetModeControlCapability": True,
-                         "ObstacleAvoidanceControlCapability": True, "ObstacleImagesCapability": True}
+                         "ObstacleAvoidanceControlCapability": True, "ObstacleImagesCapability": True,
+                         "MopDockMopAutoDryingControlCapability": True, "MopExtensionControlCapability": True,
+                         "MopTwistControlCapability": False, "MopExtensionFurnitureLegHandlingControlCapability": False}
         self.carpet_sensor = "avoid"
+        self.wash_temperature = "warm"
+        self.auto_empty_interval = "normal"
         self.version = 1  # bumped on every change, wakes SSE writers
 
     # -- state -------------------------------------------------------------------------------
@@ -443,7 +450,7 @@ class Handler(BaseHTTPRequestHandler):
         presets = {
             "FanSpeedControlCapability": ["low", "medium", "high", "max"],
             "WaterUsageControlCapability": ["low", "medium", "high"],
-            "OperationModeControlCapability": ["vacuum", "mop", "vacuum_and_mop"],
+            "OperationModeControlCapability": ["vacuum", "mop", "vacuum_and_mop", "vacuum_then_mop"],
         }
         values = {
             ("MapSegmentationCapability", ""): lambda: [{"__class": "ValetudoMapSegment", "metaData": {}, "id": k, "name": v}
@@ -466,6 +473,11 @@ class Handler(BaseHTTPRequestHandler):
             ("PendingMapChangeHandlingCapability", ""): lambda: {"pending": False},
             ("CarpetSensorModeControlCapability", ""): lambda: {"mode": robot.carpet_sensor},
             ("CarpetSensorModeControlCapability", "properties"): lambda: {"supportedModes": ["off", "avoid", "lift"]},
+            ("MopDockMopWashTemperatureControlCapability", ""): lambda: {"temperature": robot.wash_temperature},
+            ("MopDockMopWashTemperatureControlCapability", "properties"): lambda: {"supportedTemperatures": ["cold", "warm", "hot"]},
+            ("AutoEmptyDockAutoEmptyIntervalControlCapability", ""): lambda: {"interval": robot.auto_empty_interval},
+            ("AutoEmptyDockAutoEmptyIntervalControlCapability", "properties"): lambda: {
+                "supportedIntervals": ["off", "infrequent", "normal", "frequent"]},
         }
         if name == "ObstacleImagesCapability" and rest.startswith("img/"):
             return self.send_image(rest.removeprefix("img/"))
@@ -563,6 +575,12 @@ class Handler(BaseHTTPRequestHandler):
             return True
         if name == "CarpetSensorModeControlCapability":
             robot.carpet_sensor = body["mode"]
+            return True
+        if name == "MopDockMopWashTemperatureControlCapability":
+            robot.wash_temperature = body["temperature"]
+            return True
+        if name == "AutoEmptyDockAutoEmptyIntervalControlCapability":
+            robot.auto_empty_interval = body["interval"]
             return True
         return action in ("locate", "trigger", "play_test_sound", "accept", "reject")
 

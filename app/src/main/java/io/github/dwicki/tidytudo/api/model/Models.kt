@@ -105,6 +105,18 @@ data class CarpetSensorMode(val mode: String)
 data class CarpetSensorModeProperties(val supportedModes: List<String> = emptyList())
 
 @Serializable
+data class WashTemperature(val temperature: String)
+
+@Serializable
+data class WashTemperatureProperties(val supportedTemperatures: List<String> = emptyList())
+
+@Serializable
+data class AutoEmptyInterval(val interval: String)
+
+@Serializable
+data class AutoEmptyIntervalProperties(val supportedIntervals: List<String> = emptyList())
+
+@Serializable
 data class VirtualRestrictions(
     val virtualWalls: List<VirtualWall> = emptyList(),
     val restrictedZones: List<RestrictedZone> = emptyList(),

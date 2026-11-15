@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.dwicki.tidytudo.AppContainer
 import io.github.dwicki.tidytudo.api.ApiResult
 import io.github.dwicki.tidytudo.api.Capabilities
+import io.github.dwicki.tidytudo.ui.cleaning.CleaningModeViewModel
 import io.github.dwicki.tidytudo.api.getOrNull
 import io.github.dwicki.tidytudo.api.model.DoNotDisturb
 import io.github.dwicki.tidytudo.api.model.VoicePackState
@@ -26,6 +27,10 @@ data class RobotSettings(
     val switches: Map<String, Boolean> = emptyMap(),
     val carpetSensorMode: String? = null,
     val carpetSensorModes: List<String> = emptyList(),
+    val washTemperature: String? = null,
+    val washTemperatures: List<String> = emptyList(),
+    val autoEmptyInterval: String? = null,
+    val autoEmptyIntervals: List<String> = emptyList(),
 )
 
 /** Do-not-disturb, sound and all capability switches (F-6.3 – F-6.7). */
@@ -50,7 +55,9 @@ class RobotSettingsViewModel(container: AppContainer, robot: Robot) : CommandVie
 
     private suspend fun read(capabilities: Set<String>): RobotSettings {
         fun has(name: String) = name in capabilities
-        val switches = Capabilities.switches.filter(::has).associateWith { client.toggle(it).getOrNull()?.enabled }
+        // Mop switches are part of the cleaning mode (Home and Map), not of the robot's general settings.
+        val switches = Capabilities.switches.filter(::has).filterNot { it in CleaningModeViewModel.MOP_SWITCHES }
+            .associateWith { client.toggle(it).getOrNull()?.enabled }
         return RobotSettings(
             doNotDisturb = if (has(Capabilities.DO_NOT_DISTURB)) client.doNotDisturb().getOrNull() else null,
             volume = if (has(Capabilities.SPEAKER_VOLUME)) client.volume().getOrNull()?.volume else null,
@@ -60,6 +67,18 @@ class RobotSettingsViewModel(container: AppContainer, robot: Robot) : CommandVie
             carpetSensorMode = if (has(Capabilities.CARPET_SENSOR_MODE)) client.carpetSensorMode().getOrNull()?.mode else null,
             carpetSensorModes = if (has(Capabilities.CARPET_SENSOR_MODE)) {
                 client.carpetSensorModeProperties().getOrNull()?.supportedModes.orEmpty()
+            } else {
+                emptyList()
+            },
+            washTemperature = if (has(Capabilities.WASH_TEMPERATURE)) client.washTemperature().getOrNull()?.temperature else null,
+            washTemperatures = if (has(Capabilities.WASH_TEMPERATURE)) {
+                client.washTemperatureProperties().getOrNull()?.supportedTemperatures.orEmpty()
+            } else {
+                emptyList()
+            },
+            autoEmptyInterval = if (has(Capabilities.AUTO_EMPTY_INTERVAL)) client.autoEmptyInterval().getOrNull()?.interval else null,
+            autoEmptyIntervals = if (has(Capabilities.AUTO_EMPTY_INTERVAL)) {
+                client.autoEmptyIntervalProperties().getOrNull()?.supportedIntervals.orEmpty()
             } else {
                 emptyList()
             },
@@ -90,4 +109,10 @@ class RobotSettingsViewModel(container: AppContainer, robot: Robot) : CommandVie
 
     fun setCarpetSensorMode(mode: String) =
         optimistic({ it.copy(carpetSensorMode = mode) }) { client.setCarpetSensorMode(mode) }
+
+    fun setWashTemperature(value: String) =
+        optimistic({ it.copy(washTemperature = value) }) { client.setWashTemperature(value) }
+
+    fun setAutoEmptyInterval(value: String) =
+        optimistic({ it.copy(autoEmptyInterval = value) }) { client.setAutoEmptyInterval(value) }
 }

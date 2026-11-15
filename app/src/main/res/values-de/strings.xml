@@ -193,7 +193,7 @@
     <string name="hub_consumables_text">Bürsten, Filter und Sensoren</string>
     <string name="hub_events_text">Fehler und Wartungshinweise</string>
     <string name="hub_schedules_text">Automatische Reinigungszeiten</string>
-    <string name="hub_settings_text">Ruhezeit, Ton und Verhalten</string>
+    <string name="hub_settings_text">Ruhezeit, Ton, Navigation und Station</string>
     <string name="hub_info_text">Modell, Firmware und Statistik</string>
     <string name="hub_robots_text">Roboter hinzufügen, umbenennen oder entfernen</string>
     <string name="hub_app_settings_text">Benachrichtigungen, Farben, Sprache und Datenschutz</string>
@@ -424,5 +424,29 @@
     <string name="action_more">Weitere Optionen</string>
     <string name="events_done">Erledigt · %1$s</string>
     <string name="robots_active_short">Aktiv</string>
-    <string name="map_view_hint">Tippe auf einen Raum, um ihn zu reinigen, oder wähle oben ein Werkzeug.</string>
+    <string name="map_view_hint">Oder tippe Räume auf der Karte an, um sie auszuwählen.</string>
+    <!-- Reinigungsmodus (Start und Karte) -->
+    <string name="cleaning_mode_change">Ändern</string>
+    <string name="cleaning_mode_spoken">Reinigungsmodus: %1$s</string>
+    <string name="cleaning_mode_setting">%1$s: %2$s</string>
+    <string name="cleaning_mode_suction_unused">Beim reinen Wischen nicht genutzt</string>
+    <string name="cleaning_mode_water_unused">Beim reinen Saugen nicht genutzt</string>
+    <string name="cleaning_mode_mop_title">Wischmopp</string>
+    <string name="cleaning_mode_mop_unused">Nur beim Wischen genutzt</string>
+    <!-- Gruppen der Robotereinstellungen und Station -->
+    <string name="settings_navigation_title">Navigation</string>
+    <string name="settings_camera_title">Kamera</string>
+    <string name="settings_robot_title">Roboter</string>
+    <string name="settings_dock_title">Station</string>
+    <string name="settings_wash_temperature">Waschwasser für den Mopp</string>
+    <string name="settings_auto_empty">Behälter in die Station leeren</string>
+    <string name="wash_temperature_cold">Kalt</string>
+    <string name="wash_temperature_warm">Warm</string>
+    <string name="wash_temperature_hot">Heiß</string>
+    <string name="wash_temperature_scalding">Sehr heiß</string>
+    <string name="wash_temperature_boiling">Kochend</string>
+    <string name="auto_empty_off">Nie</string>
+    <string name="auto_empty_infrequent">Ab und zu</string>
+    <string name="auto_empty_normal">Nach jeder Reinigung</string>
+    <string name="auto_empty_frequent">Auch während der Reinigung</string>
 </resources>

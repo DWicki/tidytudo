@@ -1,5 +1,7 @@
 package io.github.dwicki.tidytudo.api
 
+import io.github.dwicki.tidytudo.api.model.AutoEmptyInterval
+import io.github.dwicki.tidytudo.api.model.AutoEmptyIntervalProperties
 import io.github.dwicki.tidytudo.api.model.CarpetSensorMode
 import io.github.dwicki.tidytudo.api.model.CarpetSensorModeProperties
 import io.github.dwicki.tidytudo.api.model.Consumable
@@ -25,6 +27,8 @@ import io.github.dwicki.tidytudo.api.model.ValetudoTimer
 import io.github.dwicki.tidytudo.api.model.ValetudoVersion
 import io.github.dwicki.tidytudo.api.model.VirtualRestrictions
 import io.github.dwicki.tidytudo.api.model.VoicePackState
+import io.github.dwicki.tidytudo.api.model.WashTemperature
+import io.github.dwicki.tidytudo.api.model.WashTemperatureProperties
 import io.github.dwicki.tidytudo.api.model.ZoneCleaningProperties
 import io.github.dwicki.tidytudo.api.model.ZonePoints
 import io.github.dwicki.tidytudo.map.MapParser
@@ -176,6 +180,22 @@ class ValetudoClient(baseUrl: String, httpClient: OkHttpClient) {
 
     suspend fun setCarpetSensorMode(mode: String): ApiResult<Unit> =
         putCapability(Capabilities.CARPET_SENSOR_MODE, buildJsonObject { put("mode", mode) })
+
+    // Dock settings
+
+    suspend fun washTemperature(): ApiResult<WashTemperature> = getCapability(Capabilities.WASH_TEMPERATURE)
+    suspend fun washTemperatureProperties(): ApiResult<WashTemperatureProperties> =
+        getProperties(Capabilities.WASH_TEMPERATURE)
+
+    suspend fun setWashTemperature(temperature: String): ApiResult<Unit> =
+        putCapability(Capabilities.WASH_TEMPERATURE, buildJsonObject { put("temperature", temperature) })
+
+    suspend fun autoEmptyInterval(): ApiResult<AutoEmptyInterval> = getCapability(Capabilities.AUTO_EMPTY_INTERVAL)
+    suspend fun autoEmptyIntervalProperties(): ApiResult<AutoEmptyIntervalProperties> =
+        getProperties(Capabilities.AUTO_EMPTY_INTERVAL)
+
+    suspend fun setAutoEmptyInterval(interval: String): ApiResult<Unit> =
+        putCapability(Capabilities.AUTO_EMPTY_INTERVAL, buildJsonObject { put("interval", interval) })
 
     // Timers
 
