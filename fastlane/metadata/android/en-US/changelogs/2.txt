@@ -1,0 +1,1 @@
+Map first: the app opens on the map, with small round buttons for play, fit and the cleaning mode. Mode, suction, water and mop switches in one sheet. The robot's state and battery in the top bar. New home screen, cleaning order on the map, dock settings (wash temperature, auto-empty), and fixes found on a real robot.

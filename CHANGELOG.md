@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.0.0-beta.2
+
+Second beta: a map-first app with one place for the cleaning mode, a new home screen and the robot's state in the top bar.
 
 Cleaning mode and map, after a UX review against the Dreamehome app:
 

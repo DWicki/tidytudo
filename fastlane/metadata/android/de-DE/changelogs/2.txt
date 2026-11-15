@@ -1,0 +1,1 @@
+Karte zuerst: Die App startet auf der Karte, mit kleinen runden Knöpfen für Start, Einpassen und Reinigungsmodus. Modus, Saugkraft, Wasser und Wischoptionen in einem Blatt. Zustand und Akku des Roboters in der oberen Leiste. Neuer Startbildschirm, Reinigungsreihenfolge auf der Karte, Station-Einstellungen (Waschtemperatur, Absaugen) und Korrekturen vom echten Roboter.
