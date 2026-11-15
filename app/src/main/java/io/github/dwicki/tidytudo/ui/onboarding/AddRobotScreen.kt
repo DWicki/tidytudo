@@ -1,5 +1,10 @@
 package io.github.dwicki.tidytudo.ui.onboarding
 
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -48,7 +53,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusEvent
@@ -63,8 +67,6 @@ import io.github.dwicki.tidytudo.ui.appViewModel
 import io.github.dwicki.tidytudo.ui.components.SectionCard
 import io.github.dwicki.tidytudo.ui.components.clickableRow
 import io.github.dwicki.tidytudo.util.RobotAddress
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 /** Onboarding and "add another robot" (F-1.1 – F-1.5, F-1.9). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -239,18 +241,21 @@ private fun ManualEntryCard(
     onChange: (String) -> Unit,
     onConnect: () -> Unit,
 ) {
-    // Keeps the whole card (field and button) above the keyboard while typing.
+    // Keeps the whole card (field and button) above the keyboard while typing. It follows the
+    // keyboard's height rather than waiting a fixed time, because keyboards animate at different speeds.
     val bringIntoView = remember { BringIntoViewRequester() }
-    val scope = rememberCoroutineScope()
+    var focused by remember { mutableStateOf(false) }
+    val keyboardHeight = WindowInsets.ime.getBottom(LocalDensity.current)
+    LaunchedEffect(focused, keyboardHeight) {
+        if (focused && keyboardHeight > 0) bringIntoView.bringIntoView()
+    }
     SectionCard(modifier = Modifier.bringIntoViewRequester(bringIntoView), title = stringResource(R.string.add_robot_manual_title)) {
         OutlinedTextField(
             value = address,
             onValueChange = onChange,
             modifier = Modifier
                 .fillMaxWidth()
-                .onFocusEvent { focus ->
-                    if (focus.isFocused) scope.launch { delay(KEYBOARD_SETTLE_MS); bringIntoView.bringIntoView() }
-                },
+                .onFocusEvent { focused = it.isFocused },
             singleLine = true,
             label = { Text(stringResource(R.string.add_robot_address_label)) },
             placeholder = { Text(stringResource(R.string.add_robot_address_placeholder)) },
@@ -277,4 +282,3 @@ private fun PrivacyNote() {
 }
 
 /** Waits for the keyboard animation, otherwise the card is scrolled to where the keyboard is about to appear. */
-private const val KEYBOARD_SETTLE_MS = 300L
