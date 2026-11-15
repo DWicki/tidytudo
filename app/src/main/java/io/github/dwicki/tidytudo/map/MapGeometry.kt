@@ -25,8 +25,8 @@ data class MapViewport(val scale: Float, val offset: Offset) {
 
     companion object {
         /**
-         * Fits [bounds] into [canvas] minus the insets of overlaid controls, with a margin; centred,
-         * or at the top when [alignTop] is set.
+         * Fits [bounds] into [canvas] minus the insets of overlaid controls, with a margin, centred
+         * in the space left between them.
          */
         fun fit(
             bounds: PixelBounds,
@@ -34,13 +34,12 @@ data class MapViewport(val scale: Float, val offset: Offset) {
             topInset: Float = 0f,
             bottomInset: Float = 0f,
             margin: Float = 0.92f,
-            alignTop: Boolean = false,
         ): MapViewport {
             val usableHeight = (canvas.height - topInset - bottomInset).coerceAtLeast(canvas.height / 3)
             val scale = min(canvas.width / bounds.width, usableHeight / bounds.height) * margin
             val offset = Offset(
                 (canvas.width - bounds.width * scale) / 2f,
-                topInset + if (alignTop) usableHeight * (1f - margin) / 2f else (usableHeight - bounds.height * scale) / 2f,
+                topInset + (usableHeight - bounds.height * scale) / 2f,
             )
             return MapViewport(scale, offset)
         }

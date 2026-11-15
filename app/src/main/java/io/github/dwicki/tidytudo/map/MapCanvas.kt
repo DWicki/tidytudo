@@ -1,9 +1,13 @@
 package io.github.dwicki.tidytudo.map
 
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.MutatorMutex
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -11,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
@@ -21,6 +26,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.util.lerp
 
 /** Hoisted zoom/pan state, so the screen can offer a "fit to screen" button. */
 class MapViewState {
@@ -29,18 +35,50 @@ class MapViewState {
     /** Height in pixels of controls drawn over the top of the map; fitting keeps the map below them. */
     var topInset: Float = 0f
 
-    /** Height in pixels of the panel over the bottom of the map, if one is shown. */
-    var bottomInset: Float = 0f
+    /** Height in pixels of the panel over the bottom of the map, if one is shown; observable, so the map can make room. */
+    var bottomInset: Float by mutableFloatStateOf(0f)
 
     var canvasSize: Size by mutableStateOf(Size.Zero)
         internal set
 
-    /** Map screen: the map sits under the mode chips, free space goes below it. */
-    var alignTop = false
+    /** Set once the user pans or zooms; automatic re-fits then leave their view alone. */
+    var userMoved: Boolean = false
+        internal set
+
+    private val fitMutex = MutatorMutex()
 
     fun fit(map: RobotMap) {
         val bounds = map.bounds ?: return
-        if (canvasSize.minDimension > 0f) viewport = MapViewport.fit(bounds, canvasSize, topInset, bottomInset, alignTop = alignTop)
+        if (canvasSize.minDimension > 0f) {
+            viewport = MapViewport.fit(bounds, canvasSize, topInset, bottomInset)
+            userMoved = false
+        }
+    }
+
+    /** Like [fit], but glides there; a newer call or a finger on the map ends a running one. */
+    suspend fun animateFit(map: RobotMap) = fitMutex.mutate {
+        val bounds = map.bounds ?: return@mutate
+        if (canvasSize.minDimension <= 0f) return@mutate
+        val target = MapViewport.fit(bounds, canvasSize, topInset, bottomInset)
+        val start = viewport
+        userMoved = false
+        if (start == null) {
+            viewport = target
+            return@mutate
+        }
+        val gesture = gestures
+        animate(0f, 1f, animationSpec = tween(FIT_ANIMATION_MS)) { t, _ ->
+            // A finger on the map wins: stop moving it from under the user.
+            if (gestures == gesture) viewport = MapViewport(lerp(start.scale, target.scale, t), lerp(start.offset, target.offset, t))
+        }
+    }
+
+    private var gestures = 0
+
+    /** Called on every pan or zoom by the user: ends a running [animateFit] and keeps later auto-fits away. */
+    internal fun onUserGesture() {
+        gestures++
+        userMoved = true
     }
 
     /** The point in the middle of the screen, in centimetres; new shapes are placed there. */
@@ -51,6 +89,8 @@ class MapViewState {
         return MapProjection(map.pixelSize, bounds).toCm(local)
     }
 }
+
+private const val FIT_ANIMATION_MS = 300
 
 @Composable
 fun rememberMapViewState() = remember { MapViewState() }
@@ -73,6 +113,9 @@ fun MapCanvas(
     neutralRooms: Boolean = false,
     markers: List<CmPoint> = emptyList(),
     showRoomLabels: Boolean = true,
+    labelOrder: List<String> = emptyList(),
+    numberedLabels: Boolean = false,
+    quietPath: Boolean = false,
 ) {
     val palette = rememberMapPalette()
     val overlay = rememberOverlayStyle()
@@ -119,9 +162,9 @@ fun MapCanvas(
                     filterQuality = if (viewport.scale < 1f) FilterQuality.Low else FilterQuality.None,
                 )
             }
-            drawEntities(map, projection, overlay, viewport.scale)
+            drawEntities(map, projection, overlay, viewport.scale, quietPath)
         }
-        if (showRoomLabels) drawRoomLabels(map, projection, viewport, textMeasurer, overlay)
+        if (showRoomLabels) drawRoomLabels(map, projection, viewport, textMeasurer, overlay, labelOrder, numberedLabels)
         drawRobotMarker(map, projection, viewport, overlay)
         drawMarkers(markers, projection, viewport, overlay)
         drawShapes(shapes, projection, viewport, overlay)
@@ -183,6 +226,7 @@ private class ShapeGestureHandler(
     override fun onTransform(zoom: Float, pan: Offset, centroid: Offset) {
         val viewport = viewport ?: return
         val fitScale = viewState.canvasSize.minDimension / 2_000f
+        viewState.onUserGesture()
         viewState.viewport = viewport.zoomed(zoom, centroid, minScale = fitScale, maxScale = MAX_SCALE).panned(pan)
     }
 

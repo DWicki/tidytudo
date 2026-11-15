@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -35,24 +36,28 @@ data class OverlayStyle(
     val carpet: Color,
     val label: Color,
     val labelBackground: Color,
+    /** Label of a room picked for cleaning: filled pill with its place in the cleaning order. */
+    val selectedLabel: Color,
+    val selectedLabelText: Color,
 )
 
 @Composable
 fun rememberMapPalette(): MapPalette {
     val colors = MaterialTheme.colorScheme
     return remember(colors) {
-        // Rooms in a few light tints of the two brand colours, all about equally light, so no room
-        // looks disabled and the selection colour (a much stronger primary) is never mistaken for one.
+        // Rooms in light tints of the three theme colours, all about equally light, so no room looks
+        // disabled and the selection colour (a much stronger primary) is never mistaken for one.
+        // Neighbouring rooms get different slots (see MapBitmap), so walls are not the only divider.
         MapPalette(
             floor = colors.surfaceContainerHighest,
             wall = colors.onSurfaceVariant,
             segments = listOf(
-                lerp(colors.surface, colors.primary, 0.20f),
-                lerp(colors.surface, colors.tertiary, 0.24f),
-                lerp(colors.surface, colors.primary, 0.32f),
-                lerp(colors.surface, colors.tertiary, 0.36f),
-                lerp(colors.surface, colors.primary, 0.26f),
-                lerp(colors.surface, colors.tertiary, 0.30f),
+                lerp(colors.surface, colors.primary, 0.24f),
+                lerp(colors.surface, colors.tertiary, 0.28f),
+                lerp(colors.surface, colors.secondary, 0.30f),
+                lerp(colors.surface, colors.primary, 0.34f),
+                lerp(colors.surface, colors.tertiary, 0.38f),
+                lerp(colors.surface, colors.secondary, 0.22f),
             ),
             selectedSegment = lerp(colors.surface, colors.primary, 0.62f),
             neutralSegment = lerp(colors.surface, colors.onSurface, 0.10f),
@@ -78,6 +83,8 @@ fun rememberOverlayStyle(): OverlayStyle {
             carpet = colors.onSurface.copy(alpha = 0.12f),
             label = colors.onSurface,
             labelBackground = colors.surface.copy(alpha = 0.9f),
+            selectedLabel = colors.primary,
+            selectedLabelText = colors.onPrimary,
         )
     }
 }
@@ -85,12 +92,14 @@ fun rememberOverlayStyle(): OverlayStyle {
 /**
  * Draws entities in local pixel space; [scale] keeps line widths and icons constant on screen.
  * [dp] is one density-independent pixel in that space, so sizes match on every phone.
+ * [quietPath] fades the cleaning path, for when the user is choosing rooms or drawing on the map.
  */
-fun DrawScope.drawEntities(map: RobotMap, projection: MapProjection, style: OverlayStyle, scale: Float) {
+fun DrawScope.drawEntities(map: RobotMap, projection: MapProjection, style: OverlayStyle, scale: Float, quietPath: Boolean = false) {
     val px = 1f / scale
     val dp = density * px
     map.carpets.forEach { drawPolygon(it, projection, style.carpet, fill = true, strokeWidth = 0f) }
-    map.paths.forEach { drawPolyline(it, projection, style.path, PATH_WIDTH_DP * dp) }
+    val pathColor = if (quietPath) style.path.copy(alpha = QUIET_PATH_ALPHA) else style.path
+    map.paths.forEach { drawPolyline(it, projection, pathColor, PATH_WIDTH_DP * dp) }
     if (map.predictedPath.isNotEmpty()) {
         drawPolyline(map.predictedPath, projection, style.zone, 2f * dp, PathEffect.dashPathEffect(floatArrayOf(6f * dp, 4f * dp)))
     }
@@ -116,13 +125,19 @@ fun DrawScope.drawRobotMarker(map: RobotMap, projection: MapProjection, viewport
     drawRobot(viewport.toScreen(projection.toLocal(robot.position)), robot.angle, style, px = 1f)
 }
 
-/** Room names, drawn in screen space so text stays readable at every zoom level (F-3.5). */
+/**
+ * Room names, drawn in screen space so text stays readable at every zoom level (F-3.5).
+ * Rooms in [selectedOrder] get a filled label with a badge: their place in the cleaning order when
+ * [numbered] (the robot cleans in the order they were picked), otherwise a check mark.
+ */
 fun DrawScope.drawRoomLabels(
     map: RobotMap,
     projection: MapProjection,
     viewport: MapViewport,
     textMeasurer: TextMeasurer,
     style: OverlayStyle,
+    selectedOrder: List<String> = emptyList(),
+    numbered: Boolean = false,
 ) {
     if (viewport.scale < MIN_LABEL_SCALE) return
     val textStyle = TextStyle(color = style.label, fontSize = 12.sp, fontWeight = FontWeight.Medium)
@@ -131,6 +146,11 @@ fun DrawScope.drawRoomLabels(
     map.segments.forEach { segment ->
         val name = segment.name ?: return@forEach
         val center = viewport.toScreen(projection.centroidLocal(segment.pixels))
+        val position = selectedOrder.indexOf(segment.id)
+        if (position >= 0) {
+            drawSelectedLabel(name, if (numbered) position + 1 else null, center, textMeasurer, style)
+            return@forEach
+        }
         val layout = textMeasurer.measure(name, textStyle)
         val topLeft = center - Offset(layout.size.width / 2f, layout.size.height / 2f)
         val height = layout.size.height + padY * 2
@@ -142,6 +162,39 @@ fun DrawScope.drawRoomLabels(
         )
         drawText(layout, topLeft = topLeft)
     }
+}
+
+private fun DrawScope.drawSelectedLabel(name: String, number: Int?, center: Offset, textMeasurer: TextMeasurer, style: OverlayStyle) {
+    val layout = textMeasurer.measure(name, TextStyle(color = style.selectedLabelText, fontSize = 12.sp, fontWeight = FontWeight.Bold))
+    val height = layout.size.height + LABEL_PADDING_Y_DP * 2 * density
+    val inset = BADGE_INSET_DP * density
+    val diameter = height - inset * 2
+    val gap = BADGE_GAP_DP * density
+    val width = inset + diameter + gap + layout.size.width + LABEL_PADDING_X_DP * density
+    val topLeft = Offset(center.x - width / 2, center.y - height / 2)
+    val ring = SHAPE_STROKE_DP * density
+    // A ring in the surface colour keeps the pill apart from the (also primary-tinted) selected room.
+    drawRoundRect(style.robot, topLeft - Offset(ring, ring), Size(width + ring * 2, height + ring * 2), CornerRadius(height / 2 + ring))
+    drawRoundRect(style.selectedLabel, topLeft, Size(width, height), CornerRadius(height / 2))
+    val badgeCenter = Offset(topLeft.x + inset + diameter / 2, center.y)
+    drawCircle(style.selectedLabelText, diameter / 2, badgeCenter)
+    if (number != null) {
+        val digits = textMeasurer.measure(number.toString(), TextStyle(color = style.selectedLabel, fontSize = 11.sp, fontWeight = FontWeight.Bold))
+        drawText(digits, topLeft = badgeCenter - Offset(digits.size.width / 2f, digits.size.height / 2f))
+    } else {
+        drawCheck(badgeCenter, diameter, style.selectedLabel)
+    }
+    drawText(layout, topLeft = Offset(topLeft.x + inset + diameter + gap, center.y - layout.size.height / 2f))
+}
+
+private fun DrawScope.drawCheck(center: Offset, size: Float, color: Color) {
+    val s = size * 0.26f
+    val check = Path().apply {
+        moveTo(center.x - s, center.y + s * 0.05f)
+        lineTo(center.x - s * 0.3f, center.y + s * 0.7f)
+        lineTo(center.x + s, center.y - s * 0.6f)
+    }
+    drawPath(check, color, style = Stroke(size * 0.13f, cap = StrokeCap.Round, join = StrokeJoin.Round))
 }
 
 /** Highlighted points, e.g. obstacles of a past run, as pins in screen space so they stay tappable. */
@@ -259,3 +312,6 @@ private const val LABEL_PADDING_Y_DP = 3f
 private const val PATH_WIDTH_DP = 1.5f
 private const val OBSTACLE_RADIUS_DP = 3.5f
 private const val MIN_LABEL_SCALE = 0.8f
+private const val BADGE_INSET_DP = 2.5f
+private const val BADGE_GAP_DP = 5f
+private const val QUIET_PATH_ALPHA = 0.22f

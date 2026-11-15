@@ -5,16 +5,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.outlined.Close
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Undo
 import androidx.compose.material.icons.outlined.Block
@@ -170,6 +170,7 @@ private fun RestrictionsPanel(state: MapUiState, onAddShape: (EditableShape.Kind
     if (state.restrictionsDirty) PrimaryAction(stringResource(R.string.map_save_restrictions), !state.sending, actions::saveRestrictions)
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ShapeToolbar(
     tools: List<Triple<Int, ImageVector, EditableShape.Kind>>,
@@ -177,8 +178,9 @@ private fun ShapeToolbar(
     onAdd: (EditableShape.Kind) -> Unit,
     onUndo: () -> Unit,
 ) {
+    // Wrapping, not scrolling: a cut-off "Virtual wall" chip at the edge was easy to miss.
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             tools.forEach { (label, icon, kind) ->
                 AssistChip(
                     onClick = { onAdd(kind) },

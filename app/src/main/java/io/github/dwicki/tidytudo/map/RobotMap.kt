@@ -90,6 +90,10 @@ data class PixelBounds(val minX: Int, val minY: Int, val maxX: Int, val maxY: In
     val width: Int get() = maxX - minX + 1
     val height: Int get() = maxY - minY + 1
 
+    /** True when the boxes overlap or are at most [gap] pixels apart on both axes. */
+    fun touches(other: PixelBounds, gap: Int): Boolean =
+        minX - gap <= other.maxX && other.minX - gap <= maxX && minY - gap <= other.maxY && other.minY - gap <= maxY
+
     fun union(other: PixelBounds) = PixelBounds(
         minOf(minX, other.minX), minOf(minY, other.minY), maxOf(maxX, other.maxX), maxOf(maxY, other.maxY),
     )

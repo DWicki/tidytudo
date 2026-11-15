@@ -27,6 +27,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
@@ -45,6 +47,7 @@ import io.github.dwicki.tidytudo.ui.components.LoadingBox
 import io.github.dwicki.tidytudo.ui.components.MessageBox
 import io.github.dwicki.tidytudo.ui.robotViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 
 /** Live map with modes for rooms, zones, go-to and no-go editing; each mode only if supported. */
 @Composable
@@ -108,7 +111,6 @@ private fun MapContent(
 ) {
     val viewState = rememberMapViewState()
     viewState.topInset = with(LocalDensity.current) { MODE_BAR_HEIGHT.toPx() }
-    viewState.alignTop = true
     val shapes: List<EditableShape> = when (state.mode) {
         MapMode.ZONES -> state.zones
         MapMode.RESTRICTIONS -> state.restrictions
@@ -117,7 +119,16 @@ private fun MapContent(
     // Re-fit when the mode changes, so the map is not hidden behind the panel that just appeared.
     LaunchedEffect(state.mode) {
         delay(PANEL_SETTLE_MS)
-        viewState.fit(map)
+        viewState.animateFit(map)
+    }
+    // The panel also grows within a mode (first room picked, a save button appears): make room for it,
+    // unless the user has zoomed or moved the map themselves.
+    val currentMap by rememberUpdatedState(map)
+    LaunchedEffect(viewState) {
+        snapshotFlow { viewState.bottomInset }.collectLatest {
+            delay(INSET_SETTLE_MS)
+            if (!viewState.userMoved) viewState.animateFit(currentMap)
+        }
     }
     val displayedMap = state.goToTarget?.takeIf { state.mode == MapMode.GO_TO }?.let { map.copy(goToTarget = it) } ?: map
     Box(
@@ -140,6 +151,9 @@ private fun MapContent(
             onTap = viewModel::onTap,
             onShapeChange = viewModel::updateShape,
             modifier = Modifier.fillMaxSize(),
+            labelOrder = if (state.mode == MapMode.ROOMS) state.selectedSegments else emptyList(),
+            numberedLabels = state.segmentProperties.customOrderSupport,
+            quietPath = state.mode != MapMode.VIEW,
         )
         // No "view" chip: viewing is what happens when no tool is chosen; tapping the active tool again ends it.
         ModeSelector(
@@ -199,3 +213,6 @@ private val MODE_BAR_HEIGHT = 64.dp
 
 /** Time for the mode panel's size animation, so the measured inset is final before fitting. */
 private const val PANEL_SETTLE_MS = 350L
+
+/** Quiet time after the panel's last size change before the map makes room for it. */
+private const val INSET_SETTLE_MS = 120L

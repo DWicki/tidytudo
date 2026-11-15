@@ -27,11 +27,12 @@ object MapBitmap {
         val bounds = map.bounds ?: return null
         val pixels = IntArray(bounds.width * bounds.height)
         map.floor?.let { fill(pixels, bounds, it, palette.floor.toArgb()) }
+        val slots = colorSlots(map.segments, palette.segments.size)
         map.segments.forEachIndexed { index, segment ->
             val color = when {
                 segment.id in selectedSegments -> palette.selectedSegment
                 neutralRooms -> palette.neutralSegment
-                else -> palette.segments[index % palette.segments.size]
+                else -> palette.segments[slots[index]]
             }
             fill(pixels, bounds, segment.pixels, color.toArgb())
         }
@@ -40,6 +41,30 @@ object MapBitmap {
         bitmap.setPixels(pixels, 0, bounds.width, 0, 0, bounds.width, bounds.height)
         return bitmap.asImageBitmap()
     }
+
+    /**
+     * One palette slot per room, so rooms that touch never share a colour (as far as the slots
+     * allow), spreading the slots evenly otherwise. Rooms touch when their bounding boxes come within
+     * a wall's width of each other; an over-estimate for L-shaped rooms, which is harmless here.
+     */
+    internal fun colorSlots(segments: List<SegmentLayer>, slots: Int): IntArray {
+        val boxes = segments.map { if (it.pixels.count > 0) it.pixels.bounds else null }
+        val result = IntArray(segments.size) { -1 }
+        val uses = IntArray(slots)
+        segments.indices.forEach { i ->
+            val box = boxes[i]
+            val taken = segments.indices
+                .filter { j -> result[j] >= 0 && box != null && boxes[j]?.let { box.touches(it, NEIGHBOUR_GAP_PX) } == true }
+                .map { result[it] }
+                .toSet()
+            val slot = (0 until slots).filter { it !in taken }.minByOrNull { uses[it] } ?: (i % slots)
+            result[i] = slot
+            uses[slot]++
+        }
+        return result
+    }
+
+    private const val NEIGHBOUR_GAP_PX = 4
 
     private fun fill(target: IntArray, bounds: PixelBounds, layer: PixelLayer, color: Int) {
         layer.forEachRun { x, y, length ->
