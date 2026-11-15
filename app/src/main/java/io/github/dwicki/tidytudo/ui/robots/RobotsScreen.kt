@@ -100,7 +100,9 @@ fun RobotsScreen(onBack: () -> Unit, onAddRobot: () -> Unit) {
 @Composable
 private fun RobotRow(robot: Robot, active: Boolean, onSelect: () -> Unit, onRename: () -> Unit, onRemove: () -> Unit) {
     var menu by remember { mutableStateOf(false) }
-    val details = listOf(robot.displayModel, RobotAddress.host(robot.baseUrl)).filter { it.isNotBlank() }.joinToString(" · ")
+    // The model only when it adds something (robots without a nickname are named after it).
+    val model = robot.displayModel.takeIf { it != robot.displayName }
+    val details = listOfNotNull(model, RobotAddress.host(robot.baseUrl)).filter { it.isNotBlank() }.joinToString(" · ")
     AppListItem(
         title = robot.displayName,
         supporting = if (active) stringResource(R.string.robots_active, details) else details,
