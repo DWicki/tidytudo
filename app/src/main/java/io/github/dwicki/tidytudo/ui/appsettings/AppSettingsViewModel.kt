@@ -10,4 +10,8 @@ class AppSettingsViewModel(container: AppContainer) : ViewModel() {
     private val settings = container.settings
 
     fun setDynamicColor(enabled: Boolean) = settings.setDynamicColor(enabled)
+
+    val startOnMap: StateFlow<Boolean> = settings.startOnMap
+
+    fun setStartOnMap(enabled: Boolean) = settings.setStartOnMap(enabled)
 }

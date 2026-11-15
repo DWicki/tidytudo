@@ -1,5 +1,15 @@
 package io.github.dwicki.tidytudo.ui.appsettings
 
+import io.github.dwicki.tidytudo.ui.components.ROW_HORIZONTAL_PADDING
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.outlined.Info
 import io.github.dwicki.tidytudo.ui.components.AppListItem
 import io.github.dwicki.tidytudo.ui.components.SwitchListItem
@@ -44,6 +54,7 @@ fun AppSettingsScreen(onBack: () -> Unit) {
     val viewModel = appViewModel { AppSettingsViewModel(it) }
     val monitoring by viewModel.monitoring.collectAsStateWithLifecycle()
     val dynamicColor by viewModel.dynamicColor.collectAsStateWithLifecycle()
+    val startOnMap by viewModel.startOnMap.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val setMonitoring = rememberMonitoringSwitch()
 
@@ -53,6 +64,7 @@ fun AppSettingsScreen(onBack: () -> Unit) {
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding(), bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            item { StartScreenCard(startOnMap, viewModel::setStartOnMap) }
             item {
                 ListCard {
                     SwitchListItem(
@@ -98,6 +110,35 @@ fun AppSettingsScreen(onBack: () -> Unit) {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(SOURCE_URL)))
                     }
                 }
+            }
+        }
+    }
+}
+
+/** Map or Home as the first screen; a segmented choice, like the carpet setting. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StartScreenCard(startOnMap: Boolean, onChange: (Boolean) -> Unit) {
+    ListCard(title = stringResource(R.string.app_settings_start_screen)) {
+        Text(
+            stringResource(R.string.app_settings_start_screen_text),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = ROW_HORIZONTAL_PADDING),
+        )
+        val options = listOf(
+            Triple(true, R.string.tab_map, Icons.Outlined.Map),
+            Triple(false, R.string.tab_home, Icons.Outlined.Home),
+        )
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = ROW_HORIZONTAL_PADDING, vertical = 8.dp)) {
+            options.forEachIndexed { index, (map, label, icon) ->
+                SegmentedButton(
+                    selected = startOnMap == map,
+                    onClick = { onChange(map) },
+                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                    icon = { SegmentedButtonDefaults.Icon(active = startOnMap == map) { Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp)) } },
+                    label = { Text(stringResource(label)) },
+                )
             }
         }
     }

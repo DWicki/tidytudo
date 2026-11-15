@@ -104,7 +104,9 @@ private enum class Tab(@StringRes val label: Int, val icon: ImageVector, val sel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(robot: Robot, robots: List<Robot>, onOpen: (RobotDestination) -> Unit, onAddRobot: () -> Unit) {
-    var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
+    val appSettings = LocalContext.current.appContainer.settings
+    // The start screen is a setting (App settings); the map by default.
+    var tab by rememberSaveable { mutableStateOf(if (appSettings.startOnMap.value) Tab.MAP else Tab.HOME) }
     var mapOpensRooms by rememberSaveable { mutableStateOf(false) }
     var switcherOpen by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }

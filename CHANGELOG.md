@@ -9,6 +9,7 @@ Cleaning mode and map, after a UX review against the Dreamehome app:
 - Map: while nothing is chosen, the panel is a compact status card with the mode, "Clean all", and pause, dock and stop while the robot works; the room and zone panels show the mode above their clean button; selected rooms are listed in cleaning order
 - Map: picked rooms show their place in the cleaning order on the map; the map is centred and moves aside smoothly when the panel grows; neighbouring rooms never share a colour; the old path fades while choosing or drawing; restriction tools wrap
 - Dock buttons (wash, dry, empty) are always visible on Home
+- The app opens on the map; App settings has a Start screen choice (Map or Home)
 - The robot pill in the top bar shows the state under the name on every tab: an icon and word for what the robot does, and the battery; it tints while cleaning and turns red on an error
 - Robot settings grouped into Navigation, Camera, Dock and Robot; new dock settings: mop wash water temperature and how often the bin is emptied into the dock; mop drying moved to Dock
 

@@ -473,4 +473,6 @@
     <string name="auto_empty_infrequent">Now and then</string>
     <string name="auto_empty_normal">After every cleaning</string>
     <string name="auto_empty_frequent">Also during cleaning</string>
+    <string name="app_settings_start_screen">Start screen</string>
+    <string name="app_settings_start_screen_text">What the app opens with.</string>
 </resources>

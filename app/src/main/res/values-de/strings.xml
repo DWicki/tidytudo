@@ -449,4 +449,6 @@
     <string name="auto_empty_infrequent">Ab und zu</string>
     <string name="auto_empty_normal">Nach jeder Reinigung</string>
     <string name="auto_empty_frequent">Auch während der Reinigung</string>
+    <string name="app_settings_start_screen">Startbildschirm</string>
+    <string name="app_settings_start_screen_text">Womit die App startet.</string>
 </resources>

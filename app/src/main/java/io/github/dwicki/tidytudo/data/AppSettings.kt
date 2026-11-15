@@ -30,6 +30,16 @@ class AppSettings(context: Context) {
     }
 
     /** Whether the user has used the room chips once; the home screen explains them until then. */
+    private val startOnMapState = MutableStateFlow(prefs.getBoolean(KEY_START_ON_MAP, true))
+
+    /** Which tab the app opens with: the map (default, the most telling view) or the home screen. */
+    val startOnMap: StateFlow<Boolean> = startOnMapState.asStateFlow()
+
+    fun setStartOnMap(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_START_ON_MAP, enabled).apply()
+        startOnMapState.value = enabled
+    }
+
     val roomsHintDone: Boolean get() = prefs.getBoolean(KEY_ROOMS_HINT_DONE, false)
 
     fun markRoomsHintDone() = prefs.edit().putBoolean(KEY_ROOMS_HINT_DONE, true).apply()
@@ -50,5 +60,6 @@ class AppSettings(context: Context) {
         const val KEY_NOTIFICATION_PROMPT = "notification_prompt_shown"
         const val KEY_DYNAMIC_COLOR = "dynamic_color"
         const val KEY_ROOMS_HINT_DONE = "rooms_hint_done"
+        const val KEY_START_ON_MAP = "start_on_map"
     }
 }
