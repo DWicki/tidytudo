@@ -119,6 +119,7 @@ private fun HomeContent(
     val online = live.connection == Connection.Online
     val capabilities = live.capabilities
     val progress by viewModel.progress.collectAsStateWithLifecycle()
+    val roomsHint by viewModel.roomsHint.collectAsStateWithLifecycle()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -127,13 +128,12 @@ private fun HomeContent(
             top = contentPadding.calculateTopPadding() + 8.dp,
             bottom = contentPadding.calculateBottomPadding() + 24.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item { StatusHero(live, progress) }
         item {
-            ControlBar(
-                state = live.state,
-                enabled = online,
+            StatusCard(
+                live = live,
+                progress = progress,
                 canLocate = Capabilities.LOCATE in capabilities,
                 busyAction = busy,
                 selectedRooms = selection.ids.size,
@@ -144,26 +144,11 @@ private fun HomeContent(
                 onLocate = viewModel::locate,
             )
         }
-        item {
-            AttentionCards(live.state, extras.openEvents, extras.pendingMapChange, viewModel::interact, viewModel::answerMapChange)
+        if (hasAttention(live.state, extras.openEvents, extras.pendingMapChange)) {
+            item {
+                AttentionCards(live.state, extras.openEvents, extras.pendingMapChange, viewModel::interact, viewModel::answerMapChange)
+            }
         }
-        item {
-            RoomsCard(
-                segments = extras.segments,
-                selection = selection,
-                maxIterations = extras.segmentProperties.iterationCount.max,
-                enabled = online,
-                onToggleRoom = viewModel::toggleRoom,
-                onIterations = viewModel::setIterations,
-                onClearSelection = viewModel::clearSelection,
-                onSavePreset = onNewPreset,
-                onOpenMap = onOpenMap,
-                canRename = Capabilities.SEGMENT_RENAME in capabilities,
-                onOpenRooms = onOpenRooms,
-                onRenameRoom = onRenameRoom,
-            )
-        }
-        item { ModesCard(live.state, extras.presetOptions, online, viewModel::setPreset) }
         item {
             PresetsRow(
                 presets = presets,
@@ -174,7 +159,24 @@ private fun HomeContent(
                 onAdd = onNewPreset,
             )
         }
-        item { DockActionsCard(live.state, capabilities, busy, online, viewModel::triggerDock) }
+        item {
+            RoomsCard(
+                segments = extras.segments,
+                selection = selection,
+                maxIterations = extras.segmentProperties.iterationCount.max,
+                showHint = roomsHint,
+                onToggleRoom = viewModel::toggleRoom,
+                onIterations = viewModel::setIterations,
+                onClearSelection = viewModel::clearSelection,
+                onSavePreset = onNewPreset,
+                onOpenMap = onOpenMap,
+                canRename = Capabilities.SEGMENT_RENAME in capabilities,
+                onOpenRooms = onOpenRooms,
+                onRenameRoom = onRenameRoom,
+            )
+        }
+        item { CleaningSettings(live.state, extras.presetOptions, online, viewModel::setPreset) }
+        item { DockCard(live.state, capabilities, busy, online, viewModel::triggerDock) }
     }
 }
 

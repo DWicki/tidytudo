@@ -1,5 +1,19 @@
 package io.github.dwicki.tidytudo.ui
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.CircleShape
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
@@ -69,16 +83,15 @@ fun MainScreen(robot: Robot, robots: List<Robot>, onOpen: (RobotDestination) -> 
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
     var switcherOpen by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
+    // The bar takes a tint once content scrolls under it, so cut-off cards do not look like a layout bug.
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    TextButton(onClick = { switcherOpen = true }) {
-                        Text(robot.displayName, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
-                        Icon(Icons.Outlined.ArrowDropDown, contentDescription = stringResource(R.string.switch_robot))
-                    }
-                },
+                title = { RobotPill(robot.displayName) { switcherOpen = true } },
+                scrollBehavior = scrollBehavior,
             )
         },
         bottomBar = {
@@ -122,6 +135,25 @@ fun MainScreen(robot: Robot, robots: List<Robot>, onOpen: (RobotDestination) -> 
     }
 }
 
+/** The robot's name as a pill that opens the switcher; it reads as a control, not as a page title. */
+@Composable
+private fun RobotPill(name: String, onClick: () -> Unit) {
+    val switchLabel = stringResource(R.string.switch_robot)
+    Surface(
+        onClick = onClick,
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.heightIn(min = 40.dp),
+    ) {
+        Row(Modifier.padding(start = 12.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Outlined.SmartToy, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Icon(Icons.Outlined.ArrowDropDown, contentDescription = switchLabel, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RobotSwitcherSheet(robots: List<Robot>, selected: Robot, onDismiss: () -> Unit, onAddRobot: () -> Unit) {
@@ -131,8 +163,8 @@ private fun RobotSwitcherSheet(robots: List<Robot>, selected: Robot, onDismiss: 
         Column(Modifier.navigationBarsPadding().padding(bottom = 16.dp)) {
             Text(
                 stringResource(R.string.switch_robot),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
             robots.forEach { robot ->
                 ListItem(
@@ -140,25 +172,29 @@ private fun RobotSwitcherSheet(robots: List<Robot>, selected: Robot, onDismiss: 
                         scope.launch { store.select(robot.id) }
                         onDismiss()
                     },
-                    leadingContent = {
-                        Icon(
-                            if (robot.id == selected.id) Icons.Outlined.CheckCircle else Icons.Outlined.SmartToy,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    },
+                    leadingContent = { TonalIcon(Icons.Outlined.SmartToy) },
                     headlineContent = { Text(robot.displayName) },
-                    supportingContent = { Text(RobotAddress.host(robot.baseUrl)) },
-                    colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                    supportingContent = { Text(RobotAddress.host(robot.baseUrl), style = MaterialTheme.typography.bodySmall) },
+                    trailingContent = {
+                        if (robot.id == selected.id) Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                 )
             }
             ListItem(
                 modifier = Modifier.clickableRow(onAddRobot),
-                leadingContent = { Icon(Icons.Outlined.Add, contentDescription = null) },
+                leadingContent = { TonalIcon(Icons.Outlined.Add) },
                 headlineContent = { Text(stringResource(R.string.robots_add)) },
-                colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
             )
         }
     }
 }
 
+
+@Composable
+private fun TonalIcon(icon: ImageVector) {
+    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.size(40.dp)) {
+        Box(contentAlignment = Alignment.Center) { Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp)) }
+    }
+}

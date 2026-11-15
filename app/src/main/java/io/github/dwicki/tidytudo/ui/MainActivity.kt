@@ -1,5 +1,7 @@
 package io.github.dwicki.tidytudo.ui
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,7 +14,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TidytudoTheme {
+            val dynamicColor by appContainer.settings.dynamicColor.collectAsState()
+            TidytudoTheme(dynamicColor = dynamicColor) {
                 AppNavigation()
             }
         }

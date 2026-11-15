@@ -131,8 +131,22 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
 
     fun setPreset(capability: String, value: String) = run(capability) { session.client.setPreset(capability, value) }
 
-    fun toggleRoom(id: String) = selectionState.update { current ->
-        current.copy(ids = if (id in current.ids) current.ids - id else current.ids + id)
+    private val roomsHintState = MutableStateFlow(!container.settings.roomsHintDone)
+
+    /** The hint under the rooms explains tapping and long-pressing until the user has done it once. */
+    val roomsHint: StateFlow<Boolean> = roomsHintState.asStateFlow()
+
+    private fun roomsHintDone() {
+        if (!roomsHintState.value) return
+        roomsHintState.value = false
+        container.settings.markRoomsHintDone()
+    }
+
+    fun toggleRoom(id: String) {
+        roomsHintDone()
+        selectionState.update { current ->
+            current.copy(ids = if (id in current.ids) current.ids - id else current.ids + id)
+        }
     }
 
     fun setIterations(iterations: Int) = selectionState.update { it.copy(iterations = iterations) }
@@ -180,6 +194,7 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
      * would bring back the old name; the chip takes the new name directly instead.
      */
     fun renameRoom(id: String, name: String) = run(ACTION_RENAME, onSuccess = {
+        roomsHintDone()
         extrasState.update { extras ->
             val renamed = extras.segments.map { if (it.id == id) it.copy(name = name) else it }
             extras.copy(segments = renamed.sortedBy { it.name ?: it.id })

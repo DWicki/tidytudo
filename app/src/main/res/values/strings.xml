@@ -76,8 +76,8 @@
     <string name="flag_target">Going to a point</string>
     <string name="flag_resumable">Can be resumed</string>
     <string name="flag_mapping">Mapping</string>
-    <string name="battery_percent">%1$d %%</string>
-    <string name="battery_charging">%1$d %% · charging</string>
+    <string name="battery_percent">%1$d%%</string>
+    <string name="battery_charging">%1$d%% · charging</string>
 
     <!-- Error subsystems -->
     <string name="subsystem_core">System problem</string>
@@ -112,13 +112,17 @@
     <string name="home_rooms_hint">Tap rooms to clean only those.</string>
     <string name="home_rooms_hint_rename">Tap rooms to clean only those. Long-press a room to rename it.</string>
     <string name="home_rooms_clear">Clear selection</string>
+    <plurals name="home_rooms_selected">
+        <item quantity="one">%1$d room selected</item>
+        <item quantity="other">%1$d rooms selected</item>
+    </plurals>
+    <string name="home_dock_all_ok">All good</string>
     <string name="home_rooms_on_map">On map</string>
     <string name="room_unnamed">Room %1$s</string>
     <string name="home_passes">Passes</string>
     <string name="home_save_preset">Save as preset</string>
     <string name="home_presets_title">Presets</string>
     <string name="home_preset_new">New preset</string>
-    <string name="home_preset_new_hint">Pick rooms and modes, then save</string>
     <string name="home_preset_everything">Everywhere</string>
     <string name="home_preset_starting">Starting…</string>
     <string name="home_dock_title">Dock</string>
@@ -353,6 +357,8 @@
     <string name="app_settings_title">App settings</string>
     <string name="app_settings_monitoring">Alerts in the background</string>
     <string name="app_settings_monitoring_text">Keeps a connection to your robots to notify you about errors and maintenance. Shows a silent notification while active.</string>
+    <string name="app_settings_dynamic_color">Wallpaper colours</string>
+    <string name="app_settings_dynamic_color_text">Use the colours of your wallpaper instead of the Tidytudo colours</string>
     <string name="app_settings_language">Language</string>
     <string name="app_settings_language_text">English or German, independent of the system language</string>
     <string name="app_settings_privacy">Privacy</string>

@@ -6,4 +6,8 @@ import kotlinx.coroutines.flow.StateFlow
 
 class AppSettingsViewModel(container: AppContainer) : ViewModel() {
     val monitoring: StateFlow<Boolean> = container.settings.backgroundMonitoring
+    val dynamicColor: StateFlow<Boolean> = container.settings.dynamicColor
+    private val settings = container.settings
+
+    fun setDynamicColor(enabled: Boolean) = settings.setDynamicColor(enabled)
 }

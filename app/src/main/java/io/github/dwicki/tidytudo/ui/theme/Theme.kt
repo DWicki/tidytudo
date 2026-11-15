@@ -67,7 +67,7 @@ private val DarkColors = darkColorScheme(
 
 private val AppShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(12.dp),
+    small = RoundedCornerShape(8.dp),
     medium = RoundedCornerShape(20.dp),
     large = RoundedCornerShape(28.dp),
     extraLarge = RoundedCornerShape(36.dp),
@@ -80,13 +80,12 @@ private val AppTypography = Typography().run {
         headlineSmall = headlineSmall.copy(fontWeight = FontWeight.SemiBold),
         titleLarge = titleLarge.copy(fontWeight = FontWeight.SemiBold),
         titleMedium = titleMedium.copy(fontWeight = FontWeight.SemiBold),
-        labelLarge = labelLarge.copy(fontWeight = FontWeight.SemiBold),
     )
 }
 
-/** Material You colours from the wallpaper when the user enabled them, the brand palette otherwise. */
+/** The Tidytudo palette, or Material You colours from the wallpaper if the user turned them on. */
 @Composable
-fun TidytudoTheme(dynamicColor: Boolean = true, content: @Composable () -> Unit) {
+fun TidytudoTheme(dynamicColor: Boolean = false, content: @Composable () -> Unit) {
     val dark = isSystemInDarkTheme()
     val context = LocalContext.current
     val colors = when {

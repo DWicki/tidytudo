@@ -2,14 +2,17 @@
 
 ## Unreleased
 
-Home screen:
+Home screen redesign:
 
-- One main button: "Clean all", or "Clean n rooms" as soon as rooms are selected; the second start button in the room card is gone
-- Elapsed time and cleaned area while the robot works
-- What the dock is doing (emptying, washing, drying) after a run
-- Mode, suction and water options wrap instead of scrolling sideways; the modes sit right below the rooms
-- A short hint explains tapping and long-pressing rooms; "Clear selection" undoes a selection
-- Without presets, a slim row explains them instead of a large empty tile
+- Status and controls in one card whose colour follows the state (docked, cleaning, paused, error), with a new robot drawing and one summary line: battery, what the robot or dock is doing, elapsed time and area
+- One main button: "Clean all", or "Clean n rooms" as soon as rooms are selected
+- Filled room chips with clearer selection; while rooms are selected the card says how many and offers to clear them; passes are a segmented control
+- Mode, suction and water as compact tiles that open a picker; settings that do nothing in the current mode are hidden
+- Presets as pills right below the status, hidden while there are none
+- The dock collapses to one line while all is well and opens by itself when something needs attention
+- The robot name in the top bar is a pill that opens the switcher; the bar tints when content scrolls under it
+- Calmer type scale, consistent corners and spacing; the hint for room chips disappears after first use
+- The Tidytudo colours are the default; wallpaper colours can be turned on in App settings
 
 Found while testing on a real robot:
 

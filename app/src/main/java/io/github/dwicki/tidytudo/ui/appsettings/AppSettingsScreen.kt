@@ -1,5 +1,6 @@
 package io.github.dwicki.tidytudo.ui.appsettings
 
+import androidx.compose.material.icons.outlined.Palette
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -45,6 +46,7 @@ import kotlinx.coroutines.flow.StateFlow
 fun AppSettingsScreen(onBack: () -> Unit) {
     val viewModel = appViewModel { AppSettingsViewModel(it) }
     val monitoring by viewModel.monitoring.collectAsStateWithLifecycle()
+    val dynamicColor by viewModel.dynamicColor.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val setMonitoring = rememberMonitoringSwitch()
 
@@ -62,6 +64,14 @@ fun AppSettingsScreen(onBack: () -> Unit) {
                         headlineContent = { Text(stringResource(R.string.app_settings_monitoring)) },
                         supportingContent = { Text(stringResource(R.string.app_settings_monitoring_text)) },
                         trailingContent = { Switch(checked = monitoring, onCheckedChange = setMonitoring) },
+                        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                    )
+                    ListItem(
+                        modifier = Modifier.clickableRow { viewModel.setDynamicColor(!dynamicColor) },
+                        leadingContent = { Icon(Icons.Outlined.Palette, contentDescription = null) },
+                        headlineContent = { Text(stringResource(R.string.app_settings_dynamic_color)) },
+                        supportingContent = { Text(stringResource(R.string.app_settings_dynamic_color_text)) },
+                        trailingContent = { Switch(checked = dynamicColor, onCheckedChange = viewModel::setDynamicColor) },
                         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                     )
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) NavigationRow(Icons.Outlined.Language, stringResource(R.string.app_settings_language), stringResource(R.string.app_settings_language_text)) {

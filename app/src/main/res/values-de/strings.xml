@@ -103,13 +103,17 @@
     <string name="home_rooms_hint">Tippe auf Räume, um nur diese zu reinigen.</string>
     <string name="home_rooms_hint_rename">Tippe auf Räume, um nur diese zu reinigen. Lange drücken zum Umbenennen.</string>
     <string name="home_rooms_clear">Auswahl aufheben</string>
+    <plurals name="home_rooms_selected">
+        <item quantity="one">%1$d Raum ausgewählt</item>
+        <item quantity="other">%1$d Räume ausgewählt</item>
+    </plurals>
+    <string name="home_dock_all_ok">Alles in Ordnung</string>
     <string name="home_rooms_on_map">Auf der Karte</string>
     <string name="room_unnamed">Raum %1$s</string>
     <string name="home_passes">Durchgänge</string>
     <string name="home_save_preset">Als Vorlage speichern</string>
     <string name="home_presets_title">Vorlagen</string>
     <string name="home_preset_new">Neue Vorlage</string>
-    <string name="home_preset_new_hint">Räume und Modus wählen, dann speichern</string>
     <string name="home_preset_everything">Überall</string>
     <string name="home_preset_starting">Startet …</string>
     <string name="home_dock_title">Station</string>
@@ -334,6 +338,8 @@
     <string name="app_settings_title">App-Einstellungen</string>
     <string name="app_settings_monitoring">Meldungen im Hintergrund</string>
     <string name="app_settings_monitoring_text">Hält eine Verbindung zu deinen Robotern, um bei Fehlern und Wartung zu benachrichtigen. Zeigt dabei eine stille Benachrichtigung.</string>
+    <string name="app_settings_dynamic_color">Hintergrundfarben</string>
+    <string name="app_settings_dynamic_color_text">Die Farben deines Hintergrundbilds statt der Tidytudo-Farben verwenden</string>
     <string name="app_settings_language">Sprache</string>
     <string name="app_settings_language_text">Deutsch oder Englisch, unabhängig von der Systemsprache</string>
     <string name="app_settings_privacy">Datenschutz</string>

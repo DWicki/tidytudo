@@ -19,6 +19,21 @@ class AppSettings(context: Context) {
         monitoringState.value = enabled
     }
 
+    private val dynamicColorState = MutableStateFlow(prefs.getBoolean(KEY_DYNAMIC_COLOR, false))
+
+    /** Colours from the wallpaper (Material You) instead of the Tidytudo palette. Off by default. */
+    val dynamicColor: StateFlow<Boolean> = dynamicColorState.asStateFlow()
+
+    fun setDynamicColor(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_DYNAMIC_COLOR, enabled).apply()
+        dynamicColorState.value = enabled
+    }
+
+    /** Whether the user has used the room chips once; the home screen explains them until then. */
+    val roomsHintDone: Boolean get() = prefs.getBoolean(KEY_ROOMS_HINT_DONE, false)
+
+    fun markRoomsHintDone() = prefs.edit().putBoolean(KEY_ROOMS_HINT_DONE, true).apply()
+
     /** Whether the app already asked for the notification permission when a job was started. */
     val notificationPromptShown: Boolean get() = prefs.getBoolean(KEY_NOTIFICATION_PROMPT, false)
 
@@ -33,5 +48,7 @@ class AppSettings(context: Context) {
         const val KEY_MONITORING = "background_monitoring"
         const val KEY_MONITORING_OFFERED = "monitoring_offered"
         const val KEY_NOTIFICATION_PROMPT = "notification_prompt_shown"
+        const val KEY_DYNAMIC_COLOR = "dynamic_color"
+        const val KEY_ROOMS_HINT_DONE = "rooms_hint_done"
     }
 }
