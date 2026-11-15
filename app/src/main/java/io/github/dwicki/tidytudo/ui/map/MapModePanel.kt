@@ -1,5 +1,8 @@
 package io.github.dwicki.tidytudo.ui.map
 
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.outlined.Close
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.horizontalScroll
@@ -73,12 +76,10 @@ fun ModePanel(
     modifier: Modifier = Modifier,
     roomName: (String) -> String? = { null },
 ) {
-    if (state.mode == MapMode.VIEW) return
     Surface(
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        tonalElevation = 3.dp,
-        shadowElevation = 6.dp,
+        shadowElevation = 3.dp,
         modifier = modifier.fillMaxWidth(),
     ) {
         AnimatedContent(targetState = state.mode, label = "mapMode") { mode ->
@@ -88,7 +89,7 @@ fun ModePanel(
                     MapMode.ZONES -> ZonesPanel(state, onAddShape, actions)
                     MapMode.GO_TO -> GoToPanel(state, actions)
                     MapMode.RESTRICTIONS -> RestrictionsPanel(state, onAddShape, actions)
-                    MapMode.VIEW -> Unit
+                    MapMode.VIEW -> Hint(stringResource(R.string.map_view_hint), spaced = false)
                 }
             }
         }
@@ -99,7 +100,23 @@ fun ModePanel(
 private fun RoomsPanel(state: MapUiState, actions: MapViewModel, roomName: (String) -> String?) {
     val count = state.selectedSegments.size
     var renaming by remember { mutableStateOf(false) }
-    Hint(if (count == 0) stringResource(R.string.map_rooms_hint) else pluralStringResource(R.plurals.map_rooms_selected, count, count))
+    if (count == 0) {
+        Hint(stringResource(R.string.map_rooms_hint))
+    } else {
+        // Which rooms, by name, and a way to start over.
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
+            Text(
+                state.selectedSegments.map { roomName(it) ?: it }.joinToString(", "),
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = actions::clearRooms) {
+                Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.home_rooms_clear))
+            }
+        }
+    }
     if (count > 0) {
         IterationPicker(state.iterations, state.segmentProperties.iterationCount.max, actions::setIterations)
         val startJob = rememberJobStarter()
@@ -177,12 +194,18 @@ private fun ShapeToolbar(
 }
 
 @Composable
-private fun Hint(text: String) {
+private fun Hint(text: String, spaced: Boolean = true) {
     Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    Spacer(Modifier.height(8.dp))
+    if (spaced) Spacer(Modifier.height(8.dp))
 }
 
+/** Same size and shape as the main button on the home screen. */
 @Composable
 private fun PrimaryAction(label: String, enabled: Boolean, onClick: () -> Unit) {
-    Button(onClick = onClick, enabled = enabled, modifier = Modifier.fillMaxWidth().height(52.dp)) { Text(label) }
+    Button(
+        onClick = onClick,
+        enabled = enabled,
+        shape = CircleShape,
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(56.dp),
+    ) { Text(label, style = MaterialTheme.typography.titleSmall) }
 }

@@ -41,14 +41,21 @@ data class OverlayStyle(
 fun rememberMapPalette(): MapPalette {
     val colors = MaterialTheme.colorScheme
     return remember(colors) {
-        // Room colours are tints between surface and a few accent colours, so they stay calm in both themes.
-        val accents = listOf(colors.primary, colors.tertiary, colors.secondary, colors.primaryContainer, colors.tertiaryContainer)
+        // Rooms in a few light tints of the two brand colours, all about equally light, so no room
+        // looks disabled and the selection colour (a much stronger primary) is never mistaken for one.
         MapPalette(
             floor = colors.surfaceContainerHighest,
             wall = colors.onSurfaceVariant,
-            segments = accents.flatMap { listOf(lerp(colors.surface, it, 0.35f), lerp(colors.surface, it, 0.55f)) },
-            // Slightly muted, so the driven path stays visible on a selected room.
-            selectedSegment = lerp(colors.surface, colors.primary, 0.7f),
+            segments = listOf(
+                lerp(colors.surface, colors.primary, 0.20f),
+                lerp(colors.surface, colors.tertiary, 0.24f),
+                lerp(colors.surface, colors.primary, 0.32f),
+                lerp(colors.surface, colors.tertiary, 0.36f),
+                lerp(colors.surface, colors.primary, 0.26f),
+                lerp(colors.surface, colors.tertiary, 0.30f),
+            ),
+            selectedSegment = lerp(colors.surface, colors.primary, 0.62f),
+            neutralSegment = lerp(colors.surface, colors.onSurface, 0.10f),
         )
     }
 }
@@ -58,7 +65,7 @@ fun rememberOverlayStyle(): OverlayStyle {
     val colors = MaterialTheme.colorScheme
     return remember(colors) {
         OverlayStyle(
-            path = colors.onSurface.copy(alpha = 0.45f),
+            path = colors.primary.copy(alpha = 0.6f),
             robot = colors.surface,
             robotOutline = colors.primary,
             charger = colors.tertiary,
@@ -67,29 +74,38 @@ fun rememberOverlayStyle(): OverlayStyle {
             noMop = NO_MOP_BLUE,
             wall = NO_GO_RED,
             zone = colors.primary,
-            obstacle = colors.onSurfaceVariant,
+            obstacle = colors.error,
             carpet = colors.onSurface.copy(alpha = 0.12f),
             label = colors.onSurface,
-            labelBackground = colors.surface.copy(alpha = 0.85f),
+            labelBackground = colors.surface.copy(alpha = 0.9f),
         )
     }
 }
 
-/** Draws entities in local pixel space; [scale] keeps line widths and icons constant on screen. */
+/**
+ * Draws entities in local pixel space; [scale] keeps line widths and icons constant on screen.
+ * [dp] is one density-independent pixel in that space, so sizes match on every phone.
+ */
 fun DrawScope.drawEntities(map: RobotMap, projection: MapProjection, style: OverlayStyle, scale: Float) {
     val px = 1f / scale
+    val dp = density * px
     map.carpets.forEach { drawPolygon(it, projection, style.carpet, fill = true, strokeWidth = 0f) }
-    map.paths.forEach { drawPolyline(it, projection, style.path, 1.5f * px) }
+    map.paths.forEach { drawPolyline(it, projection, style.path, PATH_WIDTH_DP * dp) }
     if (map.predictedPath.isNotEmpty()) {
-        drawPolyline(map.predictedPath, projection, style.zone, 2f * px, PathEffect.dashPathEffect(floatArrayOf(8f * px, 6f * px)))
+        drawPolyline(map.predictedPath, projection, style.zone, 2f * dp, PathEffect.dashPathEffect(floatArrayOf(6f * dp, 4f * dp)))
     }
-    map.noGoAreas.forEach { drawPolygon(it, projection, style.noGo, fill = true, strokeWidth = 2f * px) }
-    map.noMopAreas.forEach { drawPolygon(it, projection, style.noMop, fill = true, strokeWidth = 2f * px) }
-    map.activeZones.forEach { drawPolygon(it, projection, style.zone, fill = true, strokeWidth = 2f * px) }
+    map.noGoAreas.forEach { drawPolygon(it, projection, style.noGo, fill = true, strokeWidth = 1.5f * dp) }
+    map.noMopAreas.forEach { drawPolygon(it, projection, style.noMop, fill = true, strokeWidth = 1.5f * dp) }
+    map.activeZones.forEach { drawPolygon(it, projection, style.zone, fill = true, strokeWidth = 1.5f * dp) }
     map.virtualWalls.forEach { wall ->
-        drawLine(style.wall, projection.toLocal(wall.start), projection.toLocal(wall.end), 4f * px, StrokeCap.Round)
+        drawLine(style.wall, projection.toLocal(wall.start), projection.toLocal(wall.end), 3f * dp, StrokeCap.Round)
     }
-    map.obstacles.forEach { drawCircle(style.obstacle, 3f * px, projection.toLocal(it.position)) }
+    // Obstacles as small red dots with a light ring, visible on any room colour.
+    map.obstacles.forEach {
+        val center = projection.toLocal(it.position)
+        drawCircle(style.robot, (OBSTACLE_RADIUS_DP + 1.5f) * dp, center)
+        drawCircle(style.obstacle, OBSTACLE_RADIUS_DP * dp, center)
+    }
     map.charger?.let { drawCharger(projection.toLocal(it.position), style, px) }
     map.goToTarget?.let { drawTarget(projection.toLocal(it), style.zone, px) }
 }
@@ -110,16 +126,19 @@ fun DrawScope.drawRoomLabels(
 ) {
     if (viewport.scale < MIN_LABEL_SCALE) return
     val textStyle = TextStyle(color = style.label, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+    val padX = LABEL_PADDING_X_DP * density
+    val padY = LABEL_PADDING_Y_DP * density
     map.segments.forEach { segment ->
         val name = segment.name ?: return@forEach
         val center = viewport.toScreen(projection.centroidLocal(segment.pixels))
         val layout = textMeasurer.measure(name, textStyle)
         val topLeft = center - Offset(layout.size.width / 2f, layout.size.height / 2f)
+        val height = layout.size.height + padY * 2
         drawRoundRect(
             style.labelBackground,
-            topLeft = topLeft - Offset(LABEL_PADDING, LABEL_PADDING / 2),
-            size = Size(layout.size.width + LABEL_PADDING * 2, layout.size.height + LABEL_PADDING),
-            cornerRadius = CornerRadius(LABEL_PADDING * 2),
+            topLeft = topLeft - Offset(padX, padY),
+            size = Size(layout.size.width + padX * 2, height),
+            cornerRadius = CornerRadius(height / 2),
         )
         drawText(layout, topLeft = topLeft)
     }
@@ -127,11 +146,12 @@ fun DrawScope.drawRoomLabels(
 
 /** Highlighted points, e.g. obstacles of a past run, as pins in screen space so they stay tappable. */
 fun DrawScope.drawMarkers(markers: List<CmPoint>, projection: MapProjection, viewport: MapViewport, style: OverlayStyle) {
+    val radius = MARKER_RADIUS_DP * density
     markers.forEach { point ->
         val center = viewport.toScreen(projection.toLocal(point))
-        drawCircle(style.robot, MARKER_RADIUS + SHAPE_STROKE, center)
-        drawCircle(NO_GO_RED, MARKER_RADIUS, center)
-        drawCircle(Color.White, MARKER_RADIUS * 0.35f, center)
+        drawCircle(style.robot, radius + SHAPE_STROKE_DP * density, center)
+        drawCircle(NO_GO_RED, radius, center)
+        drawCircle(Color.White, radius * 0.35f, center)
     }
 }
 
@@ -149,13 +169,13 @@ fun DrawScope.drawShapes(shapes: List<EditableShape>, projection: MapProjection,
                 val bottomRight = viewport.toScreen(projection.toLocal(CmPoint(shape.right, shape.bottom)))
                 val rect = Rect(topLeft, bottomRight)
                 drawRect(color.copy(alpha = 0.22f), rect.topLeft, rect.size)
-                drawRect(color, rect.topLeft, rect.size, style = Stroke(SHAPE_STROKE))
+                drawRect(color, rect.topLeft, rect.size, style = Stroke(SHAPE_STROKE_DP * density))
                 drawHandle(bottomRight, color)
             }
             is EditableShape.Line -> {
                 val start = viewport.toScreen(projection.toLocal(shape.start))
                 val end = viewport.toScreen(projection.toLocal(shape.end))
-                drawLine(color, start, end, SHAPE_STROKE * 2, StrokeCap.Round)
+                drawLine(color, start, end, SHAPE_STROKE_DP * 2 * density, StrokeCap.Round)
                 drawHandle(start, color)
                 drawHandle(end, color)
             }
@@ -164,8 +184,9 @@ fun DrawScope.drawShapes(shapes: List<EditableShape>, projection: MapProjection,
 }
 
 private fun DrawScope.drawHandle(center: Offset, color: Color) {
-    drawCircle(Color.White, HANDLE_RADIUS, center)
-    drawCircle(color, HANDLE_RADIUS, center, style = Stroke(SHAPE_STROKE))
+    val radius = HANDLE_RADIUS_DP * density
+    drawCircle(Color.White, radius, center)
+    drawCircle(color, radius, center, style = Stroke(SHAPE_STROKE_DP * density))
 }
 
 private fun DrawScope.drawRobot(center: Offset, angle: Float, style: OverlayStyle, px: Float) {
@@ -230,8 +251,11 @@ private val NO_MOP_BLUE = Color(0xFF3E8BFF)
 private const val ROBOT_RADIUS_DP = 9f
 private const val CHARGER_RADIUS_DP = 8f
 private const val TARGET_RADIUS_DP = 7f
-private const val HANDLE_RADIUS = 22f
-private const val MARKER_RADIUS = 16f
-private const val SHAPE_STROKE = 5f
-private const val LABEL_PADDING = 8f
+private const val HANDLE_RADIUS_DP = 11f
+private const val MARKER_RADIUS_DP = 8f
+private const val SHAPE_STROKE_DP = 2f
+private const val LABEL_PADDING_X_DP = 8f
+private const val LABEL_PADDING_Y_DP = 3f
+private const val PATH_WIDTH_DP = 1.5f
+private const val OBSTACLE_RADIUS_DP = 3.5f
 private const val MIN_LABEL_SCALE = 0.8f

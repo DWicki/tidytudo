@@ -35,9 +35,12 @@ class MapViewState {
     var canvasSize: Size by mutableStateOf(Size.Zero)
         internal set
 
+    /** Map screen: the map sits under the mode chips, free space goes below it. */
+    var alignTop = false
+
     fun fit(map: RobotMap) {
         val bounds = map.bounds ?: return
-        if (canvasSize.minDimension > 0f) viewport = MapViewport.fit(bounds, canvasSize, topInset, bottomInset)
+        if (canvasSize.minDimension > 0f) viewport = MapViewport.fit(bounds, canvasSize, topInset, bottomInset, alignTop = alignTop)
     }
 
     /** The point in the middle of the screen, in centimetres; new shapes are placed there. */
@@ -67,6 +70,7 @@ fun MapCanvas(
     onTap: (point: CmPoint, segmentId: String?) -> Unit,
     onShapeChange: (EditableShape) -> Unit,
     modifier: Modifier = Modifier,
+    neutralRooms: Boolean = false,
     markers: List<CmPoint> = emptyList(),
     showRoomLabels: Boolean = true,
 ) {
@@ -75,7 +79,7 @@ fun MapCanvas(
     val textMeasurer = rememberTextMeasurer()
     val bounds = map.bounds ?: return
     val projection = remember(map) { MapProjection(map.pixelSize, bounds) }
-    val bitmap = remember(map, palette, selectedSegments) { MapBitmap.render(map, palette, selectedSegments) }
+    val bitmap = remember(map, palette, selectedSegments, neutralRooms) { MapBitmap.render(map, palette, selectedSegments, neutralRooms) }
     val currentShapes by rememberUpdatedState(shapes)
     val currentOnTap by rememberUpdatedState(onTap)
     val currentOnShapeChange by rememberUpdatedState(onShapeChange)
@@ -111,7 +115,8 @@ fun MapCanvas(
                     srcOffset = IntOffset.Zero,
                     srcSize = IntSize(it.width, it.height),
                     dstSize = IntSize(it.width, it.height),
-                    filterQuality = FilterQuality.None,
+                    // Crisp pixels when zoomed in; smoothed when zoomed out, where nearest-neighbour shimmers.
+                    filterQuality = if (viewport.scale < 1f) FilterQuality.Low else FilterQuality.None,
                 )
             }
             drawEntities(map, projection, overlay, viewport.scale)

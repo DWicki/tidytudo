@@ -1,5 +1,6 @@
 package io.github.dwicki.tidytudo.ui.map
 
+import androidx.compose.material.icons.outlined.FitScreen
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
 import androidx.activity.compose.BackHandler
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CenterFocusStrong
 import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -108,6 +108,7 @@ private fun MapContent(
 ) {
     val viewState = rememberMapViewState()
     viewState.topInset = with(LocalDensity.current) { MODE_BAR_HEIGHT.toPx() }
+    viewState.alignTop = true
     val shapes: List<EditableShape> = when (state.mode) {
         MapMode.ZONES -> state.zones
         MapMode.RESTRICTIONS -> state.restrictions
@@ -115,7 +116,7 @@ private fun MapContent(
     }
     // Re-fit when the mode changes, so the map is not hidden behind the panel that just appeared.
     LaunchedEffect(state.mode) {
-        if (state.mode == MapMode.VIEW) viewState.bottomInset = 0f else delay(PANEL_SETTLE_MS)
+        delay(PANEL_SETTLE_MS)
         viewState.fit(map)
     }
     val displayedMap = state.goToTarget?.takeIf { state.mode == MapMode.GO_TO }?.let { map.copy(goToTarget = it) } ?: map
@@ -127,6 +128,7 @@ private fun MapContent(
         MapCanvas(
             map = displayedMap,
             // Outside room mode, highlight the rooms the robot is cleaning right now.
+            neutralRooms = state.mode == MapMode.ROOMS,
             selectedSegments = if (state.mode == MapMode.ROOMS) {
                 state.selectedSegments.toSet()
             } else {
@@ -139,24 +141,27 @@ private fun MapContent(
             onShapeChange = viewModel::updateShape,
             modifier = Modifier.fillMaxSize(),
         )
+        // No "view" chip: viewing is what happens when no tool is chosen; tapping the active tool again ends it.
         ModeSelector(
-            modes = modes,
+            modes = modes - MapMode.VIEW,
             selected = state.mode,
-            onSelect = viewModel::setMode,
-            modifier = Modifier.align(Alignment.TopStart).padding(12.dp),
+            onSelect = { mode -> viewModel.setMode(if (mode == state.mode) MapMode.VIEW else mode) },
+            modifier = Modifier.align(Alignment.TopStart).fillMaxWidth().padding(vertical = 12.dp),
         )
-        SmallFloatingActionButton(
-            onClick = { viewState.fit(map) },
-            modifier = Modifier.align(Alignment.TopEnd).padding(top = 64.dp, end = 12.dp),
-        ) {
-            Icon(Icons.Outlined.CenterFocusStrong, contentDescription = stringResource(R.string.map_fit))
-        }
         Column(
             Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            SmallFloatingActionButton(
+                onClick = { viewState.fit(map) },
+                modifier = Modifier.align(Alignment.End),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            ) {
+                Icon(Icons.Outlined.FitScreen, contentDescription = stringResource(R.string.map_fit))
+            }
             ModePanel(
                 modifier = Modifier.onSizeChanged { viewState.bottomInset = it.height.toFloat() },
                 roomName = { id -> map.segments.firstOrNull { it.id == id }?.name },
@@ -170,9 +175,10 @@ private fun MapContent(
 
 @Composable
 private fun ModeSelector(modes: List<MapMode>, selected: MapMode, onSelect: (MapMode) -> Unit, modifier: Modifier) {
-    if (modes.size < 2) return
+    if (modes.isEmpty()) return
+    // Padding inside the scroll, so chips scroll all the way to the screen edge instead of being cut off.
     Row(
-        modifier.horizontalScroll(rememberScrollState()).padding(end = 56.dp),
+        modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         modes.forEach { mode ->

@@ -177,10 +177,6 @@
     <string name="map_mode_go_to">Go to</string>
     <string name="map_mode_restrictions">No-go</string>
     <string name="map_rooms_hint">Tap rooms on the map to select them.</string>
-    <plurals name="map_rooms_selected">
-        <item quantity="one">%1$d room selected</item>
-        <item quantity="other">%1$d rooms selected</item>
-    </plurals>
     <plurals name="map_zones_hint">
         <item quantity="one">Add a zone, then drag it into place. Drag the round handle to resize.</item>
         <item quantity="other">Add up to %1$d zones, then drag them into place. Drag the round handle to resize.</item>
@@ -452,4 +448,5 @@
     <string name="action_more">More options</string>
     <string name="events_done">Done · %1$s</string>
     <string name="robots_active_short">In use</string>
+    <string name="map_view_hint">Tap a room to clean it, or choose a tool above.</string>
 </resources>

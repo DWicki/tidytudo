@@ -12,6 +12,8 @@ data class MapPalette(
     val wall: Color,
     val segments: List<Color>,
     val selectedSegment: Color,
+    /** Unselected rooms while choosing rooms: one neutral tone, so the selected ones stand out. */
+    val neutralSegment: Color,
 )
 
 /**
@@ -21,12 +23,16 @@ data class MapPalette(
  */
 object MapBitmap {
 
-    fun render(map: RobotMap, palette: MapPalette, selectedSegments: Set<String>): ImageBitmap? {
+    fun render(map: RobotMap, palette: MapPalette, selectedSegments: Set<String>, neutralRooms: Boolean = false): ImageBitmap? {
         val bounds = map.bounds ?: return null
         val pixels = IntArray(bounds.width * bounds.height)
         map.floor?.let { fill(pixels, bounds, it, palette.floor.toArgb()) }
         map.segments.forEachIndexed { index, segment ->
-            val color = if (segment.id in selectedSegments) palette.selectedSegment else palette.segments[index % palette.segments.size]
+            val color = when {
+                segment.id in selectedSegments -> palette.selectedSegment
+                neutralRooms -> palette.neutralSegment
+                else -> palette.segments[index % palette.segments.size]
+            }
             fill(pixels, bounds, segment.pixels, color.toArgb())
         }
         map.walls?.let { fill(pixels, bounds, it, palette.wall.toArgb()) }

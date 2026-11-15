@@ -113,6 +113,10 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
 
     fun onTap(point: CmPoint, segmentId: String?) {
         when (state.value.mode) {
+            MapMode.VIEW -> if (segmentId != null && Capabilities.SEGMENT_CLEANING in live.value.capabilities) {
+                setMode(MapMode.ROOMS)
+                toggleSegment(segmentId)
+            }
             MapMode.ROOMS -> segmentId?.let(::toggleSegment)
             MapMode.GO_TO -> state.update { it.copy(goToTarget = point) }
             else -> Unit
