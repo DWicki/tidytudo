@@ -1,5 +1,8 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import io.github.dwicki.tidytudo.R
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.channels.Channel
 import androidx.lifecycle.viewModelScope
 import io.github.dwicki.tidytudo.AppContainer
 import io.github.dwicki.tidytudo.api.ApiResult
@@ -89,7 +92,11 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
     fun toggle() = run(ACTION_TOGGLE, startsJob = true) { QuickActions.toggle(session.client, live.value.state) }
     fun stop() = run(ACTION_STOP) { session.client.basicControl("stop") }
     fun dock() = run(ACTION_DOCK, startsJob = true) { QuickActions.dock(session.client) }
-    fun locate() = run(ACTION_LOCATE) { session.client.locate() }
+    /** One-off confirmations for commands whose effect cannot be seen in the app, e.g. locate. */
+    private val noticeChannel = Channel<Int>(Channel.BUFFERED)
+    val notices = noticeChannel.receiveAsFlow()
+
+    fun locate() = run(ACTION_LOCATE, onSuccess = { noticeChannel.trySend(R.string.locate_sent) }) { session.client.locate() }
     fun triggerDock(capability: String) = run(capability) { session.client.trigger(capability) }
 
     fun setPreset(capability: String, value: String) = run(capability) { session.client.setPreset(capability, value) }
@@ -138,7 +145,17 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
     }
 
     /** Renames a room; the room chips reload so the new name shows at once. */
-    fun renameRoom(id: String, name: String) = run(ACTION_RENAME, onSuccess = ::refreshExtras) {
+    /**
+     * Renames a room. The robot applies the name a moment after confirming, so reloading at once
+     * would bring back the old name; the chip takes the new name directly instead.
+     */
+    fun renameRoom(id: String, name: String) = run(ACTION_RENAME, onSuccess = {
+        extrasState.update { extras ->
+            val renamed = extras.segments.map { if (it.id == id) it.copy(name = name) else it }
+            extras.copy(segments = renamed.sortedBy { it.name ?: it.id })
+        }
+        container.publishShortcuts(robot, extrasState.value.segments.map { RoomShortcut(it.id, it.name ?: it.id) })
+    }) {
         session.client.renameSegment(id, name)
     }
 

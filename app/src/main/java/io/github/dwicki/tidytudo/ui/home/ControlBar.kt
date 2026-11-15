@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.dwicki.tidytudo.R
 import io.github.dwicki.tidytudo.api.model.RobotState
@@ -73,7 +74,10 @@ fun ControlBar(
                 )
             }
         }
-        if (status != StatusValue.DOCKED) {
+        if (status != StatusValue.DOCKED && hasJob) {
+            // Four controls share the row while a job runs; a round dock button leaves room for "Resume".
+            RoundAction(Icons.Filled.Home, stringResource(R.string.action_dock), enabled, onDock)
+        } else if (status != StatusValue.DOCKED) {
             FilledTonalButton(
                 onClick = onDock,
                 enabled = enabled,
@@ -101,7 +105,7 @@ private fun ButtonContent(icon: ImageVector, label: String, busy: Boolean) {
             Icon(icon, contentDescription = null)
         }
         Spacer(Modifier.width(8.dp))
-        Text(label, style = MaterialTheme.typography.titleMedium)
+        Text(label, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 

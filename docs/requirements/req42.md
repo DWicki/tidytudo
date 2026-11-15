@@ -72,10 +72,10 @@ flowchart LR
 | ID | Requirement | Status |
 |----|-------------|--------|
 | F-2.1 | Show status (docked, cleaning, …) with flag (zone, segment, …), battery level and charging state | ✅ (Fairphone 6, Valetudo 2026.08.0) |
-| F-2.2 | Live updates via SSE; reconnect automatically; show "offline" after the connection is lost | 🔬 (initial state and reconnect on the real robot, live changes only seen with the mock) |
-| F-2.3 | Start, stop, pause, return to dock (`BasicControlCapability`) with only the actions that make sense for the current status | 🔬 (works on the phone against the mock server; not yet on the real robot) |
-| F-2.4 | Locate the robot (`LocateCapability`) | 🔬 (works on the phone against the mock server; not yet on the real robot) |
-| F-2.5 | Fan speed, water usage and operation mode presets, showing only presets the robot reports | 🔬 (presets shown correctly on the real robot; changing them only tested with the mock) |
+| F-2.2 | Live updates via SSE; reconnect automatically; show "offline" after the connection is lost; a state kept from an earlier connection is marked "Updating…" until the robot answers | ✅ (live changes followed on the real robot, also with the phone asleep) |
+| F-2.3 | Start, stop, pause, return to dock (`BasicControlCapability`) with only the actions that make sense for the current status | ✅ (pause, resume and dock on the real robot; stop and full cleanup only with the mock) |
+| F-2.4 | Locate the robot (`LocateCapability`), confirmed with a short message | ✅ |
+| F-2.5 | Fan speed, water usage and operation mode presets, showing only presets the robot reports | ✅ (operation mode changed and restored on the real robot) |
 | F-2.6 | Show attachments and dock components (mop attached, water tanks, dust bag) and dock status | ✅ (Fairphone 6, Valetudo 2026.08.0; attachments added in the refactor pass, shown with the mock) |
 | F-2.7 | Show robot errors in plain language (message, subsystem, severity) | 🔬 |
 | F-2.8 | Dock actions: empty dust bin, clean mop, dry mop (manual trigger capabilities) | 🔬 |
@@ -94,11 +94,11 @@ flowchart LR
 
 | ID | Requirement | Status |
 |----|-------------|--------|
-| F-4.1 | Room cleaning: tap rooms on the map or pick from a list, choose iterations and order (if supported) | 🔬 (room selection on the real map verified; starting a room cleaning only tested with the mock) |
+| F-4.1 | Room cleaning: tap rooms on the map or pick from a list, choose iterations and order (if supported) | ✅ (one-room cleaning from the room list on the real robot) |
 | F-4.2 | Zone cleaning: draw up to the reported number of rectangles, resize/move, iterations | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 | F-4.3 | Go to location: tap a point on the map | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 | F-4.4 | Edit no-go areas, no-mop areas and virtual walls and save them | 🔬 (works on the phone against the mock server; not yet on the real robot) |
-| F-4.5 | Rename rooms (`MapSegmentRenameCapability`) from a Rooms list (Robot tab, pencil on the home screen's room card), by long-pressing a room chip on the home screen, or from the map with one room selected; the dialog opens with the current name selected | 🔬 (all three ways work on the phone against the mock server; not yet on the real robot) |
+| F-4.5 | Rename rooms (`MapSegmentRenameCapability`) from a Rooms list (Robot tab, pencil on the home screen's room card), by long-pressing a room chip on the home screen, or from the map with one room selected; the dialog opens with the current name selected | ✅ (long-press on the real robot, renamed and restored; the other two ways only with the mock) |
 | F-4.6 | Presets: save a set of rooms + fan/water/mode as a named preset and start it in one tap | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 
 ### F-5 Maintenance and information
@@ -129,7 +129,7 @@ flowchart LR
 |----|-------------|--------|
 | F-7.1 | Home-screen widget: status, battery, start/pause and dock buttons for a chosen robot | 🔬 |
 | F-7.2 | Quick-settings tile: shows status, tap toggles start/pause; long-press opens the app | 🔬 |
-| F-7.3 | Ongoing notification while cleaning with progress information and pause/dock actions | 🔬 (works on the phone against the mock server; not yet on the real robot) |
+| F-7.3 | Ongoing notification while cleaning with progress information and pause/dock actions | ✅ (shown during a real run and removed when the robot docked; its buttons only with the mock) |
 | F-7.4 | Local notification on error, stuck robot or depleted consumable (only while monitoring runs; no push service) | 🔬 |
 | F-7.5 | Launcher shortcuts for rooms and presets | 🔬 |
 | F-7.6 | Per-app language (English, German) via Android 13+ system settings and in-app setting | 🔬 |

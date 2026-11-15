@@ -1,5 +1,8 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import io.github.dwicki.tidytudo.ui.components.aboveKeyboard
+import io.github.dwicki.tidytudo.ui.components.TextInputDialogProperties
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -55,6 +58,10 @@ fun HomeScreen(
 
     val startJob = rememberJobStarter()
     ErrorSnackbarEffect(viewModel.errors, snackbar)
+    val context = LocalContext.current
+    LaunchedEffect(viewModel) {
+        viewModel.notices.collect { snackbar.showSnackbar(context.getString(it)) }
+    }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refreshExtras() }
     LaunchedEffect(live.connection) {
         if (live.connection == Connection.Online) viewModel.refreshExtras()
@@ -190,6 +197,8 @@ private fun PresetNameDialog(roomCount: Int, onSave: (String) -> Unit, onDismiss
     var name by rememberSaveable { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
+        properties = TextInputDialogProperties,
+        modifier = Modifier.aboveKeyboard(),
         title = { Text(stringResource(R.string.preset_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

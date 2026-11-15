@@ -6,6 +6,7 @@
     <string name="action_delete">Löschen</string>
     <string name="action_dock">Zur Station</string>
     <string name="action_locate">Finden</string>
+    <string name="locate_sent">Der Roboter spielt einen Ton ab</string>
     <string name="action_ok">OK</string>
     <string name="action_pause">Pause</string>
     <string name="action_remove">Entfernen</string>
@@ -61,6 +62,7 @@
     <string name="status_offline">Offline</string>
     <string name="status_connecting">Verbinde …</string>
     <string name="status_reconnecting">Verbinde neu …</string>
+    <string name="status_updating">Wird aktualisiert …</string>
     <string name="flag_zone">Zonen</string>
     <string name="flag_segment">Ausgewählte Räume</string>
     <string name="flag_spot">Punktreinigung</string>

@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+Found while testing on a real robot:
+
+- A status kept from an earlier connection is marked "Updating…" until the robot answers, instead of looking current (a finished robot could still read "Cleaning" after reopening the app)
+- Renamed rooms show their new name at once on the home screen
+- Dialogs with a text field move above the keyboard; before, the keyboard hid Save and Cancel
+- "Resume" no longer wraps onto two lines; while a job runs, the dock button is round
+- Locate confirms that the robot plays a sound
+- Debug builds install next to the release app as "Tidytudo Debug"
+
 ## 1.0.0-beta.1
 
 First public beta. Reading data is verified on a real robot; commands that move the robot are so

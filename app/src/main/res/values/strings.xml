@@ -9,6 +9,7 @@
     <string name="action_delete">Delete</string>
     <string name="action_dock">Dock</string>
     <string name="action_locate">Locate</string>
+    <string name="locate_sent">The robot is playing a sound</string>
     <string name="action_ok">OK</string>
     <string name="action_pause">Pause</string>
     <string name="action_remove">Remove</string>
@@ -67,6 +68,7 @@
     <string name="status_offline">Offline</string>
     <string name="status_connecting">Connecting…</string>
     <string name="status_reconnecting">Reconnecting…</string>
+    <string name="status_updating">Updating…</string>
     <string name="flag_zone">Zones</string>
     <string name="flag_segment">Selected rooms</string>
     <string name="flag_spot">Spot</string>
