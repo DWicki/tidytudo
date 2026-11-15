@@ -41,6 +41,19 @@ private val LightColors = lightColorScheme(
     surfaceContainer = Color(0xFFEFEDF4),
     surfaceContainerHigh = Color(0xFFE9E7EF),
     surfaceContainerHighest = Color(0xFFE4E1E9),
+    // The remaining roles from the same indigo tonal palette; left out, Material falls back to its
+    // purple baseline and outlines, dividers and secondary text get a slightly different hue.
+    onBackground = Color(0xFF1B1B21),
+    onSurface = Color(0xFF1B1B21),
+    surfaceVariant = Color(0xFFE3E1EC),
+    onSurfaceVariant = Color(0xFF46464F),
+    outline = Color(0xFF767680),
+    outlineVariant = Color(0xFFC6C5D0),
+    inverseSurface = Color(0xFF303036),
+    inverseOnSurface = Color(0xFFF2EFF7),
+    inversePrimary = Color(0xFFBAC3FF),
+    surfaceDim = Color(0xFFDBD9E0),
+    surfaceBright = Color(0xFFFBF8FF),
 )
 
 private val DarkColors = darkColorScheme(
@@ -63,6 +76,17 @@ private val DarkColors = darkColorScheme(
     surfaceContainer = Color(0xFF1F1F25),
     surfaceContainerHigh = Color(0xFF292A2F),
     surfaceContainerHighest = Color(0xFF34343A),
+    onBackground = Color(0xFFE4E1E9),
+    onSurface = Color(0xFFE4E1E9),
+    surfaceVariant = Color(0xFF46464F),
+    onSurfaceVariant = Color(0xFFC6C5D0),
+    outline = Color(0xFF90909A),
+    outlineVariant = Color(0xFF46464F),
+    inverseSurface = Color(0xFFE4E1E9),
+    inverseOnSurface = Color(0xFF303036),
+    inversePrimary = Color(0xFF4C5AA8),
+    surfaceDim = Color(0xFF121318),
+    surfaceBright = Color(0xFF39393F),
 )
 
 private val AppShapes = Shapes(

@@ -1,5 +1,25 @@
 package io.github.dwicki.tidytudo.ui.care
 
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.Sensors
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.WaterDrop
+import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material.icons.outlined.CleaningServices
+import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material.icons.outlined.MoreVert
+import io.github.dwicki.tidytudo.ui.components.TonalIcon
+import io.github.dwicki.tidytudo.ui.components.AppListItem
+import io.github.dwicki.tidytudo.ui.components.ListCard
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,7 +29,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -35,7 +54,6 @@ import io.github.dwicki.tidytudo.ui.LoadState
 import io.github.dwicki.tidytudo.ui.components.DetailScaffold
 import io.github.dwicki.tidytudo.ui.components.ErrorBox
 import io.github.dwicki.tidytudo.ui.components.LoadingBox
-import io.github.dwicki.tidytudo.ui.components.SectionCard
 import io.github.dwicki.tidytudo.ui.robotViewModel
 
 /** Brushes, filters and sensors with remaining life and reset (F-5.1). */
@@ -54,8 +72,10 @@ fun ConsumablesScreen(robot: Robot, onBack: () -> Unit) {
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding(), bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items(current.value, key = { "${it.consumable.type}/${it.consumable.subType}" }) { item ->
-                    ConsumableCard(item, onReset = { resetCandidate = item.consumable })
+                item {
+                    ListCard {
+                        current.value.forEach { item -> ConsumableRow(item, onReset = { resetCandidate = item.consumable }) }
+                    }
                 }
             }
         }
@@ -77,33 +97,66 @@ fun ConsumablesScreen(robot: Robot, onBack: () -> Unit) {
     }
 }
 
+/**
+ * One part: icon, name, time left and a bar. Reset sits in a menu, because it should only follow
+ * replacing or cleaning the part, not be the most prominent thing on the screen.
+ */
 @Composable
-private fun ConsumableCard(item: ConsumableItem, onReset: () -> Unit) {
+private fun ConsumableRow(item: ConsumableItem, onReset: () -> Unit) {
     val context = LocalContext.current
     val consumable = item.consumable
     val fraction = item.fraction
-    val low = fraction != null && fraction < LOW_THRESHOLD
-    SectionCard {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(Labels.consumable(context, consumable.type, consumable.subType), style = MaterialTheme.typography.titleMedium)
-                Text(
-                    remainingText(consumable),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (low) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+    val low = item.isLow
+    val colors = MaterialTheme.colorScheme
+    var menu by remember { mutableStateOf(false) }
+    AppListItem(
+        title = Labels.consumable(context, consumable.type, consumable.subType),
+        supporting = remainingText(consumable),
+        supportingColor = if (low) colors.error else colors.onSurfaceVariant,
+        leading = {
+            TonalIcon(
+                consumableIcon(consumable.type),
+                container = if (low) colors.errorContainer else colors.secondaryContainer,
+                content = if (low) colors.onErrorContainer else colors.onSecondaryContainer,
+            )
+        },
+        below = fraction?.let {
+            {
+                LinearProgressIndicator(
+                    progress = { it },
+                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp).height(6.dp),
+                    color = if (low) colors.error else colors.primary,
+                    trackColor = colors.surfaceContainerHighest,
+                    strokeCap = StrokeCap.Round,
+                    gapSize = 0.dp,
+                    drawStopIndicator = {},
                 )
             }
-            TextButton(onClick = onReset) { Text(stringResource(R.string.consumables_reset)) }
-        }
-        if (fraction != null) {
-            Spacer(Modifier.height(8.dp))
-            LinearProgressIndicator(
-                progress = { fraction },
-                modifier = Modifier.fillMaxWidth(),
-                color = if (low) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-            )
-        }
-    }
+        },
+        trailing = {
+            Box {
+                IconButton(onClick = { menu = true }) {
+                    Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.action_more))
+                }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.consumables_reset)) },
+                        leadingIcon = { Icon(Icons.Outlined.RestartAlt, contentDescription = null) },
+                        onClick = { menu = false; onReset() },
+                    )
+                }
+            }
+        },
+    )
+}
+
+private fun consumableIcon(type: String): ImageVector = when (type) {
+    "brush" -> Icons.Outlined.CleaningServices
+    "filter" -> Icons.Outlined.FilterAlt
+    "mop" -> Icons.Outlined.WaterDrop
+    "bin", "dustbag" -> Icons.Outlined.Delete
+    "cleaning", "sensor" -> Icons.Outlined.Sensors
+    else -> Icons.Outlined.Build
 }
 
 @Composable
@@ -121,5 +174,4 @@ private fun remainingText(consumable: Consumable): String {
     }
 }
 
-private const val LOW_THRESHOLD = 0.1f
 private const val MINUTES_PER_HOUR = 60

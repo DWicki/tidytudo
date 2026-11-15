@@ -1,5 +1,6 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateColorAsState
@@ -142,19 +143,15 @@ private data class Tone(
 @Composable
 private fun statusTone(status: StatusValue, unavailable: Boolean): Tone {
     val colors = MaterialTheme.colorScheme
-    val raised = colors.surfaceContainerLowest
+    // A raised surface for the round buttons: white on light cards; on dark cards the lightest
+    // surface, because the "lowest" one is near-black and the buttons would look like holes.
+    val raised = if (colors.surface.luminance() < 0.5f) colors.surfaceContainerHighest else colors.surfaceContainerLowest
     return when {
         unavailable -> Tone(colors.surfaceContainer, colors.onSurfaceVariant, button = colors.secondaryContainer, onButton = colors.onSecondaryContainer)
         status == StatusValue.ERROR -> Tone(colors.errorContainer, colors.onErrorContainer, button = raised, onButton = colors.onSurface)
         status.isActive -> Tone(colors.primaryContainer, colors.onPrimaryContainer, button = raised, onButton = colors.onSurface)
         status == StatusValue.PAUSED -> Tone(colors.secondaryContainer, colors.onSecondaryContainer, button = raised, onButton = colors.onSurface)
-        else -> Tone(
-            colors.surfaceContainerHigh,
-            colors.onSurface,
-            colors.primary,
-            button = colors.secondaryContainer,
-            onButton = colors.onSecondaryContainer,
-        )
+        else -> Tone(colors.surfaceContainerHigh, colors.onSurface, colors.primary, button = raised, onButton = colors.onSurface)
     }
 }
 
@@ -186,12 +183,13 @@ private fun SupportingLine(state: RobotState, progress: JobProgress?) {
         progress?.areaCm2?.takeIf { it >= CM2_PER_M2 }?.let { areaText(it) },
     )
     val battery = state.battery
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    // Top-aligned: when the line wraps, the battery icon stays next to the percentage.
+    Row(verticalAlignment = Alignment.Top) {
         if (battery != null) {
             Icon(
                 if (battery.isCharging) Icons.Outlined.BatteryChargingFull else Icons.Outlined.BatteryFull,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.padding(top = 2.dp).size(16.dp),
                 tint = if (battery.level < LOW_BATTERY) MaterialTheme.colorScheme.error else LocalContentColor.current,
             )
             Spacer(Modifier.width(4.dp))

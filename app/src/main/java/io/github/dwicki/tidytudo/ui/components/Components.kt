@@ -23,9 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -48,7 +46,11 @@ import io.github.dwicki.tidytudo.api.ApiError
 import io.github.dwicki.tidytudo.ui.Labels
 import kotlinx.coroutines.flow.Flow
 
-/** Standard detail screen: collapsing large title, back arrow, snackbar for command errors. */
+/**
+ * Standard detail screen: medium title that collapses on scroll, back arrow, snackbar for command
+ * errors. Medium rather than large, so a pushed screen does not open with a header twice as tall
+ * as the home screen's.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScaffold(
@@ -65,7 +67,7 @@ fun DetailScaffold(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
+            MediumTopAppBar(
                 title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
@@ -90,19 +92,20 @@ fun ErrorSnackbarEffect(errors: Flow<ApiError>, host: SnackbarHostState) {
     }
 }
 
-/** A rounded surface grouping related content, with an optional title row. */
+/**
+ * A rounded surface grouping related content, with an optional title row. With [onClick] the whole
+ * card is the click target, and its ripple follows the rounded shape.
+ */
 @Composable
 fun SectionCard(
     modifier: Modifier = Modifier,
     title: String? = null,
+    onClick: (() -> Unit)? = null,
     trailing: @Composable () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        shape = MaterialTheme.shapes.large,
-    ) {
+    val colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    val body: @Composable ColumnScope.() -> Unit = {
         Column(Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
             if (title != null) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -114,9 +117,14 @@ fun SectionCard(
             content()
         }
     }
+    if (onClick != null) {
+        Card(onClick = onClick, modifier = modifier.fillMaxWidth(), colors = colors, shape = MaterialTheme.shapes.large, content = body)
+    } else {
+        Card(modifier = modifier.fillMaxWidth(), colors = colors, shape = MaterialTheme.shapes.large, content = body)
+    }
 }
 
-/** Navigation row used on hub screens: icon, title, optional supporting text and badge. */
+/** Navigation row used on hub screens: tonal icon, title, optional supporting text and badge, chevron. */
 @Composable
 fun NavigationRow(
     icon: ImageVector,
@@ -125,19 +133,19 @@ fun NavigationRow(
     badge: @Composable (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
-    ListItem(
-        modifier = Modifier.clickableRow(onClick),
-        leadingContent = { Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        headlineContent = { Text(title) },
-        supportingContent = supporting?.let { { Text(it) } },
-        trailingContent = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                badge?.invoke()
-                Spacer(Modifier.width(8.dp))
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
-            }
+    AppListItem(
+        title = title,
+        icon = icon,
+        supporting = supporting,
+        onClick = onClick,
+        trailing = {
+            badge?.invoke()
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         },
-        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     )
 }
 

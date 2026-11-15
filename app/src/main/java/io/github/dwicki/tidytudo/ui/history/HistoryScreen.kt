@@ -1,5 +1,6 @@
 package io.github.dwicki.tidytudo.ui.history
 
+import io.github.dwicki.tidytudo.ui.components.rememberMonitoringSwitch
 import io.github.dwicki.tidytudo.ui.components.areaText
 import io.github.dwicki.tidytudo.ui.components.durationText
 import android.content.Context
@@ -42,15 +43,16 @@ import io.github.dwicki.tidytudo.ui.components.DetailScaffold
 import io.github.dwicki.tidytudo.ui.components.LocalImage
 import io.github.dwicki.tidytudo.ui.components.MessageBox
 import io.github.dwicki.tidytudo.ui.components.SectionCard
-import io.github.dwicki.tidytudo.ui.components.clickableRow
 import io.github.dwicki.tidytudo.ui.robotViewModel
 
 /** Past cleaning runs, newest first (F-8.4). */
 @Composable
-fun HistoryScreen(robot: Robot, onBack: () -> Unit, onOpen: (String) -> Unit, onOpenAppSettings: () -> Unit) {
+fun HistoryScreen(robot: Robot, onBack: () -> Unit, onOpen: (String) -> Unit) {
     val viewModel = robotViewModel(robot) { container, current -> HistoryViewModel(container, current) }
     val sessions by viewModel.sessions.collectAsStateWithLifecycle()
     val monitoring by viewModel.monitoringEnabled.collectAsStateWithLifecycle()
+    val setMonitoring = rememberMonitoringSwitch()
+    val turnOnMonitoring = { setMonitoring(true) }
 
     DetailScaffold(title = stringResource(R.string.history_title), onBack = onBack) { padding ->
         if (sessions.isEmpty()) {
@@ -59,7 +61,7 @@ fun HistoryScreen(robot: Robot, onBack: () -> Unit, onOpen: (String) -> Unit, on
                 title = stringResource(R.string.history_empty),
                 text = stringResource(if (monitoring) R.string.history_empty_text else R.string.history_empty_text_monitoring_off),
                 actionLabel = if (monitoring) null else stringResource(R.string.history_enable_monitoring),
-                onAction = onOpenAppSettings,
+                onAction = turnOnMonitoring,
             )
             return@DetailScaffold
         }
@@ -68,7 +70,7 @@ fun HistoryScreen(robot: Robot, onBack: () -> Unit, onOpen: (String) -> Unit, on
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding(), bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (!monitoring) item { MonitoringHint(onOpenAppSettings) }
+            if (!monitoring) item { MonitoringHint(turnOnMonitoring) }
             items(sessions, key = { it.id }) { session ->
                 SessionCard(session, viewModel, onClick = { onOpen(session.id) })
             }
@@ -77,20 +79,23 @@ fun HistoryScreen(robot: Robot, onBack: () -> Unit, onOpen: (String) -> Unit, on
 }
 
 @Composable
-private fun MonitoringHint(onOpenAppSettings: () -> Unit) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+private fun MonitoringHint(onTurnOn: () -> Unit) {
+    Card(
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    ) {
         Row(
-            Modifier.clickableRow(onOpenAppSettings).padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+            Modifier.padding(start = 20.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(Icons.Outlined.Info, contentDescription = null)
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(16.dp))
             Text(
                 stringResource(R.string.history_monitoring_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f),
             )
-            TextButton(onClick = onOpenAppSettings) { Text(stringResource(R.string.history_enable_monitoring)) }
+            TextButton(onClick = onTurnOn) { Text(stringResource(R.string.history_enable_monitoring)) }
         }
     }
 }
@@ -98,7 +103,7 @@ private fun MonitoringHint(onOpenAppSettings: () -> Unit) {
 @Composable
 private fun SessionCard(session: CleaningSession, viewModel: HistoryViewModel, onClick: () -> Unit) {
     val context = LocalContext.current
-    SectionCard(modifier = Modifier.clickableRow(onClick), title = sessionTitle(context, session), trailing = { ResultChip(session.result) }) {
+    SectionCard(onClick = onClick, title = sessionTitle(context, session), trailing = { ResultChip(session.result) }) {
         Text(sessionSummary(session), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         val photos = session.obstacles.filter { it.hasImage }
         if (session.obstacles.isNotEmpty()) {
@@ -126,8 +131,8 @@ private fun SessionCard(session: CleaningSession, viewModel: HistoryViewModel, o
 fun ResultChip(result: CleaningSession.Result) {
     val colors = MaterialTheme.colorScheme
     val (label, container, content) = when (result) {
-        CleaningSession.Result.FINISHED -> Triple(R.string.history_result_finished, colors.tertiaryContainer, colors.onTertiaryContainer)
-        CleaningSession.Result.STOPPED -> Triple(R.string.history_result_stopped, colors.secondaryContainer, colors.onSecondaryContainer)
+        CleaningSession.Result.FINISHED -> Triple(R.string.history_result_finished, colors.secondaryContainer, colors.onSecondaryContainer)
+        CleaningSession.Result.STOPPED -> Triple(R.string.history_result_stopped, colors.surfaceContainerHighest, colors.onSurfaceVariant)
         CleaningSession.Result.ERROR -> Triple(R.string.history_result_error, colors.errorContainer, colors.onErrorContainer)
     }
     Surface(shape = MaterialTheme.shapes.small, color = container, contentColor = content) {

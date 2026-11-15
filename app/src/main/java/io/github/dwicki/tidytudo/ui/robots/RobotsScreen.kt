@@ -1,16 +1,18 @@
 package io.github.dwicki.tidytudo.ui.robots
 
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material.icons.outlined.MoreVert
+import io.github.dwicki.tidytudo.ui.components.TonalIcon
+import io.github.dwicki.tidytudo.ui.components.AppListItem
+import io.github.dwicki.tidytudo.ui.components.ListCard
 import io.github.dwicki.tidytudo.ui.components.aboveKeyboard
 import io.github.dwicki.tidytudo.ui.components.TextInputDialogProperties
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CheckCircle
@@ -21,11 +23,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,9 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,7 +40,6 @@ import io.github.dwicki.tidytudo.R
 import io.github.dwicki.tidytudo.data.Robot
 import io.github.dwicki.tidytudo.ui.appViewModel
 import io.github.dwicki.tidytudo.ui.components.DetailScaffold
-import io.github.dwicki.tidytudo.ui.components.clickableRow
 import io.github.dwicki.tidytudo.util.RobotAddress
 
 @Composable
@@ -70,14 +66,18 @@ fun RobotsScreen(onBack: () -> Unit, onAddRobot: () -> Unit) {
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding(), bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            items(robots, key = { it.id }) { robot ->
-                RobotRow(
-                    robot = robot,
-                    selected = robot.id == (selectedId ?: robots.firstOrNull()?.id),
-                    onSelect = { viewModel.select(robot) },
-                    onRename = { renaming = robot },
-                    onRemove = { removing = robot },
-                )
+            item {
+                ListCard {
+                    robots.forEach { robot ->
+                        RobotRow(
+                            robot = robot,
+                            active = robot.id == (selectedId ?: robots.firstOrNull()?.id),
+                            onSelect = { viewModel.select(robot) },
+                            onRename = { renaming = robot },
+                            onRemove = { removing = robot },
+                        )
+                    }
+                }
             }
         }
     }
@@ -93,26 +93,50 @@ fun RobotsScreen(onBack: () -> Unit, onAddRobot: () -> Unit) {
     }
 }
 
+/**
+ * One robot. Tapping opens its menu instead of switching robots on the spot, so a stray tap next to
+ * "Remove" does nothing surprising; the active robot is labelled as such.
+ */
 @Composable
-private fun RobotRow(robot: Robot, selected: Boolean, onSelect: () -> Unit, onRename: () -> Unit, onRemove: () -> Unit) {
-    ListItem(
-        modifier = Modifier.clip(MaterialTheme.shapes.large).clickableRow(onSelect),
-        colors = ListItemDefaults.colors(
-            containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
-        leadingContent = {
-            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer, modifier = Modifier.size(44.dp)) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(if (selected) Icons.Outlined.CheckCircle else Icons.Outlined.SmartToy, contentDescription = null)
-                }
-            }
+private fun RobotRow(robot: Robot, active: Boolean, onSelect: () -> Unit, onRename: () -> Unit, onRemove: () -> Unit) {
+    var menu by remember { mutableStateOf(false) }
+    val details = listOf(robot.displayModel, RobotAddress.host(robot.baseUrl)).filter { it.isNotBlank() }.joinToString(" · ")
+    AppListItem(
+        title = robot.displayName,
+        supporting = if (active) stringResource(R.string.robots_active, details) else details,
+        supportingColor = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        leading = {
+            TonalIcon(
+                Icons.Outlined.SmartToy,
+                container = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
+                content = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer,
+            )
         },
-        headlineContent = { Text(robot.displayName) },
-        supportingContent = { Text(listOf(robot.displayModel, RobotAddress.host(robot.baseUrl)).filter { it.isNotBlank() }.joinToString(" · ")) },
-        trailingContent = {
-            Row {
-                IconButton(onClick = onRename) { Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.robots_rename)) }
-                IconButton(onClick = onRemove) { Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.action_remove)) }
+        onClick = { menu = true },
+        trailing = {
+            Box {
+                IconButton(onClick = { menu = true }) {
+                    Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.action_more))
+                }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    if (!active) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.robots_use)) },
+                            leadingIcon = { Icon(Icons.Outlined.CheckCircle, contentDescription = null) },
+                            onClick = { menu = false; onSelect() },
+                        )
+                    }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.robots_rename)) },
+                        leadingIcon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
+                        onClick = { menu = false; onRename() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.action_remove), color = MaterialTheme.colorScheme.error) },
+                        leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                        onClick = { menu = false; onRemove() },
+                    )
+                }
             }
         },
     )

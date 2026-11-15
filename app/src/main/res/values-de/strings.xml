@@ -195,12 +195,12 @@
     <string name="hub_robot">Roboter</string>
     <string name="hub_app">App</string>
     <string name="hub_consumables_text">Bürsten, Filter und Sensoren</string>
-    <string name="hub_events_text">Meldungen des Roboters</string>
+    <string name="hub_events_text">Fehler und Wartungshinweise</string>
     <string name="hub_schedules_text">Automatische Reinigungszeiten</string>
     <string name="hub_settings_text">Ruhezeit, Ton und Verhalten</string>
     <string name="hub_info_text">Modell, Firmware und Statistik</string>
     <string name="hub_robots_text">Roboter hinzufügen, umbenennen oder entfernen</string>
-    <string name="hub_app_settings_text">Benachrichtigungen, Sprache und Datenschutz</string>
+    <string name="hub_app_settings_text">Benachrichtigungen, Farben, Sprache und Datenschutz</string>
 
     <string name="consumables_title">Verschleißteile</string>
     <string name="consumables_reset">Zurücksetzen</string>
@@ -267,10 +267,7 @@
     <string name="settings_title">Robotereinstellungen</string>
     <string name="settings_dnd_title">Ruhezeit</string>
     <string name="settings_dnd_text">Keine Sprachansagen und kein automatisches Fortsetzen in dieser Zeit.</string>
-    <string name="settings_dnd_from">Von %1$s</string>
-    <string name="settings_dnd_until">Bis %1$s</string>
     <string name="settings_sound_title">Ton</string>
-    <string name="settings_volume">Lautstärke %1$d %%</string>
     <string name="settings_test_sound">Testton abspielen</string>
     <string name="settings_voice_pack">Stimme: %1$s</string>
     <string name="settings_carpet_sensor_title">Wenn ein Teppich erkannt wird</string>
@@ -383,7 +380,7 @@
     <string name="history_empty">Noch keine Reinigungen aufgezeichnet</string>
     <string name="history_empty_text">Tidytudo speichert bei jeder Verbindung die letzte Reinigung des Roboters mit Karte und Fotos der Hindernisse. Alles bleibt auf diesem Telefon.</string>
     <string name="history_empty_text_monitoring_off">Valetudo behält nur die letzte Reinigung, deshalb speichert Tidytudo sie bei jeder Verbindung zum Roboter. Öffne die App nach Reinigungen oder schalte Meldungen im Hintergrund ein, damit keine Reinigung fehlt.</string>
-    <string name="history_monitoring_hint">Reinigt der Roboter zweimal, bevor die App verbunden ist, fehlt die frühere Reinigung.</string>
+    <string name="history_monitoring_hint">Schalte die Aufzeichnung im Hintergrund ein, damit keine Reinigung fehlt.</string>
     <string name="history_enable_monitoring">Einschalten</string>
     <string name="history_found_on">Gefunden am %1$s</string>
     <string name="history_result_finished">Fertig</string>
@@ -422,4 +419,13 @@
     <string name="map_unsaved_title">Änderungen speichern?</string>
     <string name="map_unsaved_text">Die geänderten Sperrbereiche und Wände sind noch nicht auf dem Roboter.</string>
     <string name="map_unsaved_discard">Verwerfen</string>
+    <string name="hub_app_settings_text_no_language">Benachrichtigungen, Farben und Datenschutz</string>
+    <string name="settings_dnd_from_label">Von</string>
+    <string name="settings_dnd_until_label">Bis</string>
+    <string name="settings_volume_label">Lautstärke</string>
+    <string name="robots_active">Aktiv · %1$s</string>
+    <string name="robots_use">Diesen Roboter verwenden</string>
+    <string name="action_more">Weitere Optionen</string>
+    <string name="events_done">Erledigt · %1$s</string>
+    <string name="robots_active_short">Aktiv</string>
 </resources>

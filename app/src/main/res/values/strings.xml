@@ -207,12 +207,12 @@
     <string name="hub_robot">Robot</string>
     <string name="hub_app">App</string>
     <string name="hub_consumables_text">Brushes, filters and sensors</string>
-    <string name="hub_events_text">Messages from the robot</string>
+    <string name="hub_events_text">Errors and maintenance notices</string>
     <string name="hub_schedules_text">Automatic cleaning times</string>
     <string name="hub_settings_text">Quiet hours, sound and behaviour</string>
     <string name="hub_info_text">Model, firmware and statistics</string>
     <string name="hub_robots_text">Add, rename or remove robots</string>
-    <string name="hub_app_settings_text">Notifications, language and privacy</string>
+    <string name="hub_app_settings_text">Notifications, colours, language and privacy</string>
 
     <!-- Consumables -->
     <string name="consumables_title">Consumables</string>
@@ -283,10 +283,7 @@
     <string name="settings_title">Robot settings</string>
     <string name="settings_dnd_title">Quiet hours</string>
     <string name="settings_dnd_text">No voice prompts and no automatic resume during this time.</string>
-    <string name="settings_dnd_from">From %1$s</string>
-    <string name="settings_dnd_until">Until %1$s</string>
     <string name="settings_sound_title">Sound</string>
-    <string name="settings_volume">Volume %1$d%%</string>
     <string name="settings_test_sound">Play test sound</string>
     <string name="settings_voice_pack">Voice: %1$s</string>
     <string name="settings_carpet_sensor_title">When a carpet is detected</string>
@@ -406,7 +403,7 @@
     <string name="history_empty">No cleanings recorded yet</string>
     <string name="history_empty_text">Whenever Tidytudo connects, it saves the robot\'s latest cleaning with its map and obstacle photos. Everything stays on this phone.</string>
     <string name="history_empty_text_monitoring_off">Valetudo keeps only the latest cleaning, so Tidytudo saves it whenever it connects to the robot. Open the app after cleanings, or turn on background alerts so no cleaning is missed.</string>
-    <string name="history_monitoring_hint">If the robot cleans twice before the app connects, the earlier cleaning is missed.</string>
+    <string name="history_monitoring_hint">Turn on background recording so no cleaning is missed.</string>
     <string name="history_enable_monitoring">Turn on</string>
     <string name="history_found_on">Found on %1$s</string>
     <string name="history_result_finished">Finished</string>
@@ -446,4 +443,13 @@
     <string name="map_unsaved_title">Save your changes?</string>
     <string name="map_unsaved_text">The no-go areas and walls you changed are not on the robot yet.</string>
     <string name="map_unsaved_discard">Discard</string>
+    <string name="hub_app_settings_text_no_language">Notifications, colours and privacy</string>
+    <string name="settings_dnd_from_label">From</string>
+    <string name="settings_dnd_until_label">Until</string>
+    <string name="settings_volume_label">Volume</string>
+    <string name="robots_active">In use · %1$s</string>
+    <string name="robots_use">Use this robot</string>
+    <string name="action_more">More options</string>
+    <string name="events_done">Done · %1$s</string>
+    <string name="robots_active_short">In use</string>
 </resources>

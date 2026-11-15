@@ -1,5 +1,13 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import io.github.dwicki.tidytudo.ui.components.ROW_HORIZONTAL_PADDING
+import io.github.dwicki.tidytudo.ui.components.SectionHeader
+import io.github.dwicki.tidytudo.ui.components.TonalIcon
+import io.github.dwicki.tidytudo.ui.components.AppListItem
 import io.github.dwicki.tidytudo.data.RoomSelection
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
@@ -86,19 +94,6 @@ import io.github.dwicki.tidytudo.api.model.RobotState
 import io.github.dwicki.tidytudo.data.CleaningPreset
 import io.github.dwicki.tidytudo.ui.Labels
 
-/** Inset of section titles that sit outside a card, so they line up with the card titles' optical edge. */
-private val SECTION_TITLE_INSET = 4.dp
-
-/** A section title above content that is not wrapped in a card (presets, cleaning settings). */
-@Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(start = SECTION_TITLE_INSET, bottom = 8.dp),
-    )
-}
-
 /** A card with a title row of fixed height, so every card's title sits at the same distance from its content. */
 @Composable
 private fun HomeCard(
@@ -139,14 +134,14 @@ fun PresetsRow(
 ) {
     if (presets.isEmpty()) return
     Column {
-        SectionTitle(stringResource(R.string.home_presets_title))
+        SectionHeader(stringResource(R.string.home_presets_title), Modifier.padding(bottom = 4.dp))
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             presets.forEach { preset ->
                 val summary = presetSummary(preset)
                 Surface(
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier
                         .height(48.dp)
                         .semantics { contentDescription = "${preset.name}, $summary" }
@@ -158,7 +153,13 @@ fun PresetsRow(
                         ),
                 ) {
                     Row(Modifier.padding(start = 16.dp, end = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                        // Mint marks automation (presets) and nothing else.
+                        Icon(
+                            Icons.Outlined.AutoAwesome,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.size(18.dp),
+                        )
                         Spacer(Modifier.width(8.dp))
                         Text(
                             if (busyAction == preset.id) stringResource(R.string.home_preset_starting) else preset.name,
@@ -265,11 +266,11 @@ fun RoomsCard(
         AnimatedVisibility(visible = selected > 0) {
             Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 IterationPicker(selection.iterations, maxIterations, onIterations)
-                AssistChip(
-                    onClick = onSavePreset,
-                    label = { Text(stringResource(R.string.home_save_preset)) },
-                    leadingIcon = { Icon(Icons.Outlined.BookmarkAdd, contentDescription = null, modifier = Modifier.size(18.dp)) },
-                )
+                FilledTonalButton(onClick = onSavePreset) {
+                    Icon(Icons.Outlined.BookmarkAdd, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                    Text(stringResource(R.string.home_save_preset))
+                }
             }
         }
     }
@@ -277,7 +278,8 @@ fun RoomsCard(
 
 /**
  * A filter chip that can also be long-pressed (to rename the room). Material's FilterChip has no
- * long-press, so this draws a filled chip itself: neutral fill when off, primary container when on.
+ * long-press, so this draws a filled chip itself: neutral fill when off; primary container, a
+ * primary border and a check mark when on, so selection does not depend on a hue difference.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -285,9 +287,10 @@ private fun RoomChip(name: String, selected: Boolean, onClick: () -> Unit, onLon
     val colors = MaterialTheme.colorScheme
     val longPressLabel = stringResource(R.string.rooms_rename_title)
     Surface(
-        shape = MaterialTheme.shapes.small,
+        shape = ROOM_CHIP_SHAPE,
         color = if (selected) colors.primaryContainer else colors.surfaceContainerHighest,
         contentColor = if (selected) colors.onPrimaryContainer else colors.onSurface,
+        border = if (selected) BorderStroke(1.5.dp, colors.primary) else null,
         modifier = Modifier
             .minimumInteractiveComponentSize()
             .height(40.dp)
@@ -308,6 +311,8 @@ private fun RoomChip(name: String, selected: Boolean, onClick: () -> Unit, onLon
     }
 }
 
+private val ROOM_CHIP_SHAPE = RoundedCornerShape(12.dp)
+
 /** Number of passes as a segmented control; hidden when the robot only supports one. Also used on the map. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -326,6 +331,11 @@ fun IterationPicker(iterations: Int, max: Int, onChange: (Int) -> Unit) {
                     selected = count == iterations,
                     onClick = { onChange(count) },
                     shape = SegmentedButtonDefaults.itemShape(index = count - 1, count = max),
+                    // Same colours as a selected room chip.
+                    colors = SegmentedButtonDefaults.colors(
+                        activeContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        activeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
                     label = { Text("×$count") },
                 )
             }
@@ -347,7 +357,7 @@ fun CleaningSettings(state: RobotState?, options: Map<String, List<String>>, ena
     val context = LocalContext.current
     val mode = state?.operationMode
     val settings = listOf(
-        Setting(Capabilities.OPERATION_MODE, R.string.home_mode_operation, Icons.Outlined.CleaningServices, mode),
+        Setting(Capabilities.OPERATION_MODE, R.string.home_mode_operation, Icons.Outlined.CleaningServices, mode, R.string.home_modes_title),
         Setting(Capabilities.FAN_SPEED, R.string.home_mode_fan, Icons.Outlined.Air, state?.fanSpeed),
         Setting(Capabilities.WATER_USAGE, R.string.home_mode_water, Icons.Outlined.WaterDrop, state?.waterUsage),
     ).filter { options[it.capability].orEmpty().isNotEmpty() }
@@ -364,7 +374,7 @@ fun CleaningSettings(state: RobotState?, options: Map<String, List<String>>, ena
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Column(Modifier.padding(top = 4.dp, bottom = 8.dp)) {
-            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = ROW_HORIZONTAL_PADDING), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.home_modes_title), style = MaterialTheme.typography.titleMedium)
             }
             settings.forEach { setting ->
@@ -382,13 +392,15 @@ fun CleaningSettings(state: RobotState?, options: Map<String, List<String>>, ena
     settings.firstOrNull { it.capability == open }?.let { setting ->
         ModalBottomSheet(onDismissRequest = { open = null }) {
             Text(
-                stringResource(setting.label),
+                stringResource(setting.sheetTitle),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
             )
             options[setting.capability].orEmpty().forEach { value ->
                 ListItem(
-                    modifier = Modifier.clickable(role = Role.RadioButton) { onSelect(setting.capability, value); open = null },
+                    modifier = Modifier
+                        .clickable(role = Role.RadioButton) { onSelect(setting.capability, value); open = null }
+                        .padding(horizontal = 8.dp),
                     headlineContent = { Text(Labels.preset(context, value)) },
                     leadingContent = { RadioButton(selected = value == setting.current, onClick = null) },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
@@ -399,40 +411,31 @@ fun CleaningSettings(state: RobotState?, options: Map<String, List<String>>, ena
     }
 }
 
-private data class Setting(val capability: String, val label: Int, val icon: ImageVector, val current: String?)
+private data class Setting(val capability: String, val label: Int, val icon: ImageVector, val current: String?, val sheetTitle: Int = label)
 
 /** One setting: icon, name, current value on the right, and an arrow that says it opens a choice. */
 @Composable
 private fun SettingRow(icon: ImageVector, label: String, value: String, enabled: Boolean, onClick: () -> Unit) {
     val colors = MaterialTheme.colorScheme
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 56.dp)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(start = 20.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Surface(shape = CircleShape, color = colors.secondaryContainer, modifier = Modifier.size(36.dp)) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(icon, contentDescription = null, tint = colors.onSecondaryContainer, modifier = Modifier.size(20.dp))
-            }
-        }
-        Spacer(Modifier.width(16.dp))
-        Text(label, style = MaterialTheme.typography.bodyLarge, maxLines = 1)
-        Spacer(Modifier.width(12.dp))
-        Text(
-            value,
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (enabled) colors.primary else colors.onSurfaceVariant,
-            // Two lines for long German values such as "Erst saugen, dann wischen" on narrow phones.
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(1f),
-        )
-        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = colors.onSurfaceVariant)
-    }
+    AppListItem(
+        title = label,
+        icon = icon,
+        enabled = enabled,
+        onClick = onClick,
+        trailing = {
+            Text(
+                value,
+                style = MaterialTheme.typography.bodyLarge,
+                color = colors.primary,
+                // Two lines for long German values such as "Erst saugen, dann wischen" on narrow phones.
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.End,
+                modifier = Modifier.widthIn(max = 200.dp),
+            )
+            Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = colors.onSurfaceVariant)
+        },
+    )
 }
 
 private const val MODE_MOP = "mop"
@@ -476,23 +479,14 @@ fun DockCard(state: RobotState?, capabilities: Set<String>, busyAction: String?,
                 .fillMaxWidth()
                 .heightIn(min = 72.dp)
                 .clickable(enabled = healthy, role = Role.Button) { expanded = !expanded }
-                .padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
+                .padding(start = ROW_HORIZONTAL_PADDING, end = 12.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Surface(
-                shape = CircleShape,
-                color = if (healthy) colors.secondaryContainer else colors.errorContainer,
-                modifier = Modifier.size(36.dp),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        if (healthy) Icons.Outlined.Check else Icons.Outlined.WarningAmber,
-                        contentDescription = null,
-                        tint = if (healthy) colors.onSecondaryContainer else colors.onErrorContainer,
-                        modifier = Modifier.size(20.dp),
-                    )
-                }
-            }
+            TonalIcon(
+                if (healthy) Icons.Outlined.Check else Icons.Outlined.WarningAmber,
+                container = if (healthy) colors.secondaryContainer else colors.errorContainer,
+                content = if (healthy) colors.onSecondaryContainer else colors.onErrorContainer,
+            )
             Spacer(Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.home_dock_title), style = MaterialTheme.typography.titleMedium)
@@ -585,8 +579,8 @@ fun AttentionCards(
         state?.status?.error?.let { error ->
             AttentionCard(
                 icon = Icons.Outlined.ErrorOutline,
-                container = colors.errorContainer,
-                content = colors.onErrorContainer,
+                iconContainer = colors.errorContainer,
+                iconContent = colors.onErrorContainer,
                 title = stringResource(Labels.errorSubsystem(error.subsystem)),
                 text = error.message.ifBlank { stringResource(R.string.home_error_no_message) },
             )
@@ -594,9 +588,8 @@ fun AttentionCards(
         if (pendingMapChange) {
             AttentionCard(
                 icon = Icons.Outlined.Map,
-                container = colors.surfaceContainerHigh,
-                content = colors.onSurface,
-                iconTint = colors.primary,
+                iconContainer = colors.primaryContainer,
+                iconContent = colors.onPrimaryContainer,
                 title = stringResource(R.string.event_pending_map_change),
                 text = stringResource(R.string.event_pending_map_change_text),
                 actions = listOf(
@@ -608,9 +601,8 @@ fun AttentionCards(
         events.filter { it.kind != RobotEvent.Kind.PENDING_MAP_CHANGE }.forEach { event ->
             AttentionCard(
                 icon = Icons.Outlined.WarningAmber,
-                container = colors.surfaceContainerHigh,
-                content = colors.onSurface,
-                iconTint = colors.primary,
+                iconContainer = colors.primaryContainer,
+                iconContent = colors.onPrimaryContainer,
                 title = stringResource(Labels.eventTitle(event.kind)),
                 text = Labels.eventDescription(context, event),
                 actions = event.interactions.map { interaction ->
@@ -621,26 +613,31 @@ fun AttentionCards(
     }
 }
 
+/** A notice in the same row geometry as the dock card: round icon, text, actions that may wrap. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AttentionCard(
     icon: ImageVector,
-    container: Color,
-    content: Color,
+    iconContainer: Color,
+    iconContent: Color,
     title: String,
     text: String,
-    iconTint: Color = content,
     actions: List<Pair<String, () -> Unit>> = emptyList(),
 ) {
-    Card(colors = CardDefaults.cardColors(containerColor = container, contentColor = content), shape = MaterialTheme.shapes.large) {
-        Row(Modifier.padding(start = 20.dp, end = 16.dp, top = 16.dp, bottom = if (actions.isEmpty()) 16.dp else 12.dp)) {
-            Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.padding(top = 2.dp))
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = MaterialTheme.shapes.large,
+    ) {
+        Row(Modifier.padding(start = ROW_HORIZONTAL_PADDING, end = 16.dp, top = 16.dp, bottom = if (actions.isEmpty()) 16.dp else 8.dp)) {
+            TonalIcon(icon, container = iconContainer, content = iconContent)
             Spacer(Modifier.width(16.dp))
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(title, style = MaterialTheme.typography.titleSmall)
-                Text(text, style = MaterialTheme.typography.bodyMedium)
+                Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (actions.isNotEmpty()) {
-                    Row(
-                        Modifier.fillMaxWidth().padding(top = 8.dp),
+                    // FlowRow: German labels ("Alte Karte behalten") do not fit side by side on narrow phones.
+                    FlowRow(
+                        Modifier.fillMaxWidth().padding(top = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                     ) {
                         // The first action is the expected answer; the others stay quiet.

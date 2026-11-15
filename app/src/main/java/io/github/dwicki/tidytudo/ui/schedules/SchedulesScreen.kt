@@ -1,5 +1,16 @@
 package io.github.dwicki.tidytudo.ui.schedules
 
+import java.time.temporal.WeekFields
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.draw.alpha
+import androidx.compose.material3.Surface
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,7 +53,6 @@ import io.github.dwicki.tidytudo.ui.components.ErrorBox
 import io.github.dwicki.tidytudo.ui.components.LoadingBox
 import io.github.dwicki.tidytudo.ui.components.MessageBox
 import io.github.dwicki.tidytudo.ui.components.SectionCard
-import io.github.dwicki.tidytudo.ui.components.clickableRow
 import io.github.dwicki.tidytudo.ui.robotViewModel
 import io.github.dwicki.tidytudo.util.TimeFormat
 import java.time.DayOfWeek
@@ -142,6 +152,10 @@ private fun TimerList(
     }
 }
 
+/**
+ * One schedule: time, the weekdays as seven small circles, what it does, and its switch. Run now
+ * and Delete sit in a menu; a schedule that is off is dimmed.
+ */
 @Composable
 private fun TimerCard(
     timer: ValetudoTimer,
@@ -153,26 +167,66 @@ private fun TimerCard(
 ) {
     val context = LocalContext.current
     val local = TimeFormat.toLocal(timer.dow, timer.hour, timer.minute)
-    SectionCard(modifier = Modifier.clickableRow(onEdit)) {
+    var menu by remember { mutableStateOf(false) }
+    SectionCard(onClick = onEdit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(TimeFormat.time(context, local.time), style = MaterialTheme.typography.displaySmall)
-                Text(daysText(local.days), style = MaterialTheme.typography.bodyMedium)
+            Column(Modifier.weight(1f).alpha(if (timer.enabled) 1f else DISABLED_ALPHA), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(TimeFormat.time(context, local.time), style = MaterialTheme.typography.headlineMedium)
+                WeekdayDots(local.days)
                 Text(
                     listOfNotNull(timer.label?.takeIf { it.isNotBlank() }, actionText(timer, data), preActionText(timer))
                         .joinToString(" · "),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Switch(checked = timer.enabled, onCheckedChange = onToggle)
-        }
-        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.align(Alignment.End)) {
-            IconButton(onClick = onRun) { Icon(Icons.Outlined.PlayArrow, contentDescription = stringResource(R.string.schedules_run_now)) }
-            IconButton(onClick = onDelete) { Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.action_delete)) }
+            Box {
+                IconButton(onClick = { menu = true }) {
+                    Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(R.string.action_more))
+                }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.schedules_run_now)) },
+                        leadingIcon = { Icon(Icons.Outlined.PlayArrow, contentDescription = null) },
+                        onClick = { menu = false; onRun() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
+                        leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
+                        onClick = { menu = false; onDelete() },
+                    )
+                }
+            }
         }
     }
 }
+
+/** The week in the locale's order, active days filled; TalkBack reads the days as text. */
+@Composable
+private fun WeekdayDots(days: Set<DayOfWeek>) {
+    val locale = Locale.getDefault()
+    val first = WeekFields.of(locale).firstDayOfWeek
+    val week = (0L until 7L).map { first.plus(it) }
+    val description = daysText(days)
+    Row(Modifier.clearAndSetSemantics { contentDescription = description }, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        week.forEach { day ->
+            val active = day in days
+            Surface(
+                shape = CircleShape,
+                color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+                contentColor = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(28.dp),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(day.getDisplayName(TextStyle.NARROW, locale), style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
+    }
+}
+
+private const val DISABLED_ALPHA = 0.55f
 
 @Composable
 private fun actionText(timer: ValetudoTimer, data: SchedulesData): String {

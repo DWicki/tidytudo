@@ -1,5 +1,10 @@
 package io.github.dwicki.tidytudo.ui
 
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.background
+import io.github.dwicki.tidytudo.ui.components.AppListItem
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,8 +40,6 @@ import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
@@ -61,7 +64,6 @@ import androidx.compose.ui.unit.dp
 import io.github.dwicki.tidytudo.R
 import io.github.dwicki.tidytudo.appContainer
 import io.github.dwicki.tidytudo.data.Robot
-import io.github.dwicki.tidytudo.ui.components.clickableRow
 import io.github.dwicki.tidytudo.ui.home.HomeScreen
 import io.github.dwicki.tidytudo.ui.home.RecordingOffer
 import io.github.dwicki.tidytudo.ui.map.MapScreen
@@ -160,42 +162,43 @@ private fun RobotPill(name: String, onClick: () -> Unit) {
 private fun RobotSwitcherSheet(robots: List<Robot>, selected: Robot, onDismiss: () -> Unit, onAddRobot: () -> Unit) {
     val store = LocalContext.current.appContainer.robotStore
     val scope = rememberCoroutineScope()
+    val activeLabel = stringResource(R.string.robots_active_short)
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.navigationBarsPadding().padding(bottom = 16.dp)) {
             Text(
                 stringResource(R.string.switch_robot),
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
             )
             robots.forEach { robot ->
-                ListItem(
-                    modifier = Modifier.clickableRow {
+                val active = robot.id == selected.id
+                // The active robot gets a tinted row, not only a check mark at the far edge.
+                AppListItem(
+                    title = robot.displayName,
+                    supporting = RobotAddress.host(robot.baseUrl),
+                    icon = Icons.Outlined.SmartToy,
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp)
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .background(if (active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+                        .semantics { if (active) stateDescription = activeLabel },
+                    onClick = {
                         scope.launch { store.select(robot.id) }
                         onDismiss()
                     },
-                    leadingContent = { TonalIcon(Icons.Outlined.SmartToy) },
-                    headlineContent = { Text(robot.displayName) },
-                    supportingContent = { Text(RobotAddress.host(robot.baseUrl), style = MaterialTheme.typography.bodySmall) },
-                    trailingContent = {
-                        if (robot.id == selected.id) Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    trailing = if (active) {
+                        { Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                    } else {
+                        null
                     },
-                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                 )
             }
-            ListItem(
-                modifier = Modifier.clickableRow(onAddRobot),
-                leadingContent = { TonalIcon(Icons.Outlined.Add) },
-                headlineContent = { Text(stringResource(R.string.robots_add)) },
-                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            AppListItem(
+                title = stringResource(R.string.robots_add),
+                icon = Icons.Outlined.Add,
+                modifier = Modifier.padding(horizontal = 8.dp),
+                onClick = onAddRobot,
             )
         }
-    }
-}
-
-
-@Composable
-private fun TonalIcon(icon: ImageVector) {
-    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.size(40.dp)) {
-        Box(contentAlignment = Alignment.Center) { Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp)) }
     }
 }

@@ -79,14 +79,14 @@ private fun DeviceCard(robot: Robot, details: RobotDetails) {
 private fun StatisticsCard(details: RobotDetails) {
     SectionCard(title = stringResource(R.string.info_statistics)) {
         if (details.currentStatistics.isNotEmpty()) {
-            Text(stringResource(R.string.info_statistics_last), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Text(stringResource(R.string.info_statistics_last), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             details.currentStatistics.forEach { StatisticRow(it) }
         }
         if (details.totalStatistics.isNotEmpty()) {
             Text(
                 stringResource(R.string.info_statistics_total),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp),
             )
             details.totalStatistics.forEach { StatisticRow(it) }

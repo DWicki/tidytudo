@@ -23,6 +23,13 @@ data class ConsumableItem(val consumable: Consumable, val maxValue: Int?) {
             maxValue != null && maxValue > 0 -> consumable.remaining.value.toFloat() / maxValue
             else -> null
         }?.coerceIn(0f, 1f)
+
+    /** Below 10 % left: shown in red here and counted in the robot tab's badge. */
+    val isLow: Boolean get() = fraction?.let { it < LOW_THRESHOLD } == true
+
+    companion object {
+        const val LOW_THRESHOLD = 0.1f
+    }
 }
 
 class ConsumablesViewModel(container: AppContainer, robot: Robot) : CommandViewModel() {

@@ -89,7 +89,6 @@ fun AppNavigation() {
                 robot = it,
                 onBack = navController::popBackStack,
                 onOpen = { id -> navController.navigate("history/$id") },
-                onOpenAppSettings = { navController.navigate(Routes.APP_SETTINGS) },
             )
         }
         composable(Routes.SESSION) { entry ->
