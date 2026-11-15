@@ -23,6 +23,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Installs next to a release build, so testing never needs the release app (and its data) removed.
+            applicationIdSuffix = ".debug"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

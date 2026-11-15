@@ -18,3 +18,7 @@ keystore.properties
 
 # Unredacted screenshot originals stay outside the repo
 /screenshots-raw/
+
+# JVM crash dumps
+hs_err_pid*.log
+replay_pid*.log
