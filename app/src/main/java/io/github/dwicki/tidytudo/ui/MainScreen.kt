@@ -1,5 +1,27 @@
 package io.github.dwicki.tidytudo.ui
 
+import io.github.dwicki.tidytudo.api.model.StatusValue
+import io.github.dwicki.tidytudo.api.LiveState
+import io.github.dwicki.tidytudo.api.Connection
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.material.icons.outlined.WarningAmber
+import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.PauseCircleOutline
+import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.outlined.Navigation
+import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material.icons.outlined.CleaningServices
+import androidx.compose.material.icons.outlined.BatteryFull
+import androidx.compose.material.icons.outlined.BatteryChargingFull
+import androidx.compose.material.icons.outlined.Battery5Bar
+import androidx.compose.material.icons.outlined.Battery4Bar
+import androidx.compose.material.icons.outlined.Battery3Bar
+import androidx.compose.material.icons.outlined.Battery2Bar
+import androidx.compose.material.icons.outlined.Battery1Bar
+import androidx.compose.material.icons.automirrored.outlined.Undo
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
@@ -86,6 +108,9 @@ fun MainScreen(robot: Robot, robots: List<Robot>, onOpen: (RobotDestination) -> 
     var mapOpensRooms by rememberSaveable { mutableStateOf(false) }
     var switcherOpen by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
+    // The robot's state in the bar on every tab, under its name.
+    val container = LocalContext.current.appContainer
+    val live by remember(robot.id) { container.session(robot).live }.collectAsStateWithLifecycle()
     // The bar takes a tint once content scrolls under it, so cut-off cards do not look like a layout bug.
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -93,7 +118,7 @@ fun MainScreen(robot: Robot, robots: List<Robot>, onOpen: (RobotDestination) -> 
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CenterAlignedTopAppBar(
-                title = { RobotPill(robot.displayName) { switcherOpen = true } },
+                title = { RobotPill(robot.displayName, live) { switcherOpen = true } },
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -138,24 +163,113 @@ fun MainScreen(robot: Robot, robots: List<Robot>, onOpen: (RobotDestination) -> 
     }
 }
 
-/** The robot's name as a pill that opens the switcher; it reads as a control, not as a page title. */
+/**
+ * The robot's name as a pill that opens the switcher, with its state underneath: an icon and word
+ * for what it is doing, and the battery. The pill tints while it works and turns red on an error,
+ * so the state reads at a glance on every tab.
+ */
 @Composable
-private fun RobotPill(name: String, onClick: () -> Unit) {
+private fun RobotPill(name: String, live: LiveState, onClick: () -> Unit) {
+    val context = LocalContext.current
+    val colors = MaterialTheme.colorScheme
+    val state = live.state
+    val status = state?.status?.value ?: StatusValue.UNKNOWN
+    val offline = live.connection is Connection.Offline
+    val known = state != null && !offline
+    val container by animateColorAsState(
+        when {
+            known && status == StatusValue.ERROR -> colors.errorContainer
+            known && status.isActive -> colors.primaryContainer
+            else -> colors.surfaceContainerHigh
+        },
+        label = "pill container",
+    )
+    val accent = when {
+        !known -> colors.onSurfaceVariant
+        status == StatusValue.ERROR -> colors.error
+        status == StatusValue.DOCKED -> colors.tertiary
+        status.isActive -> colors.primary
+        else -> colors.onSurfaceVariant
+    }
+    val statusText = when {
+        offline -> stringResource(R.string.status_offline)
+        state == null -> stringResource(R.string.status_connecting)
+        else -> context.getString(Labels.status(status))
+    }
+    val battery = state?.battery?.takeIf { !offline }
+    val batteryText = battery?.let { stringResource(R.string.battery_percent, it.level) }
+    val spoken = listOfNotNull(name, statusText, batteryText).joinToString(", ")
     val switchLabel = stringResource(R.string.switch_robot)
     Surface(
         onClick = onClick,
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        modifier = Modifier.heightIn(min = 40.dp),
+        color = container,
+        modifier = Modifier
+            .heightIn(min = 48.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = spoken
+                onClick(label = switchLabel) { onClick(); true }
+            },
     ) {
-        Row(Modifier.padding(start = 12.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Outlined.SmartToy, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(name, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Icon(Icons.Outlined.ArrowDropDown, contentDescription = switchLabel, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(Modifier.padding(start = 12.dp, end = 10.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                Icons.Outlined.SmartToy,
+                contentDescription = null,
+                tint = if (known && status == StatusValue.ERROR) colors.error else colors.primary,
+                modifier = Modifier.size(22.dp),
+            )
+            Spacer(Modifier.width(10.dp))
+            // Both lines centred on each other, so the pill reads as one label in the centred bar.
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false))
+                    Icon(Icons.Outlined.ArrowDropDown, contentDescription = null, tint = colors.onSurfaceVariant, modifier = Modifier.size(20.dp))
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(statusIcon(status, offline, state == null), contentDescription = null, tint = accent, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(statusText, style = MaterialTheme.typography.labelMedium, color = colors.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (battery != null && batteryText != null) {
+                        Text(" · ", style = MaterialTheme.typography.labelMedium, color = colors.outline)
+                        Icon(
+                            batteryIcon(battery.level, battery.isCharging),
+                            contentDescription = null,
+                            tint = if (battery.level < LOW_BATTERY && !battery.isCharging) colors.error else colors.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Text(batteryText, style = MaterialTheme.typography.labelMedium, color = colors.onSurfaceVariant, maxLines = 1)
+                    }
+                }
+            }
         }
     }
 }
+
+private fun statusIcon(status: StatusValue, offline: Boolean, unknown: Boolean): ImageVector = when {
+    offline -> Icons.Outlined.CloudOff
+    unknown -> Icons.Outlined.Sync
+    else -> when (status) {
+        StatusValue.DOCKED -> Icons.Outlined.Home
+        StatusValue.CLEANING -> Icons.Outlined.CleaningServices
+        StatusValue.RETURNING -> Icons.AutoMirrored.Outlined.Undo
+        StatusValue.PAUSED -> Icons.Outlined.Pause
+        StatusValue.ERROR -> Icons.Outlined.WarningAmber
+        StatusValue.MOVING, StatusValue.MANUAL_CONTROL -> Icons.Outlined.Navigation
+        StatusValue.IDLE, StatusValue.UNKNOWN -> Icons.Outlined.PauseCircleOutline
+    }
+}
+
+private fun batteryIcon(level: Int, charging: Boolean): ImageVector = when {
+    charging -> Icons.Outlined.BatteryChargingFull
+    level >= 90 -> Icons.Outlined.BatteryFull
+    level >= 70 -> Icons.Outlined.Battery5Bar
+    level >= 50 -> Icons.Outlined.Battery4Bar
+    level >= 30 -> Icons.Outlined.Battery3Bar
+    level >= 15 -> Icons.Outlined.Battery2Bar
+    else -> Icons.Outlined.Battery1Bar
+}
+
+private const val LOW_BATTERY = 20
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
