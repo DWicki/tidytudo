@@ -1,5 +1,9 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.Box
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -26,7 +30,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Air
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.BookmarkAdd
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.DeleteSweep
@@ -352,35 +355,25 @@ fun CleaningSettings(state: RobotState?, options: Map<String, List<String>>, ena
     if (settings.isEmpty()) return
     var open by rememberSaveable { mutableStateOf<String?>(null) }
 
-    Column {
-        SectionTitle(stringResource(R.string.home_modes_title))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    // A settings list rather than tiles: long values ("Vacuum and mop", "Saugen und wischen") get the
+    // whole width next to their label instead of wrapping inside a narrow tile.
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    ) {
+        Column(Modifier.padding(top = 4.dp, bottom = 8.dp)) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.home_modes_title), style = MaterialTheme.typography.titleMedium)
+            }
             settings.forEach { setting ->
-                Card(
-                    onClick = { open = setting.capability },
+                SettingRow(
+                    icon = setting.icon,
+                    label = stringResource(setting.label),
+                    value = setting.current?.let { Labels.preset(context, it) } ?: "–",
                     enabled = enabled,
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.medium,
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                ) {
-                    Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-                        Icon(setting.icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.height(10.dp))
-                        Text(
-                            stringResource(setting.label),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            setting.current?.let { Labels.preset(context, it) } ?: "–",
-                            style = MaterialTheme.typography.titleSmall,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
+                    onClick = { open = setting.capability },
+                )
             }
         }
     }
@@ -406,6 +399,40 @@ fun CleaningSettings(state: RobotState?, options: Map<String, List<String>>, ena
 }
 
 private data class Setting(val capability: String, val label: Int, val icon: ImageVector, val current: String?)
+
+/** One setting: icon, name, current value on the right, and an arrow that says it opens a choice. */
+@Composable
+private fun SettingRow(icon: ImageVector, label: String, value: String, enabled: Boolean, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .padding(start = 20.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Surface(shape = CircleShape, color = colors.secondaryContainer, modifier = Modifier.size(36.dp)) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(icon, contentDescription = null, tint = colors.onSecondaryContainer, modifier = Modifier.size(20.dp))
+            }
+        }
+        Spacer(Modifier.width(16.dp))
+        Text(label, style = MaterialTheme.typography.bodyLarge, maxLines = 1)
+        Spacer(Modifier.width(12.dp))
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (enabled) colors.primary else colors.onSurfaceVariant,
+            // Two lines for long German values such as "Erst saugen, dann wischen" on narrow phones.
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.End,
+            modifier = Modifier.weight(1f),
+        )
+        Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null, tint = colors.onSurfaceVariant)
+    }
+}
 
 private const val MODE_MOP = "mop"
 private const val MODE_VACUUM = "vacuum"
@@ -440,26 +467,50 @@ fun DockCard(state: RobotState?, capabilities: Set<String>, busyAction: String?,
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
-        ListItem(
-            modifier = Modifier.clickable(role = Role.Button) { expanded = !expanded },
-            leadingContent = {
-                Icon(
-                    if (problems.isEmpty()) Icons.Outlined.CheckCircle else Icons.Outlined.WarningAmber,
-                    contentDescription = null,
-                    tint = if (problems.isEmpty()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+        // Same layout as the setting rows above: round icon, text, control on the right.
+        val colors = MaterialTheme.colorScheme
+        val healthy = problems.isEmpty()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 72.dp)
+                .clickable(enabled = healthy, role = Role.Button) { expanded = !expanded }
+                .padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = if (healthy) colors.secondaryContainer else colors.errorContainer,
+                modifier = Modifier.size(36.dp),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        if (healthy) Icons.Outlined.Check else Icons.Outlined.WarningAmber,
+                        contentDescription = null,
+                        tint = if (healthy) colors.onSecondaryContainer else colors.onErrorContainer,
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.home_dock_title), style = MaterialTheme.typography.titleMedium)
+                Text(
+                    summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (healthy) colors.onSurfaceVariant else colors.error,
                 )
-            },
-            headlineContent = { Text(stringResource(R.string.home_dock_title), style = MaterialTheme.typography.titleMedium) },
-            supportingContent = {
-                Text(summary, color = if (problems.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error)
-            },
-            trailingContent = {
-                if (problems.isEmpty()) Icon(if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore, contentDescription = null)
-            },
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        )
+            }
+            if (healthy) {
+                Icon(
+                    if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                    contentDescription = null,
+                    tint = colors.onSurfaceVariant,
+                )
+            }
+        }
         AnimatedVisibility(visible = open) {
-            Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+            Column(Modifier.padding(start = 20.dp, end = 20.dp, bottom = 16.dp)) {
                 state?.attachments?.forEach { attachment ->
                     StatusRow(
                         label = Labels.attachment(context, attachment.type),

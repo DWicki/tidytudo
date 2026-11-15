@@ -7,7 +7,7 @@ Home screen redesign:
 - Status and controls in one card whose colour follows the state (docked, cleaning, paused, error), with a new robot drawing and one summary line: battery, what the robot or dock is doing, elapsed time and area
 - One main button: "Clean all", or "Clean n rooms" as soon as rooms are selected
 - Filled room chips with clearer selection; while rooms are selected the card says how many and offers to clear them; passes are a segmented control
-- Mode, suction and water as compact tiles that open a picker; settings that do nothing in the current mode are hidden
+- Mode, suction and water as a settings list (name left, value right) that opens a picker, so long values such as "Vacuum and mop" fit; settings that do nothing in the current mode are hidden
 - Presets as pills right below the status, hidden while there are none
 - The dock collapses to one line while all is well and opens by itself when something needs attention
 - The robot name in the top bar is a pill that opens the switcher; the bar tints when content scrolls under it
