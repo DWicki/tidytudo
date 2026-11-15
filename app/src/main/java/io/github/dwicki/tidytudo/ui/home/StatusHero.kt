@@ -1,5 +1,11 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -59,6 +65,8 @@ import io.github.dwicki.tidytudo.ui.Labels
 fun StatusHero(live: LiveState, modifier: Modifier = Modifier) {
     val state = live.state
     val offline = live.connection is Connection.Offline
+    // Shown while a state from an earlier connection waits to be confirmed; usually under a second.
+    val stale = live.connection == Connection.Connecting && state != null
     val colors = MaterialTheme.colorScheme
     val gradient = Brush.linearGradient(listOf(colors.primaryContainer, colors.tertiaryContainer))
     Box(
@@ -72,14 +80,15 @@ fun StatusHero(live: LiveState, modifier: Modifier = Modifier) {
             RobotAvatar(
                 status = state?.status?.value ?: StatusValue.UNKNOWN,
                 batteryLevel = state?.battery?.level,
-                offline = offline,
+                offline = offline || stale,
                 modifier = Modifier.size(104.dp),
             )
             Spacer(Modifier.width(20.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 StatusHeadline(state, offline)
                 BatteryLine(state)
-                if (offline) OfflineChip()
+                if (offline) OfflineChip(R.string.status_reconnecting)
+                if (stale) DelayedChip(R.string.status_updating)
             }
         }
     }
@@ -122,13 +131,26 @@ private fun BatteryLine(state: RobotState?) {
     }
 }
 
+/** Appears only if confirming takes long, so a normal reconnect does not flash a chip. */
 @Composable
-private fun OfflineChip() {
+private fun DelayedChip(@StringRes text: Int) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(STALE_CHIP_DELAY_MS)
+        visible = true
+    }
+    if (visible) OfflineChip(text)
+}
+
+private const val STALE_CHIP_DELAY_MS = 1_500L
+
+@Composable
+private fun OfflineChip(@StringRes text: Int) {
     Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.errorContainer) {
         Row(Modifier.padding(horizontal = 10.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Outlined.CloudOff, contentDescription = null, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.status_reconnecting), style = MaterialTheme.typography.labelMedium)
+            Text(stringResource(text), style = MaterialTheme.typography.labelMedium)
         }
     }
 }

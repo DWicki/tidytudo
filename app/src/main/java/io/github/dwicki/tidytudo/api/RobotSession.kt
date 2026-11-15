@@ -48,6 +48,9 @@ class RobotSession(val client: ValetudoClient, scope: CoroutineScope) {
 
     val live: StateFlow<LiveState> = channelFlow {
         // The loop writes to liveState (so refresh() can too); this child forwards every value.
+        // A state kept from an earlier connection may be hours old (the robot may have finished since):
+        // mark it as not current until the robot answers again.
+        liveState.update { if (it.connection == Connection.Online) it.copy(connection = Connection.Connecting) else it }
         launch { liveState.collect { send(it) } }
         runLiveLoop()
     }.stateIn(scope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), LiveState())
