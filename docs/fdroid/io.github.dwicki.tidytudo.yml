@@ -4,15 +4,15 @@ Categories:
   - Smart Home
 License: GPL-3.0-or-later
 AuthorName: DWicki
-WebSite: https://github.com/DWicki/Tidytudo
-SourceCode: https://github.com/DWicki/Tidytudo
-IssueTracker: https://github.com/DWicki/Tidytudo/issues
-Changelog: https://github.com/DWicki/Tidytudo/blob/HEAD/CHANGELOG.md
+WebSite: https://github.com/DWicki/tidytudo
+SourceCode: https://github.com/DWicki/tidytudo
+IssueTracker: https://github.com/DWicki/tidytudo/issues
+Changelog: https://github.com/DWicki/tidytudo/blob/HEAD/CHANGELOG.md
 
 AutoName: Tidytudo
 
 RepoType: git
-Repo: https://github.com/DWicki/Tidytudo.git
+Repo: https://github.com/DWicki/tidytudo.git
 
 Builds:
   - versionName: 1.0.0

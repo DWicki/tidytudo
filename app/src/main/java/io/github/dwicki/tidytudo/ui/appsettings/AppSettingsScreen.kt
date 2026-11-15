@@ -90,4 +90,4 @@ fun AppSettingsScreen(onBack: () -> Unit) {
     }
 }
 
-private const val SOURCE_URL = "https://github.com/DWicki/Tidytudo"
+private const val SOURCE_URL = "https://github.com/DWicki/tidytudo"

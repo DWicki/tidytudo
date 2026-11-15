@@ -72,7 +72,7 @@ The full list of requirements with their verification status is in
 
 ## Getting started
 
-1. Install Tidytudo (F-Droid, or the APK from the [releases](https://github.com/DWicki/Tidytudo/releases)).
+1. Install Tidytudo (F-Droid, or the APK from the [releases](https://github.com/DWicki/tidytudo/releases)).
 2. Open it. Robots on your network appear by themselves; tap yours.
    If none appears, tap **Scan the network** or type the address (for example `192.168.1.20`).
 3. If you set a password in Valetudo, the app asks for it. With HTTPS and a self-signed
