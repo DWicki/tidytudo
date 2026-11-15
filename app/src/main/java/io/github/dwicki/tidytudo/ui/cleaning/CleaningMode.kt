@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.outlined.TrendingFlat
 import androidx.compose.material.icons.outlined.Air
-import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -222,12 +221,13 @@ fun CleaningModeSheet(
             }
             if (state.mopSwitches.isNotEmpty()) {
                 val context = LocalContext.current
-                SectionTitle(stringResource(R.string.cleaning_mode_mop_title))
+                SectionTitle(stringResource(R.string.cleaning_mode_mop_title), if (state.usesWater) null else stringResource(R.string.cleaning_mode_mop_unused))
                 CleaningModeViewModel.MOP_SWITCHES.forEach { capability ->
                     val checked = state.mopSwitches[capability] ?: return@forEach
                     SwitchListItem(
                         title = Labels.switchName(context, capability),
-                        supporting = if (state.usesWater) Labels.switchDescription(context, capability) else stringResource(R.string.cleaning_mode_mop_unused),
+                        // The same text in every mode, so the sheet keeps its height while switching modes.
+                        supporting = Labels.switchDescription(context, capability),
                         checked = checked,
                         enabled = state.usesWater,
                         onCheckedChange = { onSwitch(capability, it) },
@@ -275,8 +275,8 @@ private fun ModeTile(label: String, icon: ImageVector, selected: Boolean, modifi
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            // A check as well as the colour, so the choice does not rely on colour alone.
-            Icon(if (selected) Icons.Outlined.CheckCircle else icon, contentDescription = null, modifier = Modifier.size(24.dp))
+            // The mode's icon stays when chosen; the filled colour marks the choice (and TalkBack says "selected").
+            Icon(icon, contentDescription = null, modifier = Modifier.size(24.dp))
             Text(label, style = MaterialTheme.typography.labelLarge, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
@@ -304,6 +304,8 @@ private fun PresetChoice(
                     onClick = { onSelect(value) },
                     enabled = enabled,
                     shape = SegmentedButtonDefaults.itemShape(index = index, count = values.size),
+                    // No check mark: it pushes the label aside while switching; the fill marks the choice.
+                    icon = {},
                     label = { Text(Labels.preset(context, value), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 )
             }
@@ -322,12 +324,27 @@ private fun PresetChoice(
     }
 }
 
+/**
+ * A section title with an optional reason on the same line ("Water · Not used when only vacuuming"),
+ * so the reason coming and going with the mode never changes the sheet's height (it used to jump).
+ */
 @Composable
 private fun SectionTitle(title: String, supporting: String? = null) {
-    Column(Modifier.padding(start = ROW_HORIZONTAL_PADDING, end = ROW_HORIZONTAL_PADDING, top = 16.dp, bottom = 8.dp)) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = ROW_HORIZONTAL_PADDING, end = ROW_HORIZONTAL_PADDING, top = 16.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         Text(title, style = MaterialTheme.typography.titleSmall)
         if (supporting != null) {
-            Text(supporting, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                supporting,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.End,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).padding(start = 12.dp),
+            )
         }
     }
 }
