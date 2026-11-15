@@ -434,4 +434,16 @@
     <string name="rooms_rename_action">Rename %1$s</string>
     <string name="rooms_edit">Edit rooms</string>
     <string name="rooms_empty">No rooms yet</string>
+    <string name="preset_rename_title">Rename preset</string>
+    <string name="preset_delete_text">The preset is removed from this phone. The robot is not affected.</string>
+    <string name="preset_action_run">Start now</string>
+    <string name="preset_action_rename">Rename</string>
+    <string name="preset_action_update">Replace with current selection</string>
+    <string name="preset_action_update_text">Uses the rooms selected now and the current cleaning mode</string>
+    <string name="stop_confirm_title">Stop cleaning?</string>
+    <string name="stop_confirm_text">The robot ends this job and stays where it is. It cannot be resumed; to send it back, tap Dock.</string>
+    <string name="event_reset_title">Reset the counter?</string>
+    <string name="map_unsaved_title">Save your changes?</string>
+    <string name="map_unsaved_text">The no-go areas and walls you changed are not on the robot yet.</string>
+    <string name="map_unsaved_discard">Discard</string>
 </resources>

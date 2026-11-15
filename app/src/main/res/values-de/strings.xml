@@ -410,4 +410,16 @@
     <string name="rooms_rename_action">%1$s umbenennen</string>
     <string name="rooms_edit">Räume bearbeiten</string>
     <string name="rooms_empty">Noch keine Räume</string>
+    <string name="preset_rename_title">Vorlage umbenennen</string>
+    <string name="preset_delete_text">Die Vorlage wird von diesem Handy entfernt. Der Roboter ist nicht betroffen.</string>
+    <string name="preset_action_run">Jetzt starten</string>
+    <string name="preset_action_rename">Umbenennen</string>
+    <string name="preset_action_update">Mit aktueller Auswahl ersetzen</string>
+    <string name="preset_action_update_text">Übernimmt die jetzt gewählten Räume und den aktuellen Reinigungsmodus</string>
+    <string name="stop_confirm_title">Reinigung beenden?</string>
+    <string name="stop_confirm_text">Der Roboter beendet den Auftrag und bleibt stehen. Er lässt sich nicht fortsetzen; zurück zur Station geht es mit „Zur Station“.</string>
+    <string name="event_reset_title">Zähler zurücksetzen?</string>
+    <string name="map_unsaved_title">Änderungen speichern?</string>
+    <string name="map_unsaved_text">Die geänderten Sperrbereiche und Wände sind noch nicht auf dem Roboter.</string>
+    <string name="map_unsaved_discard">Verwerfen</string>
 </resources>

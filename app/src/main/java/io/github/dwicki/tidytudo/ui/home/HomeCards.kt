@@ -1,5 +1,6 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import io.github.dwicki.tidytudo.data.RoomSelection
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.ui.text.style.TextAlign

@@ -81,6 +81,7 @@ private enum class Tab(@StringRes val label: Int, val icon: ImageVector, val sel
 @Composable
 fun MainScreen(robot: Robot, robots: List<Robot>, onOpen: (RobotDestination) -> Unit, onAddRobot: () -> Unit) {
     var tab by rememberSaveable { mutableStateOf(Tab.HOME) }
+    var mapOpensRooms by rememberSaveable { mutableStateOf(false) }
     var switcherOpen by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     // The bar takes a tint once content scrolls under it, so cut-off cards do not look like a layout bug.
@@ -114,10 +115,10 @@ fun MainScreen(robot: Robot, robots: List<Robot>, onOpen: (RobotDestination) -> 
                     robot,
                     padding,
                     snackbar,
-                    onOpenMap = { tab = Tab.MAP },
+                    onOpenMap = { mapOpensRooms = true; tab = Tab.MAP },
                     onOpenRooms = { onOpen(RobotDestination.ROOMS) },
                 )
-                Tab.MAP -> MapScreen(robot, padding, snackbar)
+                Tab.MAP -> MapScreen(robot, padding, snackbar, openRooms = mapOpensRooms, onOpenRoomsHandled = { mapOpensRooms = false })
                 Tab.ROBOT -> RobotHubScreen(robot, padding, onOpen)
             }
         }

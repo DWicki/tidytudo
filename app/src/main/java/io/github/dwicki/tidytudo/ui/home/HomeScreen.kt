@@ -1,5 +1,8 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import io.github.dwicki.tidytudo.data.RoomSelection
+import io.github.dwicki.tidytudo.api.model.RobotEvent
+import androidx.activity.compose.BackHandler
 import io.github.dwicki.tidytudo.ui.components.aboveKeyboard
 import io.github.dwicki.tidytudo.ui.components.TextInputDialogProperties
 import androidx.compose.ui.platform.LocalContext
@@ -53,8 +56,15 @@ fun HomeScreen(
     val busy by viewModel.busy.collectAsStateWithLifecycle()
     val presets by viewModel.presets.collectAsStateWithLifecycle()
     var presetDialog by rememberSaveable { mutableStateOf(false) }
+    var presetMenu by rememberSaveable { mutableStateOf<String?>(null) }
+    var presetToRename by rememberSaveable { mutableStateOf<String?>(null) }
     var presetToDelete by rememberSaveable { mutableStateOf<String?>(null) }
     var roomToRename by rememberSaveable { mutableStateOf<String?>(null) }
+    var confirmStop by rememberSaveable { mutableStateOf(false) }
+    var eventToReset by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Back first undoes a room selection instead of leaving the app.
+    BackHandler(enabled = selection.ids.isNotEmpty()) { viewModel.clearSelection() }
 
     val startJob = rememberJobStarter()
     ErrorSnackbarEffect(viewModel.errors, snackbar)
@@ -80,7 +90,12 @@ fun HomeScreen(
         onOpenRooms = onOpenRooms,
         onRenameRoom = { roomToRename = it.id },
         onNewPreset = { presetDialog = true },
-        onDeletePreset = { presetToDelete = it.id },
+        onPresetMenu = { presetMenu = it.id },
+        onStop = { confirmStop = true },
+        onInteract = { event, interaction ->
+            // Resetting a counter cannot be undone, so it asks first, as on the Consumables screen.
+            if (interaction == RobotEvent.INTERACTION_RESET) eventToReset = event.id else viewModel.interact(event, interaction)
+        },
     )
     extras.segments.firstOrNull { it.id == roomToRename }?.let { room ->
         RenameRoomDialog(
@@ -89,13 +104,27 @@ fun HomeScreen(
             onDismiss = { roomToRename = null },
         )
     }
-    PresetDialogs(
+    HomeDialogs(
         viewModel = viewModel,
         presets = presets,
-        showNameDialog = presetDialog,
         roomCount = selection.ids.size,
+        showNewPreset = presetDialog,
+        presetMenu = presetMenu,
+        presetToRename = presetToRename,
         presetToDelete = presetToDelete,
-        onClose = { presetDialog = false; presetToDelete = null },
+        confirmStop = confirmStop,
+        eventToReset = extras.openEvents.firstOrNull { it.id == eventToReset },
+        onRunPreset = { preset -> presetMenu = null; startJob { viewModel.runPreset(preset) } },
+        onRenamePreset = { presetMenu = null; presetToRename = it.id },
+        onDeletePreset = { presetMenu = null; presetToDelete = it.id },
+        onClose = {
+            presetDialog = false
+            presetMenu = null
+            presetToRename = null
+            presetToDelete = null
+            confirmStop = false
+            eventToReset = null
+        },
     )
 }
 
@@ -114,7 +143,9 @@ private fun HomeContent(
     onOpenRooms: () -> Unit,
     onRenameRoom: (MapSegment) -> Unit,
     onNewPreset: () -> Unit,
-    onDeletePreset: (CleaningPreset) -> Unit,
+    onPresetMenu: (CleaningPreset) -> Unit,
+    onStop: () -> Unit,
+    onInteract: (RobotEvent, String) -> Unit,
 ) {
     val online = live.connection == Connection.Online
     val capabilities = live.capabilities
@@ -139,14 +170,14 @@ private fun HomeContent(
                 selectedRooms = selection.ids.size,
                 onToggle = { startJob(viewModel::toggle) },
                 onCleanRooms = { startJob(viewModel::cleanSelectedRooms) },
-                onStop = viewModel::stop,
+                onStop = onStop,
                 onDock = viewModel::dock,
                 onLocate = viewModel::locate,
             )
         }
         if (hasAttention(live.state, extras.openEvents, extras.pendingMapChange)) {
             item {
-                AttentionCards(live.state, extras.openEvents, extras.pendingMapChange, viewModel::interact, viewModel::answerMapChange)
+                AttentionCards(live.state, extras.openEvents, extras.pendingMapChange, onInteract, viewModel::answerMapChange)
             }
         }
         item {
@@ -155,7 +186,7 @@ private fun HomeContent(
                 busyAction = busy,
                 enabled = online,
                 onRun = { preset -> startJob { viewModel.runPreset(preset) } },
-                onLongPress = onDeletePreset,
+                onLongPress = onPresetMenu,
                 onAdd = onNewPreset,
             )
         }
@@ -181,62 +212,67 @@ private fun HomeContent(
 }
 
 @Composable
-private fun PresetDialogs(
+private fun HomeDialogs(
     viewModel: HomeViewModel,
     presets: List<CleaningPreset>,
-    showNameDialog: Boolean,
     roomCount: Int,
+    showNewPreset: Boolean,
+    presetMenu: String?,
+    presetToRename: String?,
     presetToDelete: String?,
+    confirmStop: Boolean,
+    eventToReset: RobotEvent?,
+    onRunPreset: (CleaningPreset) -> Unit,
+    onRenamePreset: (CleaningPreset) -> Unit,
+    onDeletePreset: (CleaningPreset) -> Unit,
     onClose: () -> Unit,
 ) {
-    if (showNameDialog) {
-        PresetNameDialog(roomCount = roomCount, onSave = { name -> viewModel.savePreset(name); onClose() }, onDismiss = onClose)
+    if (showNewPreset) {
+        PresetNameDialog(roomCount, initialName = null, onSave = { name -> viewModel.savePreset(name); onClose() }, onDismiss = onClose)
+    }
+    presets.firstOrNull { it.id == presetMenu }?.let { preset ->
+        PresetActionsSheet(
+            preset = preset,
+            onRun = { onRunPreset(preset) },
+            onRename = { onRenamePreset(preset) },
+            onUpdate = { viewModel.updatePreset(preset); onClose() },
+            onDelete = { onDeletePreset(preset) },
+            onDismiss = onClose,
+        )
+    }
+    presets.firstOrNull { it.id == presetToRename }?.let { preset ->
+        PresetNameDialog(
+            roomCount,
+            initialName = preset.name,
+            onSave = { name -> viewModel.renamePreset(preset, name); onClose() },
+            onDismiss = onClose,
+        )
     }
     presets.firstOrNull { it.id == presetToDelete }?.let { preset ->
-        DeletePresetDialog(preset = preset, onDelete = { viewModel.deletePreset(preset); onClose() }, onDismiss = onClose)
+        ConfirmDialog(
+            title = stringResource(R.string.preset_delete_title, preset.name),
+            text = stringResource(R.string.preset_delete_text),
+            confirm = stringResource(R.string.action_delete),
+            onConfirm = { viewModel.deletePreset(preset); onClose() },
+            onDismiss = onClose,
+        )
+    }
+    if (confirmStop) {
+        ConfirmDialog(
+            title = stringResource(R.string.stop_confirm_title),
+            text = stringResource(R.string.stop_confirm_text),
+            confirm = stringResource(R.string.action_stop),
+            onConfirm = { viewModel.stop(); onClose() },
+            onDismiss = onClose,
+        )
+    }
+    eventToReset?.let { event ->
+        ConfirmDialog(
+            title = stringResource(R.string.event_reset_title),
+            text = stringResource(R.string.consumables_reset_text),
+            confirm = stringResource(R.string.consumables_reset),
+            onConfirm = { viewModel.interact(event, RobotEvent.INTERACTION_RESET); onClose() },
+            onDismiss = onClose,
+        )
     }
 }
-
-@Composable
-private fun PresetNameDialog(roomCount: Int, onSave: (String) -> Unit, onDismiss: () -> Unit) {
-    var name by rememberSaveable { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        properties = TextInputDialogProperties,
-        modifier = Modifier.aboveKeyboard(),
-        title = { Text(stringResource(R.string.preset_dialog_title)) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    if (roomCount == 0) {
-                        stringResource(R.string.preset_dialog_text_everything)
-                    } else {
-                        stringResource(R.string.preset_dialog_text_rooms)
-                    },
-                )
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it.take(MAX_PRESET_NAME) },
-                    singleLine = true,
-                    label = { Text(stringResource(R.string.preset_dialog_name)) },
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = { onSave(name) }, enabled = name.isNotBlank()) { Text(stringResource(R.string.action_save)) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
-}
-
-@Composable
-private fun DeletePresetDialog(preset: CleaningPreset, onDelete: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.preset_delete_title, preset.name)) },
-        confirmButton = { TextButton(onClick = onDelete) { Text(stringResource(R.string.action_delete)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
-}
-
-private const val MAX_PRESET_NAME = 30

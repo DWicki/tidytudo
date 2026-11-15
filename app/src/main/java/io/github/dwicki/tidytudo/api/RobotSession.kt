@@ -1,5 +1,6 @@
 package io.github.dwicki.tidytudo.api
 
+import io.github.dwicki.tidytudo.data.RoomSelection
 import io.github.dwicki.tidytudo.api.model.RobotState
 import io.github.dwicki.tidytudo.api.model.StateParser
 import io.github.dwicki.tidytudo.map.MapParser
@@ -45,6 +46,9 @@ data class LiveState(
 class RobotSession(val client: ValetudoClient, scope: CoroutineScope) {
 
     private val liveState = MutableStateFlow(LiveState())
+
+    /** Rooms picked for the next cleaning, shared by the home screen and the map. */
+    val roomSelection = MutableStateFlow(RoomSelection())
 
     val live: StateFlow<LiveState> = channelFlow {
         // The loop writes to liveState (so refresh() can too); this child forwards every value.

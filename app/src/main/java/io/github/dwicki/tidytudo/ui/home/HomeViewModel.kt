@@ -1,5 +1,6 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import io.github.dwicki.tidytudo.data.RoomSelection
 import io.github.dwicki.tidytudo.api.Connection
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.map
@@ -48,7 +49,6 @@ data class HomeExtras(
 /** Time and area of the running job, from `CurrentStatisticsCapability`. */
 data class JobProgress(val seconds: Long?, val areaCm2: Long?)
 
-data class RoomSelection(val ids: List<String> = emptyList(), val iterations: Int = 1)
 
 class HomeViewModel(private val container: AppContainer, private val robot: Robot) : CommandViewModel() {
 
@@ -58,7 +58,7 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
     private val extrasState = MutableStateFlow(HomeExtras())
     val extras: StateFlow<HomeExtras> = extrasState.asStateFlow()
 
-    private val selectionState = MutableStateFlow(RoomSelection())
+    private val selectionState = session.roomSelection
     val selection: StateFlow<RoomSelection> = selectionState.asStateFlow()
 
     /** Name of the action whose request is in flight, to show a spinner on exactly that button. */
@@ -144,14 +144,12 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
 
     fun toggleRoom(id: String) {
         roomsHintDone()
-        selectionState.update { current ->
-            current.copy(ids = if (id in current.ids) current.ids - id else current.ids + id)
-        }
+        selectionState.update { it.toggle(id) }
     }
 
     fun setIterations(iterations: Int) = selectionState.update { it.copy(iterations = iterations) }
 
-    fun clearSelection() = selectionState.update { RoomSelection(iterations = it.iterations) }
+    fun clearSelection() = selectionState.update { it.cleared() }
 
     fun cleanSelectedRooms() {
         val selection = selectionState.value
@@ -182,13 +180,38 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
         }
     }
 
+    fun renamePreset(preset: CleaningPreset, name: String) = updateStoredPreset(preset.id) { it.copy(name = name.trim()) }
+
+    /** Overwrites a preset with the rooms selected now (or full cleanup if none) and the current modes. */
+    fun updatePreset(preset: CleaningPreset) {
+        val state = live.value.state
+        val selection = selectionState.value
+        updateStoredPreset(preset.id) {
+            it.copy(
+                segmentIds = selection.ids,
+                iterations = selection.iterations,
+                fanSpeed = state?.fanSpeed,
+                waterUsage = state?.waterUsage,
+                operationMode = state?.operationMode,
+            )
+        }
+        clearSelection()
+    }
+
+    private fun updateStoredPreset(id: String, change: (CleaningPreset) -> CleaningPreset) {
+        viewModelScope.launch {
+            container.robotStore.update(robot.id) { stored ->
+                stored.copy(presets = stored.presets.map { if (it.id == id) change(it) else it })
+            }
+        }
+    }
+
     fun deletePreset(preset: CleaningPreset) {
         viewModelScope.launch {
             container.robotStore.update(robot.id) { stored -> stored.copy(presets = stored.presets.filterNot { it.id == preset.id }) }
         }
     }
 
-    /** Renames a room; the room chips reload so the new name shows at once. */
     /**
      * Renames a room. The robot applies the name a moment after confirming, so reloading at once
      * would bring back the old name; the chip takes the new name directly instead.

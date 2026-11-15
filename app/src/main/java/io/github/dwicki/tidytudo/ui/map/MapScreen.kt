@@ -1,5 +1,8 @@
 package io.github.dwicki.tidytudo.ui.map
 
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,12 +48,42 @@ import kotlinx.coroutines.delay
 
 /** Live map with modes for rooms, zones, go-to and no-go editing; each mode only if supported. */
 @Composable
-fun MapScreen(robot: Robot, contentPadding: PaddingValues, snackbar: SnackbarHostState) {
+fun MapScreen(
+    robot: Robot,
+    contentPadding: PaddingValues,
+    snackbar: SnackbarHostState,
+    openRooms: Boolean = false,
+    onOpenRoomsHandled: () -> Unit = {},
+) {
     val viewModel = robotViewModel(robot) { container, current -> MapViewModel(container, current) }
     val map by viewModel.map.collectAsStateWithLifecycle()
     val live by viewModel.live.collectAsStateWithLifecycle()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     ErrorSnackbarEffect(viewModel.errors, snackbar)
+
+    // Coming from the room card on the home screen: show the rooms (and the shared selection) at once.
+    LaunchedEffect(openRooms, live.capabilities) {
+        if (openRooms && MapMode.ROOMS in viewModel.availableModes(live.capabilities)) {
+            viewModel.setMode(MapMode.ROOMS)
+            onOpenRoomsHandled()
+        }
+    }
+    // Back leaves an editing mode first, instead of leaving the app.
+    BackHandler(enabled = state.mode != MapMode.VIEW && state.pendingMode == null) { viewModel.setMode(MapMode.VIEW) }
+    if (state.pendingMode != null) {
+        AlertDialog(
+            onDismissRequest = viewModel::keepEditing,
+            title = { Text(stringResource(R.string.map_unsaved_title)) },
+            text = { Text(stringResource(R.string.map_unsaved_text)) },
+            confirmButton = { TextButton(onClick = viewModel::saveAndLeave) { Text(stringResource(R.string.action_save)) } },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = viewModel::discardAndLeave) { Text(stringResource(R.string.map_unsaved_discard)) }
+                    TextButton(onClick = viewModel::keepEditing) { Text(stringResource(R.string.action_cancel)) }
+                }
+            },
+        )
+    }
 
     val currentMap = map
     when {

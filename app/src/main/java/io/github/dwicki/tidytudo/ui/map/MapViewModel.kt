@@ -1,5 +1,8 @@
 package io.github.dwicki.tidytudo.ui.map
 
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.combine
 import androidx.lifecycle.viewModelScope
 import io.github.dwicki.tidytudo.AppContainer
 import io.github.dwicki.tidytudo.api.ApiResult
@@ -19,7 +22,6 @@ import io.github.dwicki.tidytudo.map.RobotMap
 import io.github.dwicki.tidytudo.ui.CommandViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -38,6 +40,8 @@ data class MapUiState(
     val supportedRestrictionTypes: List<String> = listOf("regular"),
     val sending: Boolean = false,
     val canRename: Boolean = false,
+    /** Set while asking whether to save or discard unsaved restrictions before switching to this mode. */
+    val pendingMode: MapMode? = null,
 )
 
 /** Map interactions (F-3, F-4.1 – F-4.4): selection and drawing state, plus the commands that use them. */
@@ -48,7 +52,15 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
     val live: StateFlow<LiveState> = session.live
 
     private val state = MutableStateFlow(MapUiState())
-    val uiState: StateFlow<MapUiState> = state.asStateFlow()
+    private val selection = session.roomSelection
+
+    /** Room selection and its passes come from the session, so the home screen and the map agree. */
+    val uiState: StateFlow<MapUiState> = combine(state, selection) { current, rooms ->
+        current.copy(
+            selectedSegments = rooms.ids,
+            iterations = if (current.mode == MapMode.ROOMS) rooms.iterations else current.iterations,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, MapUiState())
 
     private var nextShapeId = 1
 
@@ -61,6 +73,32 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
     }
 
     fun setMode(mode: MapMode) {
+        val current = state.value
+        if (current.mode == MapMode.RESTRICTIONS && current.restrictionsDirty && mode != MapMode.RESTRICTIONS) {
+            state.update { it.copy(pendingMode = mode) }
+            return
+        }
+        applyMode(mode)
+    }
+
+    /** Answers to the "unsaved changes" question raised by [setMode]. */
+    fun keepEditing() = state.update { it.copy(pendingMode = null) }
+
+    fun saveAndLeave() {
+        val next = state.value.pendingMode ?: return
+        state.update { it.copy(pendingMode = null) }
+        saveRestrictions()
+        applyMode(next)
+    }
+
+    fun discardAndLeave() {
+        val next = state.value.pendingMode ?: return
+        // Not dirty any more, so entering the mode again reloads what the robot has.
+        state.update { it.copy(pendingMode = null, restrictionsDirty = false) }
+        applyMode(next)
+    }
+
+    private fun applyMode(mode: MapMode) {
         state.update { it.copy(mode = mode) }
         when (mode) {
             MapMode.ROOMS -> {
@@ -81,12 +119,13 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
         }
     }
 
-    private fun toggleSegment(id: String) = state.update { current ->
-        val selected = if (id in current.selectedSegments) current.selectedSegments - id else current.selectedSegments + id
-        current.copy(selectedSegments = selected)
-    }
+    private fun toggleSegment(id: String) = selection.update { it.toggle(id) }
 
-    fun setIterations(count: Int) = state.update { it.copy(iterations = count) }
+    fun clearRooms() = selection.update { it.cleared() }
+
+    fun setIterations(count: Int) {
+        if (state.value.mode == MapMode.ROOMS) selection.update { it.copy(iterations = count) } else state.update { it.copy(iterations = count) }
+    }
 
     /** Adds a 1 m × 1 m shape at [center] (the visible map centre), where the user then drags it. */
     fun addShape(kind: EditableShape.Kind, center: CmPoint) {
@@ -127,16 +166,15 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
     }
 
     fun cleanSelectedRooms() {
-        val current = state.value
-        if (current.selectedSegments.isEmpty()) return
-        send(clear = { it.copy(selectedSegments = emptyList()) }) {
-            session.client.cleanSegments(current.selectedSegments, current.iterations, current.segmentProperties.customOrderSupport)
-        }
+        val rooms = selection.value
+        if (rooms.ids.isEmpty()) return
+        val customOrder = state.value.segmentProperties.customOrderSupport
+        send(clear = { it }, onSent = ::clearRooms) { session.client.cleanSegments(rooms.ids, rooms.iterations, customOrder) }
     }
 
     /** Renames the one selected room; the next map update shows the new name. */
     fun renameSelectedRoom(name: String) {
-        val id = state.value.selectedSegments.singleOrNull() ?: return
+        val id = selection.value.ids.singleOrNull() ?: return
         send(startsJob = false, clear = { it }) { session.client.renameSegment(id, name.trim()) }
     }
 
@@ -169,6 +207,7 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
     private fun send(
         startsJob: Boolean = true,
         clear: (MapUiState) -> MapUiState,
+        onSent: () -> Unit = {},
         block: suspend () -> ApiResult<Unit>,
     ) {
         state.update { it.copy(sending = true) }
@@ -176,6 +215,7 @@ class MapViewModel(private val container: AppContainer, private val robot: Robot
             block = { block().also { state.update { it.copy(sending = false) } } },
             onSuccess = {
                 state.update(clear)
+                onSent()
                 if (startsJob) container.followJob(robot)
             },
         )
