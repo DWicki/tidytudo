@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+Whole app:
+
+- Every screen uses the home screen's language: round tonal icons, rows on one keyline, list cards, one style for section headings, medium title bars
+- Robot tab: badges for open messages and worn parts
+- Robot settings: quiet hours as a switch with two time tiles, volume with its value, voice language by name, carpet choice as a segmented control
+- Consumables: icon per part, slimmer bars, Reset in a menu; messages: handled ones dimmed; schedules: weekdays as circles, Run now and Delete in a menu, disabled schedules dimmed
+- Robots: tapping a robot opens its menu instead of switching on the spot; the active robot is labelled
+- Map: neutral rooms until selected, then clearly highlighted; calm room colours; path, obstacles and labels sized for every screen; no "View" chip (tap a room to start choosing); chips scroll to the edge; the panel names the selected rooms
+- Home and map share one room selection; the map button on the room card opens the room mode
+- Stop and "Reset counter" ask first; Back clears a selection or leaves a map tool instead of closing the app; leaving unsaved no-go changes asks to save or discard
+- Presets: long press offers run, rename, replace with the current selection and delete
+- "Turn on" in the history turns background recording on; colour roles: mint marks presets only
+
 Home screen redesign:
 
 - Status and controls in one card whose colour follows the state (docked, cleaning, paused, error), with a new robot drawing and one summary line: battery, what the robot or dock is doing, elapsed time and area
