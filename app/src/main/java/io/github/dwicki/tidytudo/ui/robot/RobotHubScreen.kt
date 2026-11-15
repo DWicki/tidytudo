@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.MeetingRoom
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Settings
@@ -31,7 +32,7 @@ import io.github.dwicki.tidytudo.ui.robotViewModel
 import io.github.dwicki.tidytudo.ui.components.NavigationRow
 
 /** Destinations reachable from the robot tab. */
-enum class RobotDestination { HISTORY, CONSUMABLES, EVENTS, SCHEDULES, SETTINGS, INFO, ROBOTS, APP_SETTINGS }
+enum class RobotDestination { HISTORY, CONSUMABLES, EVENTS, SCHEDULES, ROOMS, SETTINGS, INFO, ROBOTS, APP_SETTINGS }
 
 /** Entry list for maintenance, schedules, settings and info; rows appear only if the robot supports them. */
 @Composable
@@ -69,6 +70,11 @@ fun RobotHubScreen(robot: Robot, contentPadding: PaddingValues, onOpen: (RobotDe
         }
         item {
             Group(stringResource(R.string.hub_robot)) {
+                if (Capabilities.SEGMENT_CLEANING in capabilities) {
+                    NavigationRow(Icons.Outlined.MeetingRoom, stringResource(R.string.rooms_title), stringResource(R.string.hub_rooms_text)) {
+                        onOpen(RobotDestination.ROOMS)
+                    }
+                }
                 NavigationRow(Icons.Outlined.Tune, stringResource(R.string.settings_title), stringResource(R.string.hub_settings_text)) {
                     onOpen(RobotDestination.SETTINGS)
                 }

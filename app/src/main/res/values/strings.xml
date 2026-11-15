@@ -413,4 +413,13 @@
     <string name="recording_offer_text">Your robot forgets the path, obstacles and photos of a cleaning a few hours later. Tidytudo can stay connected in the background and save every cleaning the moment it ends, and tell you about errors and maintenance.\n\nThis uses one of the robot\'s connections and shows a quiet notification. You can change it any time in App settings.</string>
     <string name="recording_offer_yes">Turn on</string>
     <string name="recording_offer_no">Not now</string>
+    <!-- Rooms -->
+    <string name="rooms_title">Rooms</string>
+    <string name="hub_rooms_text">Rename the rooms on the map</string>
+    <string name="rooms_hint">Tap a room to rename it. You can also long-press a room on the home screen.</string>
+    <string name="rooms_rename_unsupported">This robot\'s Valetudo cannot rename rooms.</string>
+    <string name="rooms_rename_title">Rename room</string>
+    <string name="rooms_rename_action">Rename %1$s</string>
+    <string name="rooms_edit">Edit rooms</string>
+    <string name="rooms_empty">No rooms yet</string>
 </resources>

@@ -97,7 +97,13 @@ fun MainScreen(robot: Robot, robots: List<Robot>, onOpen: (RobotDestination) -> 
     ) { padding ->
         AnimatedContent(targetState = tab, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "tab") { current ->
             when (current) {
-                Tab.HOME -> HomeScreen(robot, padding, snackbar, onOpenMap = { tab = Tab.MAP })
+                Tab.HOME -> HomeScreen(
+                    robot,
+                    padding,
+                    snackbar,
+                    onOpenMap = { tab = Tab.MAP },
+                    onOpenRooms = { onOpen(RobotDestination.ROOMS) },
+                )
                 Tab.MAP -> MapScreen(robot, padding, snackbar)
                 Tab.ROBOT -> RobotHubScreen(robot, padding, onOpen)
             }

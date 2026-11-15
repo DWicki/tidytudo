@@ -25,6 +25,7 @@ import io.github.dwicki.tidytudo.ui.info.RobotInfoScreen
 import io.github.dwicki.tidytudo.ui.onboarding.AddRobotScreen
 import io.github.dwicki.tidytudo.ui.robot.RobotDestination
 import io.github.dwicki.tidytudo.ui.robots.RobotsScreen
+import io.github.dwicki.tidytudo.ui.rooms.RoomsScreen
 import io.github.dwicki.tidytudo.ui.schedules.SchedulesScreen
 import io.github.dwicki.tidytudo.ui.settings.RobotSettingsScreen
 
@@ -38,6 +39,7 @@ private object Routes {
     const val EVENTS = "events"
     const val SCHEDULES = "schedules"
     const val SETTINGS = "settings"
+    const val ROOMS = "rooms"
     const val INFO = "info"
     const val ROBOTS = "robots"
     const val APP_SETTINGS = "app_settings"
@@ -97,6 +99,7 @@ fun AppNavigation() {
         robotScreen(Routes.CONSUMABLES, robot, navController) { ConsumablesScreen(it, navController::popBackStack) }
         robotScreen(Routes.EVENTS, robot, navController) { EventsScreen(it, navController::popBackStack) }
         robotScreen(Routes.SCHEDULES, robot, navController) { SchedulesScreen(it, navController::popBackStack) }
+        robotScreen(Routes.ROOMS, robot, navController) { RoomsScreen(it, navController::popBackStack) }
         robotScreen(Routes.SETTINGS, robot, navController) { RobotSettingsScreen(it, navController::popBackStack) }
         robotScreen(Routes.INFO, robot, navController) { RobotInfoScreen(it, navController::popBackStack) }
         composable(Routes.ROBOTS) {
@@ -125,6 +128,7 @@ private val RobotDestination.route: String
         RobotDestination.CONSUMABLES -> Routes.CONSUMABLES
         RobotDestination.EVENTS -> Routes.EVENTS
         RobotDestination.SCHEDULES -> Routes.SCHEDULES
+        RobotDestination.ROOMS -> Routes.ROOMS
         RobotDestination.SETTINGS -> Routes.SETTINGS
         RobotDestination.INFO -> Routes.INFO
         RobotDestination.ROBOTS -> Routes.ROBOTS

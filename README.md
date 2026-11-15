@@ -47,8 +47,8 @@ flowchart LR
 - **Finds your robot** on the network (mDNS, with a subnet scan as fallback), or connect by address
 - **Live status**: battery, what the robot is doing, errors in plain language, dock and attachment state
 - **One-tap control**: start, pause, stop, dock, locate, with only the actions that make sense right now
-- **Rooms and presets**: clean selected rooms with passes, save room and mode combinations as presets
-- **Map**: rooms, walls, path, robot and dock, pinch-zoom; select rooms, draw zones, send the robot to a point, edit no-go and no-mop areas and virtual walls, rename rooms
+- **Rooms and presets**: clean selected rooms with passes, save room and mode combinations as presets, rename rooms from a list or by long-pressing them
+- **Map**: rooms, walls, path, robot and dock, pinch-zoom; select rooms, draw zones, send the robot to a point, edit no-go and no-mop areas and virtual walls
 - **Cleaning history**: every run with its map, duration, area, rooms and the photos of obstacles the robot recognised. Valetudo keeps none, so Tidytudo records it on your phone
 - **Care**: consumables with remaining life and reset, messages from the robot
 - **Schedules** in your local time (Valetudo stores UTC), with rooms and suction/water/mode per timer

@@ -390,4 +390,12 @@
     <string name="recording_offer_text">Dein Roboter vergisst Weg, Hindernisse und Fotos einer Reinigung nach einigen Stunden. Tidytudo kann im Hintergrund verbunden bleiben, jede Reinigung gleich nach dem Ende speichern und dich über Fehler und Wartung informieren.\n\nDas belegt eine der Verbindungen des Roboters und zeigt eine stille Benachrichtigung. Du kannst es jederzeit in den App-Einstellungen ändern.</string>
     <string name="recording_offer_yes">Einschalten</string>
     <string name="recording_offer_no">Jetzt nicht</string>
+    <string name="rooms_title">Räume</string>
+    <string name="hub_rooms_text">Räume auf der Karte umbenennen</string>
+    <string name="rooms_hint">Tippe auf einen Raum, um ihn umzubenennen. Auf dem Startbildschirm geht das auch mit langem Drücken.</string>
+    <string name="rooms_rename_unsupported">Das Valetudo dieses Roboters kann Räume nicht umbenennen.</string>
+    <string name="rooms_rename_title">Raum umbenennen</string>
+    <string name="rooms_rename_action">%1$s umbenennen</string>
+    <string name="rooms_edit">Räume bearbeiten</string>
+    <string name="rooms_empty">Noch keine Räume</string>
 </resources>

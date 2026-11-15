@@ -137,6 +137,11 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
         }
     }
 
+    /** Renames a room; the room chips reload so the new name shows at once. */
+    fun renameRoom(id: String, name: String) = run(ACTION_RENAME, onSuccess = ::refreshExtras) {
+        session.client.renameSegment(id, name)
+    }
+
     fun interact(event: RobotEvent, interaction: String) = run(event.id, onSuccess = ::refreshExtras) {
         session.client.interact(event.id, interaction)
     }
@@ -170,5 +175,6 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
         const val ACTION_LOCATE = "locate"
         const val ACTION_CLEAN_ROOMS = "clean_rooms"
         const val ACTION_MAP_CHANGE = "map_change"
+        const val ACTION_RENAME = "rename_room"
     }
 }

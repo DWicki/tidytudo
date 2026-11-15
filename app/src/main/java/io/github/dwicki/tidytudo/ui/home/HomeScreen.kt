@@ -26,15 +26,23 @@ import io.github.dwicki.tidytudo.R
 import io.github.dwicki.tidytudo.api.Capabilities
 import io.github.dwicki.tidytudo.api.Connection
 import io.github.dwicki.tidytudo.api.LiveState
+import io.github.dwicki.tidytudo.api.model.MapSegment
 import io.github.dwicki.tidytudo.data.CleaningPreset
 import io.github.dwicki.tidytudo.data.Robot
 import io.github.dwicki.tidytudo.ui.components.ErrorSnackbarEffect
 import io.github.dwicki.tidytudo.ui.components.rememberJobStarter
 import io.github.dwicki.tidytudo.ui.robotViewModel
+import io.github.dwicki.tidytudo.ui.rooms.RenameRoomDialog
 
 /** Daily control: status, main actions, rooms, presets, modes, dock (G-1: ≤ 2 taps to clean). */
 @Composable
-fun HomeScreen(robot: Robot, contentPadding: PaddingValues, snackbar: SnackbarHostState, onOpenMap: () -> Unit) {
+fun HomeScreen(
+    robot: Robot,
+    contentPadding: PaddingValues,
+    snackbar: SnackbarHostState,
+    onOpenMap: () -> Unit,
+    onOpenRooms: () -> Unit,
+) {
     val viewModel = robotViewModel(robot) { container, current -> HomeViewModel(container, current) }
     val live by viewModel.live.collectAsStateWithLifecycle()
     val extras by viewModel.extras.collectAsStateWithLifecycle()
@@ -43,6 +51,7 @@ fun HomeScreen(robot: Robot, contentPadding: PaddingValues, snackbar: SnackbarHo
     val presets by viewModel.presets.collectAsStateWithLifecycle()
     var presetDialog by rememberSaveable { mutableStateOf(false) }
     var presetToDelete by rememberSaveable { mutableStateOf<String?>(null) }
+    var roomToRename by rememberSaveable { mutableStateOf<String?>(null) }
 
     val startJob = rememberJobStarter()
     ErrorSnackbarEffect(viewModel.errors, snackbar)
@@ -61,9 +70,18 @@ fun HomeScreen(robot: Robot, contentPadding: PaddingValues, snackbar: SnackbarHo
         contentPadding = contentPadding,
         startJob = startJob,
         onOpenMap = onOpenMap,
+        onOpenRooms = onOpenRooms,
+        onRenameRoom = { roomToRename = it.id },
         onNewPreset = { presetDialog = true },
         onDeletePreset = { presetToDelete = it.id },
     )
+    extras.segments.firstOrNull { it.id == roomToRename }?.let { room ->
+        RenameRoomDialog(
+            currentName = room.name,
+            onSave = { name -> viewModel.renameRoom(room.id, name); roomToRename = null },
+            onDismiss = { roomToRename = null },
+        )
+    }
     PresetDialogs(
         viewModel = viewModel,
         presets = presets,
@@ -86,6 +104,8 @@ private fun HomeContent(
     contentPadding: PaddingValues,
     startJob: (() -> Unit) -> Unit,
     onOpenMap: () -> Unit,
+    onOpenRooms: () -> Unit,
+    onRenameRoom: (MapSegment) -> Unit,
     onNewPreset: () -> Unit,
     onDeletePreset: (CleaningPreset) -> Unit,
 ) {
@@ -128,6 +148,9 @@ private fun HomeContent(
                 onClean = { startJob(viewModel::cleanSelectedRooms) },
                 onSavePreset = onNewPreset,
                 onOpenMap = onOpenMap,
+                canRename = Capabilities.SEGMENT_RENAME in capabilities,
+                onOpenRooms = onOpenRooms,
+                onRenameRoom = onRenameRoom,
             )
         }
         item {

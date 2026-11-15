@@ -98,7 +98,7 @@ flowchart LR
 | F-4.2 | Zone cleaning: draw up to the reported number of rectangles, resize/move, iterations | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 | F-4.3 | Go to location: tap a point on the map | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 | F-4.4 | Edit no-go areas, no-mop areas and virtual walls and save them | 🔬 (works on the phone against the mock server; not yet on the real robot) |
-| F-4.5 | Rename rooms (`MapSegmentRenameCapability`): select one room on the map, then "Rename room" | 🔬 (works on the phone against the mock server; not yet on the real robot) |
+| F-4.5 | Rename rooms (`MapSegmentRenameCapability`) from a Rooms list (Robot tab, pencil on the home screen's room card), by long-pressing a room chip on the home screen, or from the map with one room selected; the dialog opens with the current name selected | 🔬 (all three ways work on the phone against the mock server; not yet on the real robot) |
 | F-4.6 | Presets: save a set of rooms + fan/water/mode as a named preset and start it in one tap | 🔬 (works on the phone against the mock server; not yet on the real robot) |
 
 ### F-5 Maintenance and information

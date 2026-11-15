@@ -2,6 +2,7 @@ package io.github.dwicki.tidytudo.ui.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.CleaningServices
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Map
@@ -33,8 +35,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -105,6 +109,9 @@ fun RoomsCard(
     onClean: () -> Unit,
     onSavePreset: () -> Unit,
     onOpenMap: () -> Unit,
+    canRename: Boolean,
+    onOpenRooms: () -> Unit,
+    onRenameRoom: (MapSegment) -> Unit,
 ) {
     if (segments.isEmpty()) return
     SectionCard(
@@ -116,14 +123,20 @@ fun RoomsCard(
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.home_rooms_on_map))
             }
+            if (canRename) {
+                IconButton(onClick = onOpenRooms) {
+                    Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.rooms_edit))
+                }
+            }
         },
     ) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             segments.forEach { segment ->
-                FilterChip(
+                RoomChip(
+                    name = segment.name ?: stringResource(R.string.room_unnamed, segment.id),
                     selected = segment.id in selection.ids,
                     onClick = { onToggleRoom(segment.id) },
-                    label = { Text(segment.name ?: stringResource(R.string.room_unnamed, segment.id)) },
+                    onLongClick = if (canRename) ({ onRenameRoom(segment) }) else null,
                 )
             }
         }
@@ -139,6 +152,39 @@ fun RoomsCard(
                     TextButton(onClick = onSavePreset) { Text(stringResource(R.string.home_save_preset)) }
                 }
             }
+        }
+    }
+}
+
+/**
+ * A filter chip that can also be long-pressed (to rename the room). Material's FilterChip has no
+ * long-press, so this draws the same shape and colours itself.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun RoomChip(name: String, selected: Boolean, onClick: () -> Unit, onLongClick: (() -> Unit)?) {
+    val colors = MaterialTheme.colorScheme
+    val longPressLabel = stringResource(R.string.rooms_rename_title)
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = if (selected) colors.secondaryContainer else colors.surfaceContainerLow,
+        contentColor = if (selected) colors.onSecondaryContainer else colors.onSurfaceVariant,
+        border = if (selected) null else BorderStroke(1.dp, colors.outline),
+        modifier = Modifier
+            .height(FilterChipDefaults.Height)
+            .combinedClickable(
+                role = Role.Checkbox,
+                onClick = onClick,
+                onLongClick = onLongClick,
+                onLongClickLabel = longPressLabel,
+            ),
+    ) {
+        Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (selected) {
+                Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize))
+                Spacer(Modifier.width(8.dp))
+            }
+            Text(name, style = MaterialTheme.typography.labelLarge)
         }
     }
 }

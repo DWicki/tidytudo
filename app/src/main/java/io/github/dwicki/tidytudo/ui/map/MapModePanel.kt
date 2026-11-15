@@ -21,13 +21,11 @@ import androidx.compose.material.icons.outlined.Grid4x4
 import androidx.compose.material.icons.outlined.HorizontalRule
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.WaterDrop
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,6 +44,7 @@ import io.github.dwicki.tidytudo.R
 import io.github.dwicki.tidytudo.map.EditableShape
 import io.github.dwicki.tidytudo.ui.components.rememberJobStarter
 import io.github.dwicki.tidytudo.ui.home.IterationPicker
+import io.github.dwicki.tidytudo.ui.rooms.RenameRoomDialog
 
 val MapMode.label: Int
     @StringRes get() = when (this) {
@@ -67,7 +66,13 @@ val MapMode.icon: ImageVector
 
 /** Bottom panel whose content follows the map mode; animates between modes. */
 @Composable
-fun ModePanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Unit, actions: MapViewModel, modifier: Modifier = Modifier) {
+fun ModePanel(
+    state: MapUiState,
+    onAddShape: (EditableShape.Kind) -> Unit,
+    actions: MapViewModel,
+    modifier: Modifier = Modifier,
+    roomName: (String) -> String? = { null },
+) {
     if (state.mode == MapMode.VIEW) return
     Surface(
         shape = MaterialTheme.shapes.extraLarge,
@@ -79,7 +84,7 @@ fun ModePanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Unit, actio
         AnimatedContent(targetState = state.mode, label = "mapMode") { mode ->
             Column(Modifier.padding(20.dp)) {
                 when (mode) {
-                    MapMode.ROOMS -> RoomsPanel(state, actions)
+                    MapMode.ROOMS -> RoomsPanel(state, actions, roomName)
                     MapMode.ZONES -> ZonesPanel(state, onAddShape, actions)
                     MapMode.GO_TO -> GoToPanel(state, actions)
                     MapMode.RESTRICTIONS -> RestrictionsPanel(state, onAddShape, actions)
@@ -91,7 +96,7 @@ fun ModePanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Unit, actio
 }
 
 @Composable
-private fun RoomsPanel(state: MapUiState, actions: MapViewModel) {
+private fun RoomsPanel(state: MapUiState, actions: MapViewModel, roomName: (String) -> String?) {
     val count = state.selectedSegments.size
     var renaming by remember { mutableStateOf(false) }
     Hint(if (count == 0) stringResource(R.string.map_rooms_hint) else pluralStringResource(R.plurals.map_rooms_selected, count, count))
@@ -104,30 +109,14 @@ private fun RoomsPanel(state: MapUiState, actions: MapViewModel) {
         }
     }
     if (renaming) {
-        RenameRoomDialog(onSave = { actions.renameSelectedRoom(it); renaming = false }, onDismiss = { renaming = false })
+        RenameRoomDialog(
+            currentName = state.selectedSegments.singleOrNull()?.let(roomName),
+            onSave = { actions.renameSelectedRoom(it); renaming = false },
+            onDismiss = { renaming = false },
+        )
     }
 }
 
-@Composable
-private fun RenameRoomDialog(onSave: (String) -> Unit, onDismiss: () -> Unit) {
-    var name by remember { mutableStateOf("") }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.map_rename_room)) },
-        text = {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it.take(MAX_ROOM_NAME) },
-                singleLine = true,
-                label = { Text(stringResource(R.string.map_room_name)) },
-            )
-        },
-        confirmButton = { TextButton(onClick = { onSave(name) }, enabled = name.isNotBlank()) { Text(stringResource(R.string.action_save)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
-    )
-}
-
-private const val MAX_ROOM_NAME = 30
 
 @Composable
 private fun ZonesPanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Unit, actions: MapViewModel) {

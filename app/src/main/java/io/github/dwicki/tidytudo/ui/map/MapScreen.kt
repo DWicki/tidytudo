@@ -126,6 +126,7 @@ private fun MapContent(
         ) {
             ModePanel(
                 modifier = Modifier.onSizeChanged { viewState.bottomInset = it.height.toFloat() },
+                roomName = { id -> map.segments.firstOrNull { it.id == id }?.name },
                 state = state,
                 onAddShape = { kind -> viewState.visibleCenter(map)?.let { viewModel.addShape(kind, it) } },
                 actions = viewModel,
