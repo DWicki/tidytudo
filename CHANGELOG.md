@@ -6,7 +6,7 @@ Cleaning mode and map, after a UX review against the Dreamehome app:
 
 - Mode, suction, water and the mop switches (extend to edges, furniture legs, twist) live in one sheet, opened from a single row that shows the current mode: right under the main button on Home, and on the map. Modes are big tiles; settings the mode does not use stay visible, greyed, with the reason
 - Robots with more than four suction levels get wrapping chips instead of a cramped segmented row; "custom" is not offered
-- Map: while nothing is chosen, the panel is a compact status card with the mode, "Clean all", and pause, dock and stop while the robot works; the room and zone panels show the mode above their clean button; selected rooms are listed in cleaning order
+- Map: the map gets the screen. Instead of a panel, small round buttons float over it: fit (or clear, passes and rename while choosing rooms) on the left, one play button in the middle (with the number of picked rooms; pause, dock and stop while a job runs), the cleaning mode on the right; time and area show in a small label while cleaning. The state is in the top bar
 - Map: picked rooms show their place in the cleaning order on the map; the map is centred and moves aside smoothly when the panel grows; neighbouring rooms never share a colour; the old path fades while choosing or drawing; restriction tools wrap
 - Dock buttons (wash, dry, empty) are always visible on Home
 - The app opens on the map; App settings has a Start screen choice (Map or Home)

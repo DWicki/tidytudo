@@ -5,13 +5,14 @@ import androidx.compose.material.icons.outlined.FitScreen
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import io.github.dwicki.tidytudo.api.Capabilities
 import io.github.dwicki.tidytudo.api.Connection
+import io.github.dwicki.tidytudo.ui.cleaning.CleaningModeButton
 import io.github.dwicki.tidytudo.ui.cleaning.CleaningModeRow
+import io.github.dwicki.tidytudo.api.model.StatusValue
+import io.github.dwicki.tidytudo.ui.rooms.RenameRoomDialog
 import io.github.dwicki.tidytudo.ui.components.rememberJobStarter
 import io.github.dwicki.tidytudo.ui.home.ConfirmDialog
 import io.github.dwicki.tidytudo.ui.home.HomeViewModel
-import io.github.dwicki.tidytudo.ui.home.StatusCard
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
 import androidx.activity.compose.BackHandler
@@ -94,21 +95,36 @@ fun MapScreen(
     val modeRow: @Composable () -> Unit = {
         CleaningModeRow(robot, snackbar, enabled = online, container = MaterialTheme.colorScheme.surfaceContainerHighest)
     }
-    val statusPanel: @Composable () -> Unit = {
-        StatusCard(
-            live = live,
+    var renaming by rememberSaveable { mutableStateOf(false) }
+    val status = live.state?.status?.value ?: StatusValue.UNKNOWN
+    // View and rooms mode: round buttons over the map instead of a panel; the state is in the top bar.
+    val controls: @Composable (onFit: () -> Unit) -> Unit = { onFit ->
+        val rooms = if (state.mode == MapMode.ROOMS) {
+            RoomsControls(
+                count = state.selectedSegments.size,
+                iterations = state.iterations,
+                maxIterations = state.segmentProperties.iterationCount.max,
+                onClear = viewModel::clearRooms,
+                onIterations = viewModel::setIterations,
+                onRename = if (state.canRename) ({ renaming = true }) else null,
+            )
+        } else {
+            null
+        }
+        MapControls(
+            status = status,
+            online = online,
+            busy = state.sending || busy == HomeViewModel.ACTION_TOGGLE || busy == HomeViewModel.ACTION_CLEAN_ROOMS,
             progress = progress,
-            canLocate = false,
-            busyAction = busy,
-            selectedRooms = 0,
-            onToggle = { startJob(home::toggle) },
-            onCleanRooms = {},
-            onStop = { confirmStop = true },
+            rooms = rooms,
+            onFit = onFit,
+            onMain = {
+                val running = status.isActive || status == StatusValue.PAUSED
+                if (rooms != null && !running) startJob(viewModel::cleanSelectedRooms) else startJob(home::toggle)
+            },
             onDock = home::dock,
-            onLocate = {},
-            compact = true,
-            extra = { raised -> CleaningModeRow(robot, snackbar, enabled = online, container = raised) },
-            hint = stringResource(R.string.map_view_hint).takeIf { Capabilities.SEGMENT_CLEANING in live.capabilities },
+            onStop = { confirmStop = true },
+            modeButton = { CleaningModeButton(robot, snackbar, enabled = online) },
         )
     }
 
@@ -136,6 +152,15 @@ fun MapScreen(
         )
     }
 
+    if (renaming) {
+        val id = state.selectedSegments.singleOrNull()
+        RenameRoomDialog(
+            currentName = map?.segments?.firstOrNull { it.id == id }?.name,
+            onSave = { viewModel.renameSelectedRoom(it); renaming = false },
+            onDismiss = { renaming = false },
+        )
+    }
+
     val currentMap = map
     when {
         currentMap == null -> LoadingBox(Modifier.padding(contentPadding))
@@ -145,7 +170,7 @@ fun MapScreen(
             text = stringResource(R.string.map_empty_text),
             modifier = Modifier.padding(contentPadding),
         )
-        else -> MapContent(currentMap, state, viewModel.availableModes(live.capabilities), viewModel, contentPadding, statusPanel, modeRow)
+        else -> MapContent(currentMap, state, viewModel.availableModes(live.capabilities), viewModel, contentPadding, controls, modeRow)
     }
 }
 
@@ -156,7 +181,7 @@ private fun MapContent(
     modes: List<MapMode>,
     viewModel: MapViewModel,
     contentPadding: PaddingValues,
-    statusPanel: @Composable () -> Unit,
+    controls: @Composable (onFit: () -> Unit) -> Unit,
     modeRow: @Composable () -> Unit,
 ) {
     val viewState = rememberMapViewState()
@@ -212,36 +237,35 @@ private fun MapContent(
             onSelect = { mode -> viewModel.setMode(if (mode == state.mode) MapMode.VIEW else mode) },
             modifier = Modifier.align(Alignment.TopStart).fillMaxWidth().padding(vertical = 12.dp),
         )
+        val floating = state.mode == MapMode.VIEW || state.mode == MapMode.ROOMS
         Column(
             Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                .onSizeChanged { viewState.bottomInset = it.height.toFloat() },
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SmallFloatingActionButton(
-                onClick = { viewState.fit(map) },
-                modifier = Modifier.align(Alignment.End),
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ) {
-                Icon(Icons.Outlined.FitScreen, contentDescription = stringResource(R.string.map_fit))
-            }
-            // Viewing: the robot's status and controls with the cleaning mode. A tool: that tool's panel.
-            AnimatedContent(
-                targetState = state.mode == MapMode.VIEW,
-                modifier = Modifier.onSizeChanged { viewState.bottomInset = it.height.toFloat() },
-                label = "mapPanel",
-            ) { viewing ->
-                if (viewing) {
-                    statusPanel()
+            AnimatedContent(targetState = floating, label = "mapControls") { showControls ->
+                if (showControls) {
+                    controls { viewState.fit(map) }
                 } else {
-                    ModePanel(
-                        roomName = { id -> map.segments.firstOrNull { it.id == id }?.name },
-                        state = state,
-                        onAddShape = { kind -> viewState.visibleCenter(map)?.let { viewModel.addShape(kind, it) } },
-                        actions = viewModel,
-                        modeRow = modeRow,
-                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SmallFloatingActionButton(
+                            onClick = { viewState.fit(map) },
+                            modifier = Modifier.align(Alignment.End),
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        ) {
+                            Icon(Icons.Outlined.FitScreen, contentDescription = stringResource(R.string.map_fit))
+                        }
+                        ModePanel(
+                            roomName = { id -> map.segments.firstOrNull { it.id == id }?.name },
+                            state = state,
+                            onAddShape = { kind -> viewState.visibleCenter(map)?.let { viewModel.addShape(kind, it) } },
+                            actions = viewModel,
+                            modeRow = modeRow,
+                        )
+                    }
                 }
             }
         }

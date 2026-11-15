@@ -424,7 +424,6 @@
     <string name="action_more">Weitere Optionen</string>
     <string name="events_done">Erledigt · %1$s</string>
     <string name="robots_active_short">Aktiv</string>
-    <string name="map_view_hint">Oder tippe Räume auf der Karte an, um sie auszuwählen.</string>
     <!-- Reinigungsmodus (Start und Karte) -->
     <string name="cleaning_mode_change">Ändern</string>
     <string name="cleaning_mode_spoken">Reinigungsmodus: %1$s</string>
@@ -451,4 +450,5 @@
     <string name="auto_empty_frequent">Auch während der Reinigung</string>
     <string name="app_settings_start_screen">Startbildschirm</string>
     <string name="app_settings_start_screen_text">Womit die App startet.</string>
+    <string name="map_passes_button">Durchgänge: %1$d. Tippen zum Ändern.</string>
 </resources>

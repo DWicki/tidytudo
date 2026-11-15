@@ -86,62 +86,16 @@ fun ModePanel(
         AnimatedContent(targetState = state.mode, label = "mapMode") { mode ->
             Column(Modifier.padding(20.dp)) {
                 when (mode) {
-                    MapMode.ROOMS -> RoomsPanel(state, actions, roomName, modeRow)
                     MapMode.ZONES -> ZonesPanel(state, onAddShape, actions, modeRow)
                     MapMode.GO_TO -> GoToPanel(state, actions)
                     MapMode.RESTRICTIONS -> RestrictionsPanel(state, onAddShape, actions)
-                    // The map shows the status card instead of this panel while viewing.
-                    MapMode.VIEW -> Unit
+                    // Viewing and choosing rooms use the round buttons over the map instead of this panel.
+                    MapMode.VIEW, MapMode.ROOMS -> Unit
                 }
             }
         }
     }
 }
-
-@Composable
-private fun RoomsPanel(state: MapUiState, actions: MapViewModel, roomName: (String) -> String?, modeRow: @Composable () -> Unit) {
-    val count = state.selectedSegments.size
-    var renaming by remember { mutableStateOf(false) }
-    if (count == 0) {
-        Hint(stringResource(R.string.map_rooms_hint))
-    } else {
-        // Which rooms, by name, and a way to start over.
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
-            Text(
-                // Numbered like the labels on the map when the robot cleans in this order.
-                state.selectedSegments.mapIndexed { index, id ->
-                    val name = roomName(id) ?: id
-                    if (state.segmentProperties.customOrderSupport && state.selectedSegments.size > 1) "${index + 1} $name" else name
-                }.joinToString(", "),
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
-            )
-            IconButton(onClick = actions::clearRooms) {
-                Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.home_rooms_clear))
-            }
-        }
-    }
-    if (count > 0) {
-        IterationPicker(state.iterations, state.segmentProperties.iterationCount.max, actions::setIterations)
-        Spacer(Modifier.height(8.dp))
-        modeRow()
-        val startJob = rememberJobStarter()
-        PrimaryAction(pluralStringResource(R.plurals.home_clean_rooms, count, count), !state.sending) { startJob(actions::cleanSelectedRooms) }
-        if (count == 1 && state.canRename) {
-            TextButton(onClick = { renaming = true }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.map_rename_room)) }
-        }
-    }
-    if (renaming) {
-        RenameRoomDialog(
-            currentName = state.selectedSegments.singleOrNull()?.let(roomName),
-            onSave = { actions.renameSelectedRoom(it); renaming = false },
-            onDismiss = { renaming = false },
-        )
-    }
-}
-
 
 @Composable
 private fun ZonesPanel(state: MapUiState, onAddShape: (EditableShape.Kind) -> Unit, actions: MapViewModel, modeRow: @Composable () -> Unit) {

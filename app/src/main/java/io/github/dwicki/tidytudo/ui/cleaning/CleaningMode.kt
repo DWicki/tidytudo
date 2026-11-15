@@ -59,6 +59,7 @@ import io.github.dwicki.tidytudo.api.Capabilities
 import io.github.dwicki.tidytudo.data.Robot
 import io.github.dwicki.tidytudo.ui.Labels
 import io.github.dwicki.tidytudo.ui.components.ErrorSnackbarEffect
+import io.github.dwicki.tidytudo.ui.components.MapRoundButton
 import io.github.dwicki.tidytudo.ui.components.ROW_HORIZONTAL_PADDING
 import io.github.dwicki.tidytudo.ui.components.SwitchListItem
 import io.github.dwicki.tidytudo.ui.components.TonalIcon
@@ -124,6 +125,24 @@ fun CleaningModeRow(
             onSwitch = viewModel::setSwitch,
             onDismiss = { open = false },
         )
+    }
+}
+
+/**
+ * The cleaning mode as a small round button over the map, showing the mode's icon; opens the same
+ * sheet as [CleaningModeRow]. TalkBack reads the whole mode, e.g. "Cleaning mode: Mop, Water: Low".
+ */
+@Composable
+fun CleaningModeButton(robot: Robot, snackbar: SnackbarHostState, enabled: Boolean, modifier: Modifier = Modifier) {
+    val viewModel = robotViewModel(robot) { app, current -> CleaningModeViewModel(app, current) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    ErrorSnackbarEffect(viewModel.errors, snackbar)
+    if (state.isEmpty) return
+    var open by rememberSaveable { mutableStateOf(false) }
+    val spoken = stringResource(R.string.cleaning_mode_spoken, listOfNotNull(headline(state), details(state)).joinToString(", "))
+    MapRoundButton(modeIcon(state.operationMode), spoken, onClick = { open = true }, modifier = modifier, enabled = enabled)
+    if (open) {
+        CleaningModeSheet(state = state, onPreset = viewModel::setPreset, onSwitch = viewModel::setSwitch, onDismiss = { open = false })
     }
 }
 

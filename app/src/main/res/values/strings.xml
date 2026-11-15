@@ -448,7 +448,6 @@
     <string name="action_more">More options</string>
     <string name="events_done">Done · %1$s</string>
     <string name="robots_active_short">In use</string>
-    <string name="map_view_hint">Or tap rooms on the map to choose them.</string>
     <!-- Cleaning mode row and sheet (Home and Map) -->
     <string name="cleaning_mode_change">Change</string>
     <string name="cleaning_mode_spoken">Cleaning mode: %1$s</string>
@@ -475,4 +474,5 @@
     <string name="auto_empty_frequent">Also during cleaning</string>
     <string name="app_settings_start_screen">Start screen</string>
     <string name="app_settings_start_screen_text">What the app opens with.</string>
+    <string name="map_passes_button">Passes: %1$d. Tap to change.</string>
 </resources>
