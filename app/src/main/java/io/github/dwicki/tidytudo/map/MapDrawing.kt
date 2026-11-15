@@ -47,7 +47,8 @@ fun rememberMapPalette(): MapPalette {
             floor = colors.surfaceContainerHighest,
             wall = colors.onSurfaceVariant,
             segments = accents.flatMap { listOf(lerp(colors.surface, it, 0.35f), lerp(colors.surface, it, 0.55f)) },
-            selectedSegment = colors.primary,
+            // Slightly muted, so the driven path stays visible on a selected room.
+            selectedSegment = lerp(colors.surface, colors.primary, 0.7f),
         )
     }
 }
