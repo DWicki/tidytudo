@@ -16,7 +16,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -227,12 +230,19 @@ private fun CarpetSensorCard(current: String, modes: List<String>, onSelect: (St
     val context = LocalContext.current
     val options = modes.ifEmpty { listOf(current) }
     ListCard(title = stringResource(R.string.settings_carpet_sensor_title)) {
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(horizontal = ROW_HORIZONTAL_PADDING, vertical = 8.dp)) {
+        // All segments as tall as the tallest, so a label on two lines ("Detach mop") keeps the row even.
+        SingleChoiceSegmentedButtonRow(
+            Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(horizontal = ROW_HORIZONTAL_PADDING, vertical = 8.dp),
+        ) {
             options.forEachIndexed { index, mode ->
                 SegmentedButton(
+                    modifier = Modifier.fillMaxHeight(),
                     selected = mode == current,
                     onClick = { onSelect(mode) },
                     shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                    // No check mark: with four options it squeezed the chosen label onto two lines and
+                    // made that one segment taller than the others. The fill marks the choice.
+                    icon = {},
                     label = { Text(Labels.carpetSensorMode(context, mode), maxLines = 2, textAlign = TextAlign.Center) },
                 )
             }

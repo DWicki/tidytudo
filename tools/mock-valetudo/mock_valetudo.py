@@ -231,7 +231,7 @@ class Robot:
                          "ObstacleAvoidanceControlCapability": True, "ObstacleImagesCapability": True,
                          "MopDockMopAutoDryingControlCapability": True, "MopExtensionControlCapability": True,
                          "MopTwistControlCapability": False, "MopExtensionFurnitureLegHandlingControlCapability": False}
-        self.carpet_sensor = "avoid"
+        self.carpet_sensor = "detach"
         self.wash_temperature = "warm"
         self.auto_empty_interval = "normal"
         self.version = 1  # bumped on every change, wakes SSE writers
@@ -472,7 +472,7 @@ class Handler(BaseHTTPRequestHandler):
             ("CurrentStatisticsCapability", ""): lambda: [{"type": "time", "value": 2_460}, {"type": "area", "value": 540_000}],
             ("PendingMapChangeHandlingCapability", ""): lambda: {"pending": False},
             ("CarpetSensorModeControlCapability", ""): lambda: {"mode": robot.carpet_sensor},
-            ("CarpetSensorModeControlCapability", "properties"): lambda: {"supportedModes": ["off", "avoid", "lift"]},
+            ("CarpetSensorModeControlCapability", "properties"): lambda: {"supportedModes": ["avoid", "off", "lift", "detach"]},
             ("MopDockMopWashTemperatureControlCapability", ""): lambda: {"temperature": robot.wash_temperature},
             ("MopDockMopWashTemperatureControlCapability", "properties"): lambda: {"supportedTemperatures": ["cold", "warm", "hot"]},
             ("AutoEmptyDockAutoEmptyIntervalControlCapability", ""): lambda: {"interval": robot.auto_empty_interval},

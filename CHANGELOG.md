@@ -46,6 +46,7 @@ Found while testing on a real robot:
 - Dialogs with a text field move above the keyboard; before, the keyboard hid Save and Cancel
 - When adding a robot by address, the Connect button stays above the keyboard on phones whose keyboard opens slowly
 - "Resume" no longer wraps onto two lines; while a job runs, the dock button is round
+- "When a carpet is detected": with four options, the chosen one ("Detach mop") no longer sticks out of the row
 - Locate confirms that the robot plays a sound
 - Debug builds install next to the release app as "Tidytudo Debug"
 
