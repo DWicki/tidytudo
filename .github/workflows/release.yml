@@ -1,6 +1,7 @@
 name: Release
 
 # Runs when a tag such as v1.0.0 is pushed: builds, signs and publishes the APK on GitHub.
+# Tags with a suffix (v1.0.0-beta.1) become pre-releases, so GitHub does not show them as "Latest".
 on:
   push:
     tags: ["v*"]
@@ -42,6 +43,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" "Tidytudo-${GITHUB_REF_NAME}.apk" \
+          PRERELEASE=""
+          case "$GITHUB_REF_NAME" in *-*) PRERELEASE="--prerelease" ;; esac
+          gh release create "$GITHUB_REF_NAME" "Tidytudo-${GITHUB_REF_NAME}.apk" $PRERELEASE \
             --title "Tidytudo ${GITHUB_REF_NAME#v}" \
             --notes-file "fastlane/metadata/android/en-US/changelogs/$(grep -oP 'versionCode = \K\d+' app/build.gradle.kts).txt"

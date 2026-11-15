@@ -1,4 +1,5 @@
 # Draft for https://gitlab.com/fdroid/fdroiddata (metadata/io.github.dwicki.tidytudo.yml)
+# To be submitted with the stable 1.0.0, not with the 1.0.0-beta.x pre-releases.
 Categories:
   - Connectivity
   - Smart Home

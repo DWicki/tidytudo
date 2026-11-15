@@ -1,8 +1,9 @@
 # Changelog
 
-## 1.0.0
+## 1.0.0-beta.1
 
-First release.
+First public beta. Reading data is verified on a real robot; commands that move the robot are so
+far verified against the mock server only (see docs/requirements/req42.md).
 
 - Find Valetudo robots on the network (mDNS, subnet scan as fallback) or add them by address; basic auth and self-signed certificates with fingerprint confirmation
 - Live status over server-sent events: status, battery, errors in plain language, dock and attachments
