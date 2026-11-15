@@ -1,5 +1,7 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import io.github.dwicki.tidytudo.ui.components.durationText
+import io.github.dwicki.tidytudo.ui.components.areaText
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
@@ -62,7 +64,7 @@ import io.github.dwicki.tidytudo.ui.Labels
 
 /** The big card at the top of the home screen: animated robot, status in words, battery ring. */
 @Composable
-fun StatusHero(live: LiveState, modifier: Modifier = Modifier) {
+fun StatusHero(live: LiveState, progress: JobProgress?, modifier: Modifier = Modifier) {
     val state = live.state
     val offline = live.connection is Connection.Offline
     // Shown while a state from an earlier connection waits to be confirmed; usually under a second.
@@ -86,6 +88,7 @@ fun StatusHero(live: LiveState, modifier: Modifier = Modifier) {
             Spacer(Modifier.width(20.dp))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 StatusHeadline(state, offline)
+                if (progress != null) ProgressLine(progress)
                 BatteryLine(state)
                 if (offline) OfflineChip(R.string.status_reconnecting)
                 if (stale) DelayedChip(R.string.status_updating)
@@ -102,13 +105,28 @@ private fun StatusHeadline(state: RobotState?, offline: Boolean) {
         state == null -> stringResource(R.string.status_connecting)
         else -> context.getString(Labels.status(state.status.value))
     }
-    val flag = state?.status?.flag?.let(Labels::statusFlag)?.let(context::getString)
+    // While docked, say what the dock is doing (emptying, washing, drying) instead of the job flag.
+    val dockActivity = state?.dockStatus?.takeIf { state.status.value == StatusValue.DOCKED && it != "idle" }
+    val flag = dockActivity?.let { Labels.dockStatus(context, it) }
+        ?: state?.status?.flag?.let(Labels::statusFlag)?.let(context::getString)
     AnimatedContent(targetState = headline, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "status") { text ->
         Text(text, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
     }
     if (flag != null) {
         Text(flag, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
     }
+}
+
+/** "12 minutes · 8 m²" for the running job. */
+@Composable
+private fun ProgressLine(progress: JobProgress) {
+    // Skip "0 minutes · 0 m²" at the start of a run.
+    val parts = listOfNotNull(
+        progress.seconds?.takeIf { it >= 60 }?.let { durationText(it) },
+        progress.areaCm2?.takeIf { it >= 10_000 }?.let { areaText(it) },
+    )
+    if (parts.isEmpty()) return
+    Text(parts.joinToString(" · "), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
 }
 
 @Composable

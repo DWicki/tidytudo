@@ -1,5 +1,7 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -42,7 +44,9 @@ fun ControlBar(
     enabled: Boolean,
     canLocate: Boolean,
     busyAction: String?,
+    selectedRooms: Int,
     onToggle: () -> Unit,
+    onCleanRooms: () -> Unit,
     onStop: () -> Unit,
     onDock: () -> Unit,
     onLocate: () -> Unit,
@@ -50,27 +54,38 @@ fun ControlBar(
     val status = state?.status?.value ?: StatusValue.UNKNOWN
     val active = status.isActive
     val hasJob = active || status == StatusValue.PAUSED
+    // One main action: selecting rooms turns "clean all" into "clean these rooms".
+    val mode = when {
+        active -> MainAction.PAUSE
+        status == StatusValue.PAUSED -> MainAction.RESUME
+        selectedRooms > 0 -> MainAction.CLEAN_ROOMS
+        else -> MainAction.CLEAN_ALL
+    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Button(
-            onClick = onToggle,
+            onClick = if (mode == MainAction.CLEAN_ROOMS) onCleanRooms else onToggle,
             enabled = enabled,
             modifier = Modifier.weight(1f).height(64.dp),
             shape = MaterialTheme.shapes.large,
         ) {
-            val label = when {
-                active -> R.string.action_pause
-                status == StatusValue.PAUSED -> R.string.action_resume
-                else -> R.string.action_start
-            }
-            AnimatedContent(targetState = active, label = "toggle") { pausing ->
+            AnimatedContent(targetState = mode, label = "main action") { action ->
                 ButtonContent(
-                    icon = if (pausing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    label = stringResource(label),
-                    busy = busyAction == HomeViewModel.ACTION_TOGGLE,
+                    icon = when (action) {
+                        MainAction.PAUSE -> Icons.Filled.Pause
+                        MainAction.CLEAN_ROOMS -> Icons.Outlined.CleaningServices
+                        else -> Icons.Filled.PlayArrow
+                    },
+                    label = when (action) {
+                        MainAction.PAUSE -> stringResource(R.string.action_pause)
+                        MainAction.RESUME -> stringResource(R.string.action_resume)
+                        MainAction.CLEAN_ALL -> stringResource(R.string.action_clean_all)
+                        MainAction.CLEAN_ROOMS -> pluralStringResource(R.plurals.home_clean_rooms, selectedRooms, selectedRooms)
+                    },
+                    busy = busyAction == HomeViewModel.ACTION_TOGGLE || busyAction == HomeViewModel.ACTION_CLEAN_ROOMS,
                 )
             }
         }
@@ -95,6 +110,8 @@ fun ControlBar(
         }
     }
 }
+
+private enum class MainAction { PAUSE, RESUME, CLEAN_ALL, CLEAN_ROOMS }
 
 @Composable
 private fun ButtonContent(icon: ImageVector, label: String, busy: Boolean) {

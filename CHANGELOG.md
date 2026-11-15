@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+Home screen:
+
+- One main button: "Clean all", or "Clean n rooms" as soon as rooms are selected; the second start button in the room card is gone
+- Elapsed time and cleaned area while the robot works
+- What the dock is doing (emptying, washing, drying) after a run
+- Mode, suction and water options wrap instead of scrolling sideways; the modes sit right below the rooms
+- A short hint explains tapping and long-pressing rooms; "Clear selection" undoes a selection
+- Without presets, a slim row explains them instead of a large empty tile
+
 Found while testing on a real robot:
 
 - A status kept from an earlier connection is marked "Updating…" until the robot answers, instead of looking current (a finished robot could still read "Cleaning" after reopening the app)

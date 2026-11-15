@@ -118,6 +118,7 @@ private fun HomeContent(
 ) {
     val online = live.connection == Connection.Online
     val capabilities = live.capabilities
+    val progress by viewModel.progress.collectAsStateWithLifecycle()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -128,14 +129,16 @@ private fun HomeContent(
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item { StatusHero(live) }
+        item { StatusHero(live, progress) }
         item {
             ControlBar(
                 state = live.state,
                 enabled = online,
                 canLocate = Capabilities.LOCATE in capabilities,
                 busyAction = busy,
+                selectedRooms = selection.ids.size,
                 onToggle = { startJob(viewModel::toggle) },
+                onCleanRooms = { startJob(viewModel::cleanSelectedRooms) },
                 onStop = viewModel::stop,
                 onDock = viewModel::dock,
                 onLocate = viewModel::locate,
@@ -152,7 +155,7 @@ private fun HomeContent(
                 enabled = online,
                 onToggleRoom = viewModel::toggleRoom,
                 onIterations = viewModel::setIterations,
-                onClean = { startJob(viewModel::cleanSelectedRooms) },
+                onClearSelection = viewModel::clearSelection,
                 onSavePreset = onNewPreset,
                 onOpenMap = onOpenMap,
                 canRename = Capabilities.SEGMENT_RENAME in capabilities,
@@ -160,6 +163,7 @@ private fun HomeContent(
                 onRenameRoom = onRenameRoom,
             )
         }
+        item { ModesCard(live.state, extras.presetOptions, online, viewModel::setPreset) }
         item {
             PresetsRow(
                 presets = presets,
@@ -170,7 +174,6 @@ private fun HomeContent(
                 onAdd = onNewPreset,
             )
         }
-        item { ModesCard(live.state, extras.presetOptions, online, viewModel::setPreset) }
         item { DockActionsCard(live.state, capabilities, busy, online, viewModel::triggerDock) }
     }
 }

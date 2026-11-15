@@ -17,6 +17,7 @@
     <string name="action_retry">Try again</string>
     <string name="action_save">Save</string>
     <string name="action_start">Start</string>
+    <string name="action_clean_all">Clean all</string>
     <string name="action_stop">Stop</string>
 
     <!-- Tabs and switcher -->
@@ -108,6 +109,9 @@
     <string name="home_mode_fan">Suction</string>
     <string name="home_mode_water">Water</string>
     <string name="home_rooms_title">Rooms</string>
+    <string name="home_rooms_hint">Tap rooms to clean only those.</string>
+    <string name="home_rooms_hint_rename">Tap rooms to clean only those. Long-press a room to rename it.</string>
+    <string name="home_rooms_clear">Clear selection</string>
     <string name="home_rooms_on_map">On map</string>
     <string name="room_unnamed">Room %1$s</string>
     <string name="home_passes">Passes</string>

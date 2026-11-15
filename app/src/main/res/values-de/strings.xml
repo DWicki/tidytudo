@@ -14,6 +14,7 @@
     <string name="action_retry">Nochmals versuchen</string>
     <string name="action_save">Speichern</string>
     <string name="action_start">Starten</string>
+    <string name="action_clean_all">Alles reinigen</string>
     <string name="action_stop">Stopp</string>
 
     <string name="tab_home">Start</string>
@@ -99,6 +100,9 @@
     <string name="home_mode_fan">Saugkraft</string>
     <string name="home_mode_water">Wasser</string>
     <string name="home_rooms_title">Räume</string>
+    <string name="home_rooms_hint">Tippe auf Räume, um nur diese zu reinigen.</string>
+    <string name="home_rooms_hint_rename">Tippe auf Räume, um nur diese zu reinigen. Lange drücken zum Umbenennen.</string>
+    <string name="home_rooms_clear">Auswahl aufheben</string>
     <string name="home_rooms_on_map">Auf der Karte</string>
     <string name="room_unnamed">Raum %1$s</string>
     <string name="home_passes">Durchgänge</string>

@@ -61,7 +61,8 @@ import io.github.dwicki.tidytudo.data.CleaningPreset
 import io.github.dwicki.tidytudo.ui.Labels
 import io.github.dwicki.tidytudo.ui.components.SectionCard
 
-/** Fan speed, water usage and operation mode as rows of chips (F-2.5); only reported presets. */
+/** Fan speed, water usage and operation mode as wrapping chips (F-2.5); only reported presets. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ModesCard(state: RobotState?, options: Map<String, List<String>>, enabled: Boolean, onSelect: (String, String) -> Unit) {
     if (options.values.all { it.isEmpty() }) return
@@ -76,7 +77,7 @@ fun ModesCard(state: RobotState?, options: Map<String, List<String>>, enabled: B
             val values = options[capability].orEmpty()
             if (values.isEmpty()) return@forEach
             Text(stringResource(label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 values.forEach { value ->
                     FilterChip(
                         selected = value == current,
@@ -96,7 +97,10 @@ fun ModesCard(state: RobotState?, options: Map<String, List<String>>, enabled: B
     }
 }
 
-/** Room selection with iteration count and one big "clean" button (F-4.1, list variant). */
+/**
+ * Room selection (F-4.1, list variant). Selected rooms turn the main button into "Clean n rooms",
+ * so there is a single start button on the screen.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RoomsCard(
@@ -106,7 +110,7 @@ fun RoomsCard(
     enabled: Boolean,
     onToggleRoom: (String) -> Unit,
     onIterations: (Int) -> Unit,
-    onClean: () -> Unit,
+    onClearSelection: () -> Unit,
     onSavePreset: () -> Unit,
     onOpenMap: () -> Unit,
     canRename: Boolean,
@@ -140,15 +144,20 @@ fun RoomsCard(
                 )
             }
         }
+        if (selection.ids.isEmpty()) {
+            Text(
+                stringResource(if (canRename) R.string.home_rooms_hint_rename else R.string.home_rooms_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
         AnimatedVisibility(visible = selection.ids.isNotEmpty()) {
             Column(Modifier.padding(top = 12.dp)) {
                 IterationPicker(selection.iterations, maxIterations, onIterations)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Button(onClick = onClean, enabled = enabled, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Outlined.CleaningServices, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(pluralStringResource(R.plurals.home_clean_rooms, selection.ids.size, selection.ids.size))
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = onClearSelection) { Text(stringResource(R.string.home_rooms_clear)) }
+                    Spacer(Modifier.weight(1f))
                     TextButton(onClick = onSavePreset) { Text(stringResource(R.string.home_save_preset)) }
                 }
             }
@@ -253,12 +262,27 @@ fun PresetsRow(
                     }
                 }
             }
-            OutlinedCard(onClick = onAdd, modifier = Modifier.width(150.dp), shape = MaterialTheme.shapes.large) {
-                Column(Modifier.padding(16.dp)) {
+            if (presets.isNotEmpty()) {
+                OutlinedCard(onClick = onAdd, modifier = Modifier.width(150.dp), shape = MaterialTheme.shapes.large) {
+                    Column(Modifier.padding(16.dp)) {
+                        Icon(Icons.Outlined.Add, contentDescription = null)
+                        Spacer(Modifier.height(12.dp))
+                        Text(stringResource(R.string.home_preset_new), style = MaterialTheme.typography.titleSmall)
+                        Text(stringResource(R.string.home_preset_new_hint), style = MaterialTheme.typography.bodySmall, maxLines = 2)
+                    }
+                }
+            }
+        }
+        // Without presets, a slim full-width row explains them instead of a large empty tile.
+        if (presets.isEmpty()) {
+            OutlinedCard(onClick = onAdd, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
+                Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Outlined.Add, contentDescription = null)
-                    Spacer(Modifier.height(12.dp))
-                    Text(stringResource(R.string.home_preset_new), style = MaterialTheme.typography.titleSmall)
-                    Text(stringResource(R.string.home_preset_new_hint), style = MaterialTheme.typography.bodySmall, maxLines = 2)
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(stringResource(R.string.home_preset_new), style = MaterialTheme.typography.titleSmall)
+                        Text(stringResource(R.string.home_preset_new_hint), style = MaterialTheme.typography.bodySmall)
+                    }
                 }
             }
         }

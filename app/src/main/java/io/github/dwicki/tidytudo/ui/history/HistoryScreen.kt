@@ -1,5 +1,7 @@
 package io.github.dwicki.tidytudo.ui.history
 
+import io.github.dwicki.tidytudo.ui.components.areaText
+import io.github.dwicki.tidytudo.ui.components.durationText
 import android.content.Context
 import android.text.format.DateUtils
 import androidx.compose.foundation.layout.Arrangement
@@ -137,12 +139,8 @@ fun ResultChip(result: CleaningSession.Result) {
 @Composable
 fun sessionSummary(session: CleaningSession): String {
     val seconds = session.effectiveDurationSeconds
-    val duration = if (seconds >= SECONDS_PER_HOUR) {
-        stringResource(R.string.duration_hours_minutes, (seconds / SECONDS_PER_HOUR).toInt(), ((seconds % SECONDS_PER_HOUR) / 60).toInt())
-    } else {
-        pluralStringResource(R.plurals.duration_minutes, (seconds / 60).toInt(), (seconds / 60).toInt())
-    }
-    val area = session.areaCm2?.let { stringResource(R.string.info_area_value, (it / CM2_PER_M2).toInt()) }
+    val duration = durationText(seconds)
+    val area = session.areaCm2?.let { areaText(it) }
     val rooms = session.roomNames.joinToString(", ").ifEmpty {
         stringResource(if (session.kind == "zone") R.string.flag_zone else R.string.home_preset_everything)
     }
@@ -161,5 +159,3 @@ fun sessionTitle(context: Context, session: CleaningSession): String {
 
 private const val THUMBNAILS = 3
 private const val THUMBNAIL_PIXELS = 160
-private const val SECONDS_PER_HOUR = 3600L
-private const val CM2_PER_M2 = 10_000L

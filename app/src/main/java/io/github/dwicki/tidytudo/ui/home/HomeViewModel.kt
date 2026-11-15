@@ -1,5 +1,15 @@
 package io.github.dwicki.tidytudo.ui.home
 
+import io.github.dwicki.tidytudo.api.Connection
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import io.github.dwicki.tidytudo.R
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.channels.Channel
@@ -35,6 +45,9 @@ data class HomeExtras(
     val pendingMapChange: Boolean = false,
 )
 
+/** Time and area of the running job, from `CurrentStatisticsCapability`. */
+data class JobProgress(val seconds: Long?, val areaCm2: Long?)
+
 data class RoomSelection(val ids: List<String> = emptyList(), val iterations: Int = 1)
 
 class HomeViewModel(private val container: AppContainer, private val robot: Robot) : CommandViewModel() {
@@ -51,6 +64,23 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
     /** Name of the action whose request is in flight, to show a spinner on exactly that button. */
     private val busyState = MutableStateFlow<String?>(null)
     val busy: StateFlow<String?> = busyState.asStateFlow()
+
+    /** Polled while the robot works and the home screen is visible; null otherwise. */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val progress: StateFlow<JobProgress?> = live
+        .map { Capabilities.CURRENT_STATISTICS in it.capabilities && it.connection == Connection.Online && QuickActions.isCleaning(it.state) }
+        .distinctUntilChanged()
+        .flatMapLatest { working -> if (working) pollProgress() else flowOf(null) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), null)
+
+    private fun pollProgress() = flow {
+        while (true) {
+            session.client.currentStatistics().getOrNull()?.let { points ->
+                emit(JobProgress(points.firstOrNull { it.type == "time" }?.value, points.firstOrNull { it.type == "area" }?.value))
+            }
+            delay(PROGRESS_POLL_MS)
+        }
+    }
 
     private val presetsState = MutableStateFlow(robot.presets)
     val presets: StateFlow<List<CleaningPreset>> = presetsState.asStateFlow()
@@ -186,6 +216,8 @@ class HomeViewModel(private val container: AppContainer, private val robot: Robo
     }
 
     companion object {
+        private const val PROGRESS_POLL_MS = 15_000L
+        private const val STOP_TIMEOUT_MS = 5_000L
         const val ACTION_TOGGLE = "toggle"
         const val ACTION_STOP = "stop"
         const val ACTION_DOCK = "dock"
