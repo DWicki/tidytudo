@@ -1,0 +1,1 @@
+Roboter-Einstellungen: Bei „Wenn ein Teppich erkannt wird" ragt die gewählte Option (etwa „Mopp ablegen") nicht mehr aus der Reihe, wenn der Roboter vier Optionen anbietet.

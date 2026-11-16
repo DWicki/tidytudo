@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0-beta.3
+
+A small fix on top of beta.2.
+
+- "When a carpet is detected": with four options, the chosen one ("Detach mop") no longer sticks out of the row
+
 ## 1.0.0-beta.2
 
 Second beta: a map-first app with one place for the cleaning mode, a new home screen and the robot's state in the top bar.
@@ -46,7 +52,6 @@ Found while testing on a real robot:
 - Dialogs with a text field move above the keyboard; before, the keyboard hid Save and Cancel
 - When adding a robot by address, the Connect button stays above the keyboard on phones whose keyboard opens slowly
 - "Resume" no longer wraps onto two lines; while a job runs, the dock button is round
-- "When a carpet is detected": with four options, the chosen one ("Detach mop") no longer sticks out of the row
 - Locate confirms that the robot plays a sound
 - Debug builds install next to the release app as "Tidytudo Debug"
 

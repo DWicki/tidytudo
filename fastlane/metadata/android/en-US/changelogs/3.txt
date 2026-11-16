@@ -1,0 +1,1 @@
+Robot settings: in "When a carpet is detected", the chosen option (such as "Detach mop") no longer sticks out of the row when the robot offers four options.
