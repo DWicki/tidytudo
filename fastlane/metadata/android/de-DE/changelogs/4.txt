@@ -1,0 +1,1 @@
+Verlauf: Ein Reinigungsauftrag ist jetzt ein Eintrag. Stopps an der Station während des Auftrags (Mopp waschen, Entleeren, Aufladen) und eine verlorene WLAN- oder VPN-Verbindung teilen ihn nicht mehr in mehrere unvollständige Einträge auf. Ein Auftrag wird gespeichert, sobald der Roboter 5 Minuten geruht hat.

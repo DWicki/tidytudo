@@ -1,0 +1,1 @@
+History: one cleaning job is now one entry. Stops at the dock during a job (washing the mop, emptying, recharging) and a lost Wi-Fi or VPN connection no longer split it into several incomplete entries. A job is saved once the robot has rested for 5 minutes.
