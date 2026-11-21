@@ -11,6 +11,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import java.io.File
+import java.io.IOException
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
@@ -41,10 +42,38 @@ class HistoryStore(private val root: File) {
         }
     }
 
+    /**
+     * Updates a stored session in place, e.g. when the robot carried on with a job after it was
+     * stored. Photos already on the phone stay and are marked as present; the map is replaced.
+     * Returns false, changing nothing, if the session is gone (deleted or pruned meanwhile).
+     *
+     * The map is swapped in before the index is written: if the app dies in between, the entry
+     * keeps its old fingerprint, so the next attempt does not take the run as known and updates the
+     * entry again (its new map's path is still the start of the robot's run).
+     */
+    suspend fun replace(session: CleaningSession, mapJson: String): Boolean = lock.withLock {
+        withContext(Dispatchers.IO) {
+            if (sessionsState.value.none { it.id == session.id }) return@withContext false
+            val folder = folder(session.id).apply { mkdirs() }
+            val pending = File(folder, "$MAP_FILE.new")
+            writeGzip(pending, mapJson)
+            replaceFile(pending, File(folder, MAP_FILE))
+            val withPhotos = session.copy(
+                obstacles = session.obstacles.map { it.copy(hasImage = imageFile(session.id, it.id).exists()) },
+            )
+            val updated = sessionsState.value.map { if (it.id == session.id) withPhotos else it }.sortedByDescending { it.startedAt }
+            writeIndex(updated)
+            sessionsState.value = updated
+            true
+        }
+    }
+
     /** Adds a photo to a stored session; photos arrive one by one because the robot rate-limits them. */
     suspend fun attachImage(sessionId: String, obstacleId: String, bytes: ByteArray) = lock.withLock {
         withContext(Dispatchers.IO) {
-            if (sessionsState.value.none { it.id == sessionId }) return@withContext
+            // The entry may have been deleted or updated without this obstacle while the photo downloaded.
+            val session = sessionsState.value.firstOrNull { it.id == sessionId } ?: return@withContext
+            if (session.obstacles.none { it.id == obstacleId }) return@withContext
             imageFile(sessionId, obstacleId).writeBytes(bytes)
             val updated = sessionsState.value.map { session ->
                 if (session.id != sessionId) {
@@ -99,10 +128,14 @@ class HistoryStore(private val root: File) {
         root.mkdirs()
         val temporary = File(root, "index.json.tmp")
         temporary.writeText(JsonCodec.json.encodeToString(ListSerializer(CleaningSession.serializer()), sessions))
-        if (!temporary.renameTo(indexFile)) {
-            indexFile.delete()
-            temporary.renameTo(indexFile)
-        }
+        replaceFile(temporary, indexFile)
+    }
+
+    /** Moves [source] over [target]; throws if that fails, so a caller never takes a missing file for success. */
+    private fun replaceFile(source: File, target: File) {
+        if (source.renameTo(target)) return
+        target.delete()
+        if (!source.renameTo(target)) throw IOException("Could not replace ${target.name}")
     }
 
     private fun writeGzip(file: File, text: String) = GZIPOutputStream(file.outputStream()).bufferedWriter().use { it.write(text) }

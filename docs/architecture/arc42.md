@@ -183,14 +183,21 @@ sequenceDiagram
     S-->>R: observedState: status cleaning
     R->>V: GET /robot/state/map (active rooms)
     S-->>R: observedState: error (message kept)
-    S-->>R: observedState: docked / idle
-    R->>V: GET CurrentStatisticsCapability
+    S-->>R: observedState: docked / idle (not resumable)
+    Note over R: settle 5 min; any work, resumable flag or lost connection cancels it
+    R->>V: GET /robot/state (still resting?)
     R->>V: GET /robot/state/map (with path, obstacles)
-    loop each obstacle with an id (max 60)
+    R->>V: GET CurrentStatisticsCapability
+    R->>H: add, or replace the entry whose path the robot continued
+    loop each obstacle with an id (max 60), one worker per robot
         R->>V: GET ObstacleImagesCapability/img/{id}
+        R->>H: attachImage
     end
-    R->>H: add(session, map.json.gz, photos)
 ```
+
+`JobTracker` holds the rules (when a job begins, when a rest counts, errors); the recorder runs the
+settle timers and storage. Short stops at the dock during a job last seconds, so a fixed settle
+time separates them from the end of a job; a mid-job recharge is reported as `resumable`.
 
 The recorder collects `RobotSession.observedState`, which does not start a stream. It therefore
 only sees runs while the UI, the widget/tile or the monitoring service keeps the connection open.

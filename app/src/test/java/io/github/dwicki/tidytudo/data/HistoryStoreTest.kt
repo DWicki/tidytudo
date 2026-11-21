@@ -38,6 +38,34 @@ class HistoryStoreTest {
     }
 
     @Test
+    fun `replacing a session keeps downloaded photos and swaps the map`() = runBlocking {
+        val store = HistoryStore(folder.root)
+        store.add(session("s1"), mapJson = "old", images = mapOf("o-1" to byteArrayOf(1)))
+        val continued = session("s1").copy(
+            endedAt = 999_000,
+            obstacles = listOf(SessionObstacle("o-1", "Sock", 10f, 20f), SessionObstacle("o-2", "Cable", 30f, 40f)),
+        )
+        assertTrue(store.replace(continued, mapJson = "new"))
+
+        val reopened = HistoryStore(folder.root)
+        val stored = reopened.sessions.value.single()
+        assertEquals(999_000L, stored.endedAt)
+        assertEquals(listOf(true, false), stored.obstacles.map { it.hasImage })
+        assertEquals("new", reopened.mapJson("s1"))
+    }
+
+    @Test
+    fun `a deleted session is not brought back by replace, nor a photo for an obstacle it lacks`() = runBlocking {
+        val store = HistoryStore(folder.root)
+        assertFalse(store.replace(session("gone"), mapJson = "{}"))
+        assertTrue(store.sessions.value.isEmpty())
+
+        store.add(session("s1"), mapJson = "{}", images = emptyMap())
+        store.attachImage("s1", "not-in-run", byteArrayOf(1))
+        assertFalse(store.imageFile("s1", "not-in-run").exists())
+    }
+
+    @Test
     fun `sessions are sorted newest first and deleting removes files`() = runBlocking {
         val store = HistoryStore(folder.root)
         store.add(session("old", startedAt = 1L), null, emptyMap())

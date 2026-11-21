@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- History: one cleaning job is one entry. Stops at the dock during a job (washing the mop, emptying, recharging) and a lost connection (Wi-Fi, VPN) no longer split it into several incomplete entries; a job is stored once the robot has rested for 5 minutes. For "vacuum, then mop" the entry holds the mop phase, because the robot starts a new track for it. An entry stored too early is updated when the robot carries on, with the full track and the photos the robot still has. Background monitoring keeps watching a job started from the app until it is stored
+
 ## 1.0.0-beta.3
 
 A small fix on top of beta.2.

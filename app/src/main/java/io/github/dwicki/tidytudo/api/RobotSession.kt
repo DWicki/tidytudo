@@ -56,7 +56,12 @@ class RobotSession(val client: ValetudoClient, scope: CoroutineScope) {
         // mark it as not current until the robot answers again.
         liveState.update { if (it.connection == Connection.Online) it.copy(connection = Connection.Connecting) else it }
         launch { liveState.collect { send(it) } }
-        runLiveLoop()
+        try {
+            runLiveLoop()
+        } finally {
+            // Nobody streams the state any more: the last one is no longer live (the history recorder relies on this).
+            liveState.update { if (it.connection == Connection.Online) it.copy(connection = Connection.Connecting) else it }
+        }
     }.stateIn(scope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), LiveState())
 
     /**

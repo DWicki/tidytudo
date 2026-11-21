@@ -10,6 +10,7 @@ updates over server-sent events like the real thing. Standard library only.
     python3 tools/mock-valetudo/mock_valetudo.py --auth demo:demo
     python3 tools/mock-valetudo/mock_valetudo.py --profile basic   # fewer capabilities
     python3 tools/mock-valetudo/mock_valetudo.py --dump-map app/src/test/resources/demo_map.json
+    python3 tools/mock-valetudo/mock_valetudo.py --dock-stops 60  # stop at the dock every 60 path points
 
 The phone reaches the mock via the PC's LAN address, or via `adb reverse tcp:8080 tcp:8080`
 and the address `127.0.0.1:8080` in the app.
@@ -190,8 +191,15 @@ def lawnmower(room, step=8):
 
 
 class Robot:
-    def __init__(self, profile):
+    def __init__(self, profile, dock_stop_every=0):
         self.lock = threading.Condition()
+        # Like a robot that washes its mop or empties its bin during a job: it reads "docked" for a
+        # few seconds, keeps its path and carries on. 0 turns this off.
+        self.dock_stop_every = dock_stop_every
+        self.resume_at = None
+        self.resume_route = []
+        # "vacuum, then mop": after the vacuum leg the robot docks briefly and mops with a new path.
+        self.phases_left = []
         self.capabilities = BASIC_CAPABILITIES if profile == "basic" else FULL_CAPABILITIES
         self.status = "docked"
         self.flag = "none"
@@ -304,6 +312,7 @@ class Robot:
         else:
             self.route = [p for room in rooms for p in lawnmower(room)]
             self.path = []
+            self.phases_left = [list(self.route)] if self.presets.get("operation_mode") == "vacuum_then_mop" else []
             self.active_segments = set(segment_ids or [])
             self.status = "cleaning"
             self.flag = flag
@@ -323,11 +332,18 @@ class Robot:
                     self.position = nxt
                     if self.status == "cleaning":
                         self.path.append(nxt)
+                        if self.dock_stop_every and len(self.path) % self.dock_stop_every == 0 and self.route:
+                            self.dock_for_a_moment(self.route)
+                            break
                 if int(time.time()) % 8 == 0:
                     self.battery = max(5, self.battery - 1)
                 if not self.route:
                     self.finish_leg()
                 self.changed()
+            elif self.status == "docked" and self.resume_at is not None:
+                if time.time() >= self.resume_at:
+                    self.status, self.route, self.resume_at = "cleaning", self.resume_route, None
+                    self.changed()
             elif self.status == "docked" and self.battery < 100 and int(time.time()) % 3 == 0:
                 self.battery += 1
                 self.changed()
@@ -336,11 +352,19 @@ class Robot:
         if self.status == "cleaning":
             self.status, self.flag = "returning", "none"
             self.route = self.straight(self.position, CHARGER)
+        elif self.status == "returning" and self.phases_left:
+            # Mop phase: a fresh path and fresh statistics, as the real robot reports it.
+            self.path = []
+            self.dock_for_a_moment(self.phases_left.pop(0))
         elif self.status == "returning":
             self.status, self.flag = "docked", "none"
             self.active_segments = set()
         elif self.status == "moving":
             self.status, self.flag = "idle", "none"
+
+    def dock_for_a_moment(self, then_route, seconds=15):
+        self.status, self.flag = "docked", "none"
+        self.resume_route, self.route, self.resume_at = list(then_route), [], time.time() + seconds
 
     @staticmethod
     def straight(start, end):
@@ -654,9 +678,11 @@ def main():
     parser.add_argument("--auth", help="enable basic auth, e.g. demo:demo")
     parser.add_argument("--profile", choices=["full", "basic"], default="full")
     parser.add_argument("--dump-map", metavar="PATH", help="write the demo map as JSON and exit")
+    parser.add_argument("--dock-stops", type=int, default=0, metavar="N",
+                        help="stop at the dock for 15 s every N path points during a job, like mop washing")
     args = parser.parse_args()
 
-    robot = Robot(args.profile)
+    robot = Robot(args.profile, args.dock_stops)
     if args.dump_map:
         with open(args.dump_map, "w", encoding="utf-8") as out:
             json.dump(robot.map(), out, separators=(",", ":"))

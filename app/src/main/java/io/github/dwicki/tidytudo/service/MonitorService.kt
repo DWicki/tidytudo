@@ -19,6 +19,10 @@ import io.github.dwicki.tidytudo.ui.Labels
 import io.github.dwicki.tidytudo.util.AppLog
 import io.github.dwicki.tidytudo.widget.RobotWidgetProvider
 import kotlinx.coroutines.Job
+import io.github.dwicki.tidytudo.api.LiveState
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -89,19 +93,32 @@ class MonitorService : LifecycleService() {
         }
     }
 
-    private suspend fun watchState(robot: Robot) {
+    private suspend fun watchState(robot: Robot): Unit = coroutineScope {
         var previous: StatusValue? = null
-        var sawCleaning = false
-        appContainer.session(robot).live.collect { live ->
-            val state = live.state ?: return@collect
+        // A job started from the app may still read "docked" for a moment, so wait until it was seen running.
+        val sawCleaning = MutableStateFlow(false)
+        val live = appContainer.session(robot).live
+        launch { releaseWhenStored(robot, live, sawCleaning) }
+        live.collect { current ->
+            val state = current.state ?: return@collect
             updateCleaningNotification(robot, state)
             if (state.status.value == StatusValue.ERROR && previous != StatusValue.ERROR) notifyError(robot, state)
-            if (previous != null && previous != state.status.value) RobotWidgetProvider.refresh(this)
-            // A job started from the app may still read "docked" for a moment, so wait until it was seen running.
-            if (QuickActions.isCleaning(state)) sawCleaning = true
-            if (sawCleaning && !QuickActions.isCleaning(state)) activeRobots.update { it - robot.id }
+            if (previous != null && previous != state.status.value) RobotWidgetProvider.refresh(this@MonitorService)
+            if (QuickActions.isCleaning(state)) sawCleaning.value = true
             previous = state.status.value
         }
+    }
+
+    /**
+     * Ends the watch of a job started from the app once the history recorder has stored it. Stops at
+     * the dock during a job last seconds, so "not cleaning" alone would end the watch too early and
+     * leave the rest of the job unrecorded (F-8.1).
+     */
+    private suspend fun releaseWhenStored(robot: Robot, live: StateFlow<LiveState>, sawCleaning: StateFlow<Boolean>) {
+        combine(live, appContainer.recorder.openJobs, sawCleaning) { current, open, saw ->
+            saw && !QuickActions.isCleaning(current.state) && robot.id !in open
+        }.first { it }
+        activeRobots.update { it - robot.id }
     }
 
     private fun updateCleaningNotification(robot: Robot, state: RobotState) {
